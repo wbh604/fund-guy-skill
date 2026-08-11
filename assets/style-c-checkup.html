@@ -1,0 +1,511 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>基金经理体检报告 · 陈述 · 总检结论:可以买</title>
+<style>
+:root{
+  --bg:#eef3f4; --card:#ffffff; --head:#0e7c86; --head2:#0a5a62;
+  --ink:#1d2b32; --muted:#5b6b73; --ghost:#93a3ab;
+  --line:#dce6e9; --line2:#b9cdd2;
+  --ok:#1a9e6e; --bad:#d64545; --warn:#c98212;
+  --ok-bg:#e9f7f1; --bad-bg:#fdecec; --warn-bg:#fdf3e2;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--ink);
+  font-family:-apple-system,'PingFang SC','Microsoft YaHei',sans-serif;
+  font-variant-numeric:tabular-nums;line-height:1.65;font-size:14px}
+.wrap{max-width:820px;margin:0 auto;padding:26px 18px 110px}
+.mock{position:fixed;right:-36px;top:26px;transform:rotate(45deg);background:var(--warn);
+  color:#fff;font-size:11px;font-weight:900;padding:4px 46px;letter-spacing:.25em;z-index:99}
+
+/* 医院头 */
+.hosp{background:var(--card);border-radius:12px 12px 0 0;border:1px solid var(--line);
+  border-bottom:3px solid var(--head);padding:22px 28px;display:flex;align-items:center;gap:16px}
+.hosp .cross{width:46px;height:46px;border-radius:10px;background:var(--head);color:#fff;
+  display:flex;align-items:center;justify-content:center;font-size:26px;font-weight:900}
+.hosp h1{font-size:21px;font-weight:900;letter-spacing:.06em}
+.hosp .en{font-size:10px;color:var(--ghost);letter-spacing:.2em}
+.hosp .no{margin-left:auto;text-align:right;font-size:11px;color:var(--muted);line-height:1.8}
+
+/* 受检人条 */
+.patient{background:var(--card);border:1px solid var(--line);border-top:0;
+  padding:14px 28px;display:flex;flex-wrap:wrap;gap:8px 34px;font-size:13px}
+.patient b{font-weight:800}
+.patient .k{color:var(--ghost);margin-right:6px}
+
+/* 总检结论 */
+.summary{background:var(--card);border:1px solid var(--line);border-top:0;
+  border-radius:0 0 12px 12px;padding:30px 28px;display:grid;
+  grid-template-columns:150px 1fr 150px;gap:26px;align-items:center;position:relative}
+.score-ring{position:relative;width:150px;height:150px}
+.score-ring svg{transform:rotate(-90deg)}
+.score-ring .txt{position:absolute;inset:0;display:flex;flex-direction:column;
+  align-items:center;justify-content:center}
+.score-ring .n{font-size:44px;font-weight:900;color:var(--head);line-height:1}
+.score-ring .k{font-size:10px;color:var(--ghost);letter-spacing:.15em;margin-top:3px}
+.sum-mid .grade{font-size:15px;font-weight:800;color:var(--head)}
+.sum-mid h2{font-size:25px;font-weight:900;margin-top:6px;line-height:1.5}
+.sum-mid h2 .u{text-decoration:underline;text-decoration-color:var(--ok);
+  text-decoration-thickness:3px;text-underline-offset:5px}
+.sum-mid p{margin-top:10px;font-size:13px;color:var(--muted)}
+.doc-stamp{width:132px;height:132px;border:4px solid var(--ok);border-radius:50%;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  color:var(--ok);transform:rotate(9deg);background:var(--ok-bg);justify-self:end}
+.doc-stamp .b{font-size:26px;font-weight:900}
+.doc-stamp .s{font-size:10px;letter-spacing:.2em;margin-top:3px}
+@media(max-width:700px){.summary{grid-template-columns:1fr;justify-items:center;text-align:center}
+  .doc-stamp{justify-self:center}}
+
+/* 科室 */
+.dept{background:var(--card);border:1px solid var(--line);border-radius:12px;margin-top:18px;overflow:hidden}
+.dept-head{background:linear-gradient(90deg,var(--head),var(--head2));color:#fff;
+  padding:12px 22px;display:flex;align-items:center;gap:10px}
+.dept-head .ico{font-size:17px}
+.dept-head .ti{font-size:15.5px;font-weight:900;letter-spacing:.05em}
+.dept-head .r{margin-left:auto;font-size:11px;opacity:.85}
+.dept-body{padding:20px 22px}
+
+/* 化验表 */
+table{width:100%;border-collapse:collapse;font-size:13px}
+th{text-align:left;padding:8px 10px;color:var(--ghost);font-size:11px;font-weight:800;
+  letter-spacing:.1em;border-bottom:2px solid var(--line2)}
+td{padding:10px;border-bottom:1px solid var(--line);vertical-align:middle}
+tr:last-child td{border-bottom:0}
+td.v{font-weight:900;font-size:15px;white-space:nowrap}
+td.ref{color:var(--ghost);font-size:12px;white-space:nowrap}
+.arrow{display:inline-flex;align-items:center;justify-content:center;
+  min-width:38px;padding:2px 8px;border-radius:4px;font-weight:900;font-size:12px}
+.arrow.hi{background:var(--ok-bg);color:var(--ok)}
+.arrow.lo{background:var(--bad-bg);color:var(--bad)}
+.arrow.mid{background:#f0f3f4;color:var(--ghost)}
+.arrow.wa{background:var(--warn-bg);color:var(--warn)}
+tr.abn td{background:var(--bad-bg)}
+tr.abn2 td{background:var(--warn-bg)}
+
+/* 影像所见 */
+.finding{display:flex;gap:12px;padding:11px 0;border-bottom:1px dashed var(--line);font-size:13.5px}
+.finding:last-child{border:0}
+.finding .st{flex-shrink:0;width:64px;text-align:center;font-weight:900;font-size:12px;
+  padding:3px 0;border-radius:4px;height:fit-content}
+.finding .st.ok3{background:var(--ok-bg);color:var(--ok)}
+.finding .st.wa3{background:var(--warn-bg);color:var(--warn)}
+.finding b{font-weight:800}
+.finding .d{color:var(--muted);font-size:12.5px;margin-top:2px}
+
+/* 病史卡 */
+.case{border:1px solid var(--line);border-left:4px solid var(--bad);border-radius:8px;
+  padding:16px 18px;margin-top:12px}
+.case.mild{border-left-color:var(--warn)}
+.case-head{display:flex;justify-content:space-between;align-items:baseline;flex-wrap:wrap;gap:6px}
+.case-head b{font-size:14.5px}
+.case-head .loss{font-weight:900;color:var(--bad);font-size:16px}
+.case.mild .loss{color:var(--warn)}
+.case p{font-size:13px;color:var(--muted);margin-top:8px;line-height:1.75}
+.case .dx{margin-top:10px;padding:9px 13px;background:var(--bg);border-radius:6px;
+  font-size:12.5px}
+.case .dx b{color:var(--ink)}
+
+/* 天气/诱因 -->*/
+.trig-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.tw{border:1px solid var(--line);border-radius:10px;padding:14px 16px}
+.tw .env{font-size:12px;font-weight:800;color:var(--muted)}
+.tw .val{font-size:26px;font-weight:900;margin-top:2px}
+.tw .note{font-size:11.5px;color:var(--ghost);margin-top:2px}
+.tw.good{border-color:var(--ok);background:var(--ok-bg)}
+.tw.good .val{color:var(--ok)}
+.tw.now{border-color:var(--bad);background:var(--bad-bg);position:relative}
+.tw.now .val{color:var(--bad)}
+.tw.now::after{content:'当前环境';position:absolute;top:10px;right:12px;font-size:10px;
+  font-weight:900;color:var(--bad);border:1px solid var(--bad);padding:1px 7px;border-radius:10px}
+@media(max-width:640px){.trig-grid{grid-template-columns:1fr}}
+
+/* 医嘱 */
+.advice{background:var(--card);border:2px solid var(--head);border-radius:12px;margin-top:18px;
+  padding:26px 28px;position:relative}
+.advice h3{font-size:17px;font-weight:900;color:var(--head);letter-spacing:.1em;
+  display:flex;align-items:center;gap:8px}
+.rx{font-size:26px;font-weight:400;font-family:Georgia,serif;font-style:italic}
+.advice ol{margin:14px 0 0 20px;font-size:14px;line-height:2.1}
+.advice li b{font-weight:900}
+.advice .warn-line{color:var(--bad);font-weight:800}
+.recheck{margin-top:16px;padding:13px 16px;background:var(--warn-bg);border-radius:8px;
+  font-size:13px;line-height:1.9}
+.recheck b{color:var(--warn)}
+.sign{display:flex;justify-content:space-between;align-items:flex-end;margin-top:22px;
+  padding-top:14px;border-top:1px dashed var(--line2);font-size:12px;color:var(--muted)}
+.sign .name{font-family:'Kaiti SC','楷体',cursive;font-size:19px;color:var(--ink);
+  transform:rotate(-2deg)}
+.foot{margin-top:34px;text-align:center;font-size:11px;color:var(--ghost);line-height:2}
+.badge-row{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}
+.brc{font-size:11.5px;font-weight:800;padding:5px 12px;border-radius:20px;border:1px solid}
+.brc.g{background:var(--ok-bg);color:var(--ok);border-color:#bfe6d6}
+.brc.gr{background:#f2f5f6;color:var(--ghost);border-color:var(--line)}
+</style>
+</head>
+<body>
+<div class="mock">模拟数据演示</div>
+<div class="wrap">
+
+<!-- 医院抬头 -->
+<div class="hosp">
+  <div class="cross">✚</div>
+  <div>
+    <h1>擎鱼基金经理体检中心</h1>
+    <p class="en">FUND MANAGER HEALTH CHECKUP CENTER</p>
+  </div>
+  <div class="no">体检号:QY-2026-063001<br>报告日期:2026-06-30</div>
+</div>
+
+<div class="patient">
+  <span><span class="k">受检人</span><b>陈述</b>(化名 · 模拟数据)</span>
+  <span><span class="k">年龄</span><b>50 岁</b> · 从业 21 年</span>
+  <span><span class="k">送检样本</span><b>示例灵活配置(000000)</b> · 独管 8.5 年</span>
+  <span><span class="k">样本量</span><b>34 个季度</b>完整交易记录</span>
+</div>
+
+<!-- 成长史 -->
+<div class="dept">
+  <div class="dept-head"><span class="ico">📈</span><span class="ti">成长史 · 这项本事是怎么练出来的</span>
+    <span class="r">能力形成路径</span></div>
+  <div class="dept-body">
+    <div style="position:relative;padding-left:24px">
+      <div style="position:absolute;left:7px;top:8px;bottom:8px;width:2px;background:var(--line2)"></div>
+      <div style="position:relative;padding:6px 0 6px 6px;font-size:13.5px">
+        <span style="position:absolute;left:-21px;top:12px;width:11px;height:11px;border-radius:50%;background:var(--head)"></span>
+        <b style="color:var(--head)">1998–2005</b> 券商债券研究 → 形成宏观与大类资产配置框架
+        <span style="display:block;font-size:12px;color:var(--muted)">这是他后来"2018 年熊市主动降仓"的地基</span></div>
+      <div style="position:relative;padding:6px 0 6px 6px;font-size:13.5px">
+        <span style="position:absolute;left:-21px;top:12px;width:11px;height:11px;border-radius:50%;background:var(--head)"></span>
+        <b style="color:var(--head)">2005–2016</b> 保险资管多资产 → 强化风险预算意识
+        <span style="display:block;font-size:12px;color:var(--muted)">"钱亏不起"的纪律是这段练出来的</span></div>
+      <div style="position:relative;padding:6px 0 6px 6px;font-size:13.5px">
+        <span style="position:absolute;left:-21px;top:12px;width:11px;height:11px;border-radius:50%;background:var(--ok)"></span>
+        <b style="color:var(--ok)">2017</b> 独立接管本基金 → 形成"分散小盘"框架
+        <span style="display:block;font-size:12px;color:var(--muted)">本报告全部评价从此开始</span></div>
+      <div style="position:relative;padding:6px 0 6px 6px;font-size:13.5px">
+        <span style="position:absolute;left:-21px;top:12px;width:11px;height:11px;border-radius:50%;background:var(--head)"></span>
+        <b style="color:var(--head)">2018 熊市</b> 主动降股仓至 42% → 证明资产配置能力
+        <span style="display:block;font-size:12px;color:var(--muted)">那一年他证明了自己不只是"会选股"</span></div>
+      <div style="position:relative;padding:6px 0 6px 6px;font-size:13.5px">
+        <span style="position:absolute;left:-21px;top:12px;width:11px;height:11px;border-radius:50%;background:var(--head)"></span>
+        <b style="color:var(--head)">2020–2023</b> 小微盘大放异彩 → 规模快速增长
+        <span style="display:block;font-size:12px;color:var(--muted)">同时也是他连续限购的开始</span></div>
+      <div style="position:relative;padding:6px 0 6px 6px;font-size:13.5px">
+        <span style="position:absolute;left:-21px;top:12px;width:11px;height:11px;border-radius:50%;background:var(--bad)"></span>
+        <b style="color:var(--bad)">2026Q2</b> 加仓踩空单季 -12.79% → 新的压力测试
+        <span style="display:block;font-size:12px;color:var(--muted)">正在观察他如何应对,详见"既往病史"</span></div>
+    </div>
+    <p style="margin-top:10px;font-size:12.5px;color:var(--muted)">
+      整条成长史最值钱的信号:<b style="color:var(--ink)">2018 熊市 + 2026Q2 两次大跌,他都没有把亏损产品转手给新人</b> —— 都是自己扛。</p>
+  </div>
+</div>
+
+<!-- 总检结论 -->
+<div class="summary">
+  <div class="score-ring">
+    <svg width="150" height="150" viewBox="0 0 150 150">
+      <circle cx="75" cy="75" r="64" fill="none" stroke="#e4edef" stroke-width="13"/>
+      <circle cx="75" cy="75" r="64" fill="none" stroke="#0e7c86" stroke-width="13"
+        stroke-linecap="round" stroke-dasharray="402" stroke-dashoffset="88.4"/>
+    </svg>
+    <div class="txt"><span class="n">78</span><span class="k">总检评分 / A-级</span></div>
+  </div>
+  <div class="sum-mid">
+    <span class="grade">总检结论</span>
+    <h2>各项机能<span class="u">基本健康</span>,可以托付,<br>但要知道他"天冷就犯病"</h2>
+    <p>核心机能(独立决策)显著优于同行均值;两项慢性指标偏离参考范围,不影响托付,需定期复查。</p>
+  </div>
+  <div class="doc-stamp"><span class="b">可以买</span><span class="s">仓位 ≤ 5%</span></div>
+</div>
+
+<!-- 检验科:核心机能化验单 -->
+<div class="dept">
+  <div class="dept-head"><span class="ico">🧪</span><span class="ti">检验科 · 独立决策机能(核心项目)</span>
+    <span class="r">参考范围 = 全市场主动基金经理</span></div>
+  <div class="dept-body">
+    <table>
+      <tr><th>项目</th><th>结果</th><th>提示</th><th>参考范围</th><th>临床意义</th></tr>
+      <tr>
+        <td>敢不敢跟同事不一样(修正后)</td><td class="v">83</td>
+        <td><span class="arrow hi">↑ 优</span></td><td class="ref">30 – 60</td>
+        <td style="font-size:12.5px;color:var(--muted)">已剔除合同允许范围内的"假独立",含水分 88 → 修正 83。持仓与公司其他 21 名经理差异仍极大</td>
+      </tr>
+      <tr>
+        <td>不一样的时候赚不赚钱</td><td class="v">91</td>
+        <td><span class="arrow hi">↑ 优</span></td><td class="ref">40 – 60</td>
+        <td style="font-size:12.5px;color:var(--muted)">分化期年化 +7.2%,跟风期仅 +1.3% —— 想法真值钱</td>
+      </tr>
+      <tr>
+        <td>发现机会比同事早多久</td><td class="v">2.1 个季度</td>
+        <td><span class="arrow hi">↑ 优</span></td><td class="ref">≤ 0(多数人跟风)</td>
+        <td style="font-size:12.5px;color:var(--muted)">半导体、煤炭两条主线均为公司第一个建仓者</td>
+      </tr>
+      <tr>
+        <td>对着干的胜率(11 次)</td><td class="v">63.6%</td>
+        <td><span class="arrow hi">↑ 良</span></td><td class="ref">≈ 50%</td>
+        <td style="font-size:12.5px;color:var(--muted)">7 胜 4 负;赢均 +12.4%、输均 -5.3%,赔率 2.34 倍</td>
+      </tr>
+      <tr>
+        <td>去掉运气后的真本事</td><td class="v">+1.8%</td>
+        <td><span class="arrow hi">↑ 良</span></td><td class="ref">多数 ≤ 0</td>
+        <td style="font-size:12.5px;color:var(--muted)">剔除最赚的 3 只股票后仍为正 —— 不是靠一两次撞大运</td>
+      </tr>
+      <tr class="abn2">
+        <td>卖出机能</td><td class="v">70</td>
+        <td><span class="arrow wa">↓ 偏低</span></td><td class="ref">75 – 90</td>
+        <td style="font-size:12.5px;color:var(--muted)">卖掉的股票平均又涨 14%,总是提前下车</td>
+      </tr>
+      <tr class="abn">
+        <td>近五年本事稳定度</td><td class="v">69</td>
+        <td><span class="arrow lo">↓ 异常</span></td><td class="ref">75 – 95</td>
+        <td style="font-size:12.5px;color:var(--muted)">生涯值 81,近五年降至 69,<b>有早衰迹象,建议随访</b></td>
+      </tr>
+    </table>
+
+    <div style="margin-top:16px;padding:14px 16px;background:var(--bg);border-radius:8px">
+      <p style="font-size:13px;font-weight:900;color:var(--ink)">主项技能评级</p>
+      <table style="margin-top:8px">
+        <tr><th></th><th style="text-align:center">买入</th><th style="text-align:center">卖出</th>
+          <th style="text-align:center">下重注</th><th style="text-align:center">拿住</th><th style="text-align:center">踩点</th></tr>
+        <tr><td>等级</td>
+          <td class="v" style="text-align:center;color:var(--ok)">A</td>
+          <td class="v" style="text-align:center;color:var(--warn)">B-</td>
+          <td class="v" style="text-align:center;color:var(--ok)">A-</td>
+          <td class="v" style="text-align:center;color:var(--ok)">A</td>
+          <td class="v" style="text-align:center;color:var(--ok)">A-</td></tr>
+        <tr><td>参考</td>
+          <td class="ref" style="text-align:center">买入后超额为正</td>
+          <td class="ref" style="text-align:center">卖掉又涨 14%</td>
+          <td class="ref" style="text-align:center">重仓=高胜率</td>
+          <td class="ref" style="text-align:center">拿得住好票</td>
+          <td class="ref" style="text-align:center">加减仓时机</td></tr>
+      </table>
+    </div>
+
+    <div style="margin-top:14px">
+      <p style="font-size:13px;font-weight:900;color:var(--ink)">Alpha 稳定性六项校验(防"运气好"误诊)</p>
+      <div class="badge-row" style="margin-top:10px">
+        <span class="brc g">✓ 扣红利后显著为正 t=2.4</span>
+        <span class="brc g">✓ 任取三年窗口跑赢 78%</span>
+        <span class="brc g">✓ 正超额年度 6/8</span>
+        <span class="brc g">✓ 删掉最赚 1 只仍为正</span>
+        <span class="brc g">✓ 删掉最赚 3 只仍 +1.8%</span>
+        <span class="brc g">✓ 打新彩蛋 0.4pp 已剥离</span>
+      </div>
+      <p style="margin-top:8px;font-size:12.5px;color:var(--muted)">
+        <b style="color:var(--ink)">判定:不是"运气型选手"</b> —— 剔掉最赚的 3 只票还正,说明本事分散在几十只票上,不是一次撞大运。</p>
+    </div>
+  </div>
+</div>
+
+<!-- 检验科2:收益拆解 -->
+<div class="dept">
+  <div class="dept-head"><span class="ico">🧬</span><span class="ti">病理分析 · 年化 17.2% 是从哪来的</span>
+    <span class="r">拆解至每百分点的来源</span></div>
+  <div class="dept-body">
+    <table>
+      <tr><th>来源</th><th>年化贡献</th><th>性质</th><th>说明</th></tr>
+      <tr><td>大盘上涨</td><td class="v" style="color:var(--ghost)">+4.1%</td><td class="ref">环境红利</td><td style="font-size:12.5px;color:var(--muted)">谁买股票都有的那部分</td></tr>
+      <tr><td>小盘风格</td><td class="v" style="color:var(--ghost)">+3.0%</td><td class="ref">环境红利</td><td style="font-size:12.5px;color:var(--muted)">赶上小盘好年景</td></tr>
+      <tr><td>微盘风格</td><td class="v" style="color:var(--ghost)">+2.2%</td><td class="ref">环境红利</td><td style="font-size:12.5px;color:var(--muted)">最贴他风格的因子</td></tr>
+      <tr><td>价值风格</td><td class="v" style="color:var(--ghost)">+1.4%</td><td class="ref">环境红利</td><td style="font-size:12.5px;color:var(--muted)"></td></tr>
+      <tr style="background:var(--ok-bg)"><td><b>仓位调得好</b></td><td class="v" style="color:var(--ok)">+1.8%</td><td class="ref">医生本事</td><td style="font-size:12.5px;color:var(--muted)">2018 熊市降到 42% 那种判断</td></tr>
+      <tr style="background:var(--ok-bg)"><td><b>股票挑得好</b></td><td class="v" style="color:var(--ok)">+3.1%</td><td class="ref">医生本事</td><td style="font-size:12.5px;color:var(--muted)">分散选小盘的真正功夫</td></tr>
+      <tr style="background:var(--ok-bg)"><td><b>时机踩得准</b></td><td class="v" style="color:var(--ok)">+1.0%</td><td class="ref">医生本事</td><td style="font-size:12.5px;color:var(--muted)"></td></tr>
+      <tr><td>残差零头</td><td class="v">+0.6%</td><td class="ref">—</td><td style="font-size:12.5px;color:var(--muted)"></td></tr>
+      <tr><td><b>合计</b></td><td class="v"><b>17.2%</b></td><td class="ref"></td><td style="font-size:12.5px;color:var(--ok)">勾稽校验 ✓ 各项加总一致</td></tr>
+    </table>
+    <div style="margin-top:12px;padding:13px 16px;background:var(--ok-bg);border-radius:8px;font-size:13.5px">
+      <b style="color:var(--ink)">读法:62% 的收益是"风口红利"(大小盘风格给的),只有 34% 是真本事(仓位+选股+时机)。
+      别把风口的功劳全记在他头上 —— 但也别因为风口占比高就否定他的真本事。</b></div>
+    <p style="margin-top:10px;font-size:12px;color:var(--muted)">打新等一次性收益 0.4pp 已单独剥离,不计入上述任何一项。</p>
+  </div>
+</div>
+
+<!-- 影像科:造神检测 -->
+<div class="dept">
+  <div class="dept-head"><span class="ico">🩻</span><span class="ti">影像科 · 造神行为筛查(九项 CT)</span>
+    <span class="r">0 项异常 · 2 项建议随访</span></div>
+  <div class="dept-body">
+    <div class="finding"><span class="st ok3">未见异常</span>
+      <div><b>甩锅跑路筛查</b><div class="d">扫描 34 个季度经理变更记录:2018 / 2022 / 2026 三次大跌期间,名下产品均未转手他人,亏损自己扛完</div></div></div>
+    <div class="finding"><span class="st ok3">未见异常</span>
+      <div><b>摘桃子筛查</b><div class="d">基金从零管理至今,无接手他人业绩的记录</div></div></div>
+    <div class="finding"><span class="st ok3">未见异常</span>
+      <div><b>隐藏败绩筛查</b><div class="d">官网履历与监管备案逐条比对一致,无"消失"的失败产品</div></div></div>
+    <div class="finding"><span class="st wa3">已处理</span>
+      <div><b>蹭业绩筛查</b><div class="d">2016-17 年曾共管 11 个月(+23%),常被媒体计入个人战绩 —— 本报告已剔除该段,权重记零</div></div></div>
+    <div class="finding"><span class="st ok3">未见异常</span>
+      <div><b>高位圈钱筛查</b><div class="d">2020-21 小盘最热时未发新基金,反而连续限购</div></div></div>
+    <div class="finding"><span class="st ok3">未见异常</span>
+      <div><b>年底冲榜筛查</b><div class="d">8 个年度四季度仓位与换手均无异常波动</div></div></div>
+    <div class="finding"><span class="st ok3">未见异常</span>
+      <div><b>言行一致筛查</b><div class="d">34 期季报表述与实际持仓逐期核对,无"说一套买一套"</div></div></div>
+    <div class="finding"><span class="st ok3">未见异常</span>
+      <div><b>偷换基准筛查</b><div class="d">业绩比较基准 8.5 年无变更</div></div></div>
+    <div class="finding"><span class="st wa3">显影不全</span>
+      <div><b>利益冲突筛查</b><div class="d">关联交易未见异常佣金、未见亲属在关联券商任职。但公募披露颗粒度有限 —— 只能报告"未发现",无法报告"不存在"</div></div></div>
+  </div>
+</div>
+
+<!-- 既往病史 -->
+<div class="dept">
+  <div class="dept-head"><span class="ico">📋</span><span class="ti">既往病史 · 犯过的错与恢复情况</span>
+    <span class="r">重点看犯错后怎么处理</span></div>
+  <div class="dept-body">
+    <div class="case">
+      <div class="case-head"><b>急性发作 · 2026年二季度 加仓踩空</b><span class="loss">单季 -12.79%</span></div>
+      <p>自述"小盘估值已充分调整"遂提高仓位,随即小微盘流动性失血,当季跑输基准 19 个百分点。
+      <b>至今一个季度未见调仓动作</b>(既往认错平均耗时约半年,本次尚在观察窗口内)。</p>
+      <div class="dx"><b>诊断:</b>判断失误叠加环境恶化。恢复能力评级 B+,<b>需连续随访两个季度</b>。</div>
+    </div>
+    <div class="case mild">
+      <div class="case-head"><b>慢性遗憾 · 2023年 拒绝追 AI</b><span class="loss">少赚 11.2%</span></div>
+      <p>全公司 9 名经理进场,他以"估值算不过账、不在能力圈"为由全程未参与,AI 随后上涨一整年。
+      跌下来没说"早说了",涨上去也没改口。</p>
+      <div class="dx"><b>诊断:</b>这叫"错过",不叫"病"。守纪律的代价 —— 但托付人须能忍受"眼睁睁看别人赚钱"的日子。</div>
+    </div>
+  </div>
+</div>
+
+<!-- 过敏原 -->
+<div class="dept">
+  <div class="dept-head"><span class="ico">⚠️</span><span class="ti">过敏原检测 · 什么环境下会犯病</span>
+    <span class="r">按市场天气分四种环境</span></div>
+  <div class="dept-body">
+    <div class="trig-grid">
+      <div class="tw good"><div class="env">小盘行情 · 市场钱多</div><div class="val">+21%</div>
+        <div class="note">最佳生存环境,2020-21 全在这里超常发挥</div></div>
+      <div class="tw"><div class="env">大盘行情 · 市场钱多</div><div class="val">+3%</div>
+        <div class="note">耐受良好,不出彩但不犯病</div></div>
+      <div class="tw now"><div class="env">小盘行情 · 市场钱少</div><div class="val">-8%</div>
+        <div class="note">重度过敏原。2026Q2 的发作就在此环境下</div></div>
+      <div class="tw"><div class="env">大盘行情 · 市场钱少</div><div class="val">-12%</div>
+        <div class="note">最危险环境,建议回避</div></div>
+    </div>
+    <div class="case" style="margin-top:14px;border-left-color:var(--head)">
+      <p style="margin:0"><b style="color:var(--ink)">医生解读:</b>此人不是"任何天气都能跑"的选手 ——
+      买他等于同时押注天气转回「小盘 + 钱多」。<b>你托付的不只是这个人,还有天气。</b>
+      另查:其 142 只持仓看似分散于 28 个行业,实际 76% 押在"小微盘流动性"同一条血管上,
+      <b style="color:var(--bad)">属隐性单一风险</b>。</p>
+    </div>
+  </div>
+</div>
+
+<!-- 负荷试验 -->
+<div class="dept">
+  <div class="dept-head"><span class="ico">🏋️</span><span class="ti">负荷试验 · 扛得住多大的风浪</span>
+    <span class="r">模拟极端情景下的净值冲击</span></div>
+  <div class="dept-body">
+    <table>
+      <tr><th>试验方案</th><th>预估冲击</th><th>说明</th></tr>
+      <tr class="abn"><td>小微盘再跌 30%</td><td class="v" style="color:var(--bad)">-18%</td>
+        <td style="font-size:12.5px;color:var(--muted)">小票流动性差,跌起来没人接盘,比大盘跌得狠</td></tr>
+      <tr class="abn"><td>流动性快速收紧</td><td class="v" style="color:var(--bad)">-14%</td>
+        <td style="font-size:12.5px;color:var(--muted)">他的票全靠流动性撑着,钱一抽走先躺下的就是他</td></tr>
+      <tr class="abn2"><td>切换成大盘蓝筹行情</td><td class="v" style="color:var(--warn)">相对跑输 -7%</td>
+        <td style="font-size:12.5px;color:var(--muted)">不一定会亏,但肯定跑不赢别人</td></tr>
+    </table>
+    <p style="margin-top:10px;font-size:12.5px;color:var(--muted)">
+      <b style="color:var(--ink)">承受力结论:</b>单季可承受约 -18% 的回撤 —— 这就是为什么医嘱建议仓位 ≤5%,过量服用扛不住。</p>
+  </div>
+</div>
+
+<!-- 血容量/仓位 -->
+<div class="dept">
+  <div class="dept-head"><span class="ico">🩸</span><span class="ti">血容量 · 他还能管多少钱</span>
+    <span class="r">容量评估</span></div>
+  <div class="dept-body">
+    <table>
+      <tr><th>项目</th><th>数值</th><th>参考</th></tr>
+      <tr><td>当前规模</td><td class="v">12.5 亿</td><td class="ref">容量约 25 亿,已用 48%</td></tr>
+      <tr><td>仓位占比</td><td class="v">48%</td><td class="ref">处于健康区间(低于 60% 安全)</td></tr>
+      <tr><td>持仓数量</td><td class="v">142 只</td><td class="ref">前十大合计 10.9%,第一大 1.16%</td></tr>
+      <tr><td>清空全部持股</td><td class="v">4.2 个交易日</td><td class="ref">想跑时跑得掉,不至于砸盘</td></tr>
+    </table>
+    <div style="margin-top:12px">
+      <div style="display:flex;justify-content:space-between;font-size:11px;color:var(--muted);font-weight:800;margin-bottom:4px">
+        <span>容量使用</span><span>48%</span></div>
+      <div style="height:14px;background:var(--bg);border-radius:7px;overflow:hidden">
+        <div style="width:48%;height:100%;background:var(--ok);border-radius:7px"></div></div>
+    </div>
+    <p style="margin-top:12px;font-size:12.5px;color:var(--muted)">
+      <b style="color:var(--ok)">当前血容量健康。</b>容量上限≈25 亿,一旦突破,调仓成本翻倍、超额会被摊薄 —— 那就是该复查的信号。</p>
+  </div>
+</div>
+
+<!-- 陪护人 -->
+<div class="dept">
+  <div class="dept-head"><span class="ico">🧑‍🤝‍🧑</span><span class="ti">陪护记录 · 谁在陪他一起承担</span>
+    <span class="r">亮 = 查到实据;灰 = 未查到,不瞎猜</span></div>
+  <div class="dept-body">
+    <div class="badge-row">
+      <span class="brc g">✓ 经理本人 100 万份+</span>
+      <span class="brc g">✓ 公司员工 7.25%</span>
+      <span class="brc gr">国家队 未查到</span>
+      <span class="brc gr">险资 未查到</span>
+      <span class="brc gr">社保 未查到</span>
+      <span class="brc gr">FOF 未查到</span>
+      <span class="brc gr">外资 未查到</span>
+    </div>
+    <div style="margin-top:16px">
+      <p style="font-size:12.5px;color:var(--ink);font-weight:900">机构占比 · 六次复查(2023上 → 2025下)</p>
+      <div class="flow" style="display:flex;gap:10px;align-items:flex-end;margin-top:12px;height:90px">
+        <div style="flex:1;text-align:center"><div style="font-size:11px;font-weight:800;color:var(--muted)">6.1%</div><div style="width:100%;height:66px;background:var(--head);opacity:.65;border-radius:4px 4px 0 0"></div><div style="font-size:10px;color:var(--ghost)">23上</div></div>
+        <div style="flex:1;text-align:center"><div style="font-size:11px;font-weight:800;color:var(--muted)">7.4%</div><div style="width:100%;height:80px;background:var(--head);opacity:.65;border-radius:4px 4px 0 0"></div><div style="font-size:10px;color:var(--ghost)">23下</div></div>
+        <div style="flex:1;text-align:center"><div style="font-size:11px;font-weight:800;color:var(--muted)">6.8%</div><div style="width:100%;height:73px;background:var(--head);opacity:.65;border-radius:4px 4px 0 0"></div><div style="font-size:10px;color:var(--ghost)">24上</div></div>
+        <div style="flex:1;text-align:center"><div style="font-size:11px;font-weight:800;color:var(--muted)">5.9%</div><div style="width:100%;height:64px;background:var(--head);opacity:.65;border-radius:4px 4px 0 0"></div><div style="font-size:10px;color:var(--ghost)">24下</div></div>
+        <div style="flex:1;text-align:center"><div style="font-size:11px;font-weight:800;color:var(--muted)">5.6%</div><div style="width:100%;height:61px;background:var(--head);opacity:.65;border-radius:4px 4px 0 0"></div><div style="font-size:10px;color:var(--ghost)">25上</div></div>
+        <div style="flex:1;text-align:center"><div style="font-size:11px;font-weight:800;color:var(--warn)">5.3%</div><div style="width:100%;height:58px;background:var(--warn);opacity:.85;border-radius:4px 4px 0 0"></div><div style="font-size:10px;color:var(--ghost)">25下</div></div>
+      </div>
+    </div>
+    <p style="margin-top:12px;font-size:13px;color:var(--muted)">
+      机构占比三年从 6.1% 缓降至 5.3%,本基金以散户持有为主。
+      最有效的陪护证据是:<b style="color:var(--ink)">经理本人与员工真金白银押在里面 —— 和你坐同一条船</b>。</p>
+  </div>
+</div>
+
+<!-- 医嘱 -->
+<div class="advice">
+  <h3><span class="rx">Rx</span> 医嘱 · 到底怎么买</h3>
+  <ol>
+    <li><b>准予托付</b>:总检 78 分(A- 级),预计每年靠真本事多赚 <b>2.0% ~ 4.0%</b>(见下方扣减明细)。</li>
+    <li><b>剂量控制</b>:建议 <b>不超过总资产的 5%</b> —— 他的过敏原(小盘流动性)一旦发作,单季可跌 12% 以上,过量服用受不了。</li>
+    <li><b>服用心态</b>:当前正处其重度过敏环境,<span class="warn-line">短期难看是正常现象,别看一个季度就停药</span>;同理,天气转好时也别突然加倍。</li>
+    <li><b>禁忌</b>:如你无法忍受"全市场涨他不涨"的时期,本品不适合你。</li>
+  </ol>
+  <div style="margin-top:16px;padding:14px 16px;background:var(--bg);border-radius:8px">
+    <p style="font-size:13px;font-weight:900;color:var(--ink)">未来真本事测算 · 从历史扣到未来</p>
+    <table style="margin-top:8px">
+      <tr><th>项目</th><th>年化</th></tr>
+      <tr><td>历史选股真本事(起算)</td><td class="v">+4.9%</td></tr>
+      <tr><td>扣:规模变大,调仓变笨</td><td class="v" style="color:var(--bad)">-0.8%</td></tr>
+      <tr><td>扣:小盘赛道变拥挤</td><td class="v" style="color:var(--bad)">-0.3%</td></tr>
+      <tr><td>扣:平台辅助折损</td><td class="v" style="color:var(--bad)">-0.2%</td></tr>
+      <tr><td>扣:交易成本上升</td><td class="v" style="color:var(--bad)">-0.4%</td></tr>
+      <tr><td>扣:环境可能不回暖</td><td class="v" style="color:var(--bad)">-0.5%</td></tr>
+      <tr><td>扣:手感回归均值</td><td class="v" style="color:var(--bad)">-0.7%</td></tr>
+      <tr><td><b>未来真本事</b></td><td class="v" style="color:var(--ok)"><b>+2.0% ~ +4.0%</b></td></tr>
+    </table>
+    <p style="margin-top:6px;font-size:11.5px;color:var(--ghost)">为什么必须扣:过去赚 4.9% 不代表未来还赚 4.9% —— 规模、拥挤、手感都要打折扣,这叫"别拿历史外推"。</p>
+  </div>
+  <div class="recheck">
+    <b>复查提醒(触发任一项,立即回院复检):</b><br>
+    ① 规模突破 25 亿 &nbsp; ② 经理离任(独苗风险,人走基金废) &nbsp;
+    ③ 突然放开大额申购 &nbsp; ④ 持仓开始与公司趋同(差异度跌破 40) &nbsp;
+    ⑤ 连续四个季度真本事为负 &nbsp; ⑥ 2026Q3 仍无调仓动作(恢复能力复核)
+  </div>
+  <div class="sign">
+    <span>主检机构:基金经理照妖镜 · 体检中心<br>本报告全部数据为演示用模拟数据</span>
+    <span style="text-align:right">主检医师<br><span class="name">照妖镜 AI</span><br>2026-06-30</span>
+  </div>
+</div>
+
+<p class="foot">本报告不构成个性化投资建议 · 基金过往业绩不预示未来表现<br>
+如对结论有疑问,建议携带更多季报数据复诊</p>
+
+</div>
+</body>
+</html>

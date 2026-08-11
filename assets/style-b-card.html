@@ -1,0 +1,548 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>SSR 陈述 · 基金经理卡牌图鉴(完整版)</title>
+<style>
+:root{
+  --bg:#0a0618; --bg2:#110a24; --card:#171030; --card2:#1e1540;
+  --ink:#f4f1ff; --muted:#9d93c4; --ghost:#645a8f;
+  --gold:#ffd166; --purple:#a06bff; --cyan:#4dd8ff; --pink:#ff6bc1;
+  --ok:#3ce8a4; --bad:#ff5d7d;
+  --line:rgba(160,107,255,.22);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{
+  background:var(--bg);
+  background-image:
+    radial-gradient(900px 500px at 85% -5%,rgba(160,107,255,.22),transparent 60%),
+    radial-gradient(700px 500px at 0% 30%,rgba(77,216,255,.12),transparent 55%),
+    radial-gradient(800px 600px at 60% 100%,rgba(255,107,193,.1),transparent 60%);
+  color:var(--ink);
+  font-family:Inter,'PingFang SC',system-ui,sans-serif;
+  font-variant-numeric:tabular-nums;line-height:1.6;
+}
+.wrap{max-width:980px;margin:0 auto;padding:28px 20px 120px}
+.mock{position:fixed;right:-36px;top:28px;transform:rotate(45deg);background:#f4a940;
+  color:#1a0f00;font-size:11px;font-weight:900;padding:5px 46px;letter-spacing:.25em;z-index:99}
+.hud{display:flex;align-items:center;gap:12px;font-size:12px;color:var(--muted);
+  letter-spacing:.2em;font-weight:700}
+.hud .logo{color:var(--gold);font-size:14px;font-weight:900}
+.hud .r{margin-left:auto}
+.ok{color:var(--ok)} .bad{color:var(--bad)} .gd{color:var(--gold)} .pp{color:var(--purple)}
+
+/* SSR 卡 */
+.gacha{display:grid;grid-template-columns:340px 1fr;gap:32px;margin-top:30px;align-items:start}
+.ssr-card{position:relative;border-radius:22px;padding:3px;
+  background:conic-gradient(from 210deg,var(--gold),var(--pink),var(--cyan),var(--purple),var(--gold));
+  box-shadow:0 0 44px rgba(160,107,255,.4),0 0 90px rgba(255,209,102,.15);
+  animation:breathe 3.2s ease-in-out infinite}
+@keyframes breathe{0%,100%{box-shadow:0 0 44px rgba(160,107,255,.4)}50%{box-shadow:0 0 60px rgba(255,209,102,.45)}}
+.ssr-in{background:linear-gradient(165deg,#221543,#120b26 55%,#1a0f33);
+  border-radius:19px;padding:22px;position:relative;overflow:hidden}
+.ssr-in::after{content:'';position:absolute;top:-60%;left:-60%;width:70%;height:220%;
+  background:linear-gradient(100deg,transparent,rgba(255,255,255,.13),transparent);
+  transform:rotate(18deg);animation:shine 4.5s ease-in-out infinite}
+@keyframes shine{0%,60%{left:-70%}100%{left:160%}}
+.rarity{display:flex;justify-content:space-between;align-items:center}
+.ssr-tag{font-size:22px;font-weight:900;font-style:italic;
+  background:linear-gradient(90deg,var(--gold),var(--pink));
+  -webkit-background-clip:text;background-clip:text;color:transparent}
+.ovr .n{font-size:52px;font-weight:900;color:var(--gold);line-height:1}
+.ovr .k{font-size:9px;letter-spacing:.35em;color:var(--muted)}
+.avatar{height:150px;margin:14px 0;border-radius:12px;background:linear-gradient(160deg,#33245e,#1c1140);
+  display:flex;align-items:center;justify-content:center;font-size:60px;font-weight:900;color:#57468c;position:relative}
+.avatar .lv{position:absolute;left:10px;top:10px;font-size:10px;font-weight:900;
+  background:rgba(0,0,0,.45);padding:3px 9px;border-radius:20px;color:var(--cyan)}
+.cname{font-size:30px;font-weight:900;letter-spacing:.1em}
+.cpos{font-size:12px;color:var(--purple);font-weight:800;margin-top:2px}
+.clore{font-size:11px;color:var(--muted);margin-top:9px;line-height:1.7;
+  border-top:1px dashed rgba(160,107,255,.3);padding-top:9px}
+.ctags{display:flex;flex-wrap:wrap;gap:6px;margin-top:11px}
+.ct{font-size:10px;font-weight:800;padding:4px 9px;border-radius:5px}
+.ct.g{background:rgba(60,232,164,.14);color:var(--ok);border:1px solid rgba(60,232,164,.4)}
+.ct.p{background:rgba(160,107,255,.14);color:var(--purple);border:1px solid rgba(160,107,255,.4)}
+.ct.r{background:rgba(255,93,125,.13);color:var(--bad);border:1px solid rgba(255,93,125,.4)}
+.gacha-r .call{font-size:13px;color:var(--muted);letter-spacing:.3em;font-weight:800}
+.gacha-r h1{font-size:42px;font-weight:900;line-height:1.25;margin-top:10px}
+.gacha-r h1 .em{background:linear-gradient(90deg,var(--gold),var(--pink));
+  -webkit-background-clip:text;background-clip:text;color:transparent}
+.buy-bar{display:flex;gap:14px;margin-top:22px;flex-wrap:wrap}
+.buy{background:linear-gradient(135deg,var(--ok),#19b880);color:#04120c;font-size:20px;
+  font-weight:900;padding:14px 34px;border-radius:14px;box-shadow:0 6px 24px rgba(60,232,164,.35)}
+.buy small{display:block;font-size:10px;font-weight:700;opacity:.75}
+.pos{border:2px solid var(--line);border-radius:14px;padding:14px 22px;font-size:13px;color:var(--muted)}
+.pos b{color:var(--ink);font-size:17px;display:block}
+.punch{margin-top:22px;border-left:5px solid var(--gold);background:rgba(255,209,102,.07);
+  padding:16px 20px;border-radius:0 12px 12px 0;font-size:16px;font-weight:700;line-height:1.7}
+.punch .hl{color:var(--gold)}
+.srcbar{margin-top:18px;font-size:12px;color:var(--muted)}
+.srcbar .bar{display:flex;height:14px;border-radius:7px;overflow:hidden;margin-top:6px}
+.srcbar .s1{background:linear-gradient(90deg,var(--purple),var(--cyan))}
+.srcbar .s2{background:rgba(160,107,255,.35)}
+.srcbar .s3{background:rgba(100,90,143,.45)}
+.srcbar .lg{display:flex;gap:16px;margin-top:6px;font-size:11px}
+
+/* 面板 */
+.panel{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:26px;margin-top:24px}
+.p-head{display:flex;align-items:center;gap:10px;margin-bottom:8px}
+.p-ico{font-size:20px}
+.p-ti{font-size:18px;font-weight:900}
+.p-sub{font-size:11.5px;color:var(--muted);margin-left:auto;text-align:right;line-height:1.5}
+.hexwrap{display:grid;grid-template-columns:290px 1fr;gap:26px;align-items:center;margin-top:8px}
+.stat-l{display:flex;flex-direction:column;gap:8px}
+.st{display:grid;grid-template-columns:70px 1fr 32px;gap:10px;align-items:center;font-size:12.5px}
+.st .k{color:var(--muted);font-weight:700}
+.st .bar{height:9px;border-radius:5px;background:rgba(0,0,0,.4);overflow:hidden}
+.st .f{height:100%;border-radius:5px;background:linear-gradient(90deg,var(--purple),var(--cyan))}
+.st .f.max{background:linear-gradient(90deg,var(--gold),var(--pink))}
+.st .f.low{background:var(--ghost)}
+.st .v{font-weight:900;text-align:right;font-size:14px}
+.weak{display:flex;gap:12px;align-items:flex-start;background:rgba(255,93,125,.06);
+  border:1px solid rgba(255,93,125,.3);border-radius:12px;padding:14px 18px;margin-top:14px;font-size:13.5px}
+.weak .ico{font-size:20px;flex-shrink:0}
+.weak.gold{background:rgba(255,209,102,.06);border-color:rgba(255,209,102,.3)}
+
+/* 升级路线 */
+.route{position:relative;margin-top:14px;padding-left:26px}
+.route::before{content:'';position:absolute;left:8px;top:6px;bottom:6px;width:2px;
+  background:linear-gradient(180deg,var(--purple),var(--cyan))}
+.rt{position:relative;padding:7px 0 7px 8px;font-size:13px}
+.rt::before{content:'';position:absolute;left:-23px;top:14px;width:10px;height:10px;border-radius:50%;
+  background:var(--bg);border:2px solid var(--purple)}
+.rt.key::before{background:var(--gold);border-color:var(--gold);box-shadow:0 0 10px rgba(255,209,102,.6)}
+.rt b{color:var(--cyan);font-weight:800;margin-right:8px}
+.rt .d{color:var(--muted)}
+
+/* 天赋/赛季 */
+.talent{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:12px}
+.ta{background:var(--card2);border:1px solid var(--line);border-radius:14px;padding:16px;text-align:center}
+.ta .n{font-size:44px;font-weight:900}
+.ta .k{font-size:12px;color:var(--muted)}
+.ta-verdict{grid-column:1/-1;text-align:center;
+  background:linear-gradient(90deg,rgba(255,209,102,.1),rgba(255,107,193,.08));
+  border:1px solid rgba(255,209,102,.35);border-radius:12px;padding:12px;font-size:16px;font-weight:900}
+.season{display:flex;gap:10px;margin-top:12px;flex-wrap:wrap}
+.se{flex:1;min-width:110px;background:var(--card2);border:1px solid var(--line);
+  border-radius:12px;padding:13px;text-align:center}
+.se .n{font-size:27px;font-weight:900}
+.se .k{font-size:10.5px;color:var(--muted)}
+
+/* 对战 -->*/
+.match{display:grid;grid-template-columns:44px 1fr 92px;gap:12px;align-items:center;
+  padding:13px 0;border-bottom:1px solid rgba(160,107,255,.12);font-size:13.5px}
+.match:last-of-type{border:0}
+.wl{width:38px;height:38px;border-radius:10px;display:flex;align-items:center;justify-content:center;
+  font-weight:900;font-size:16px}
+.wl.w{background:rgba(60,232,164,.15);color:var(--ok);border:1px solid rgba(60,232,164,.5)}
+.wl.l{background:rgba(255,93,125,.13);color:var(--bad);border:1px solid rgba(255,93,125,.5)}
+.match .d{color:var(--muted)}
+.match .ref{font-size:11px;color:var(--ghost);font-family:ui-monospace,monospace;margin-top:3px}
+.match .pts{text-align:right;font-weight:900;font-size:16px}
+
+/* 表格 */
+.gtb{width:100%;border-collapse:collapse;font-size:12.5px;margin-top:10px}
+.gtb th{text-align:left;padding:7px 9px;color:var(--ghost);font-size:10.5px;letter-spacing:.12em;
+  border-bottom:1px solid var(--line);font-weight:800}
+.gtb td{padding:8px 9px;border-bottom:1px solid rgba(160,107,255,.1)}
+.gtb tr:last-child td{border:0}
+.gtb .r{text-align:right;font-weight:900;font-family:ui-monospace,monospace;white-space:nowrap}
+.gtb tr.hl td{background:rgba(255,209,102,.05)}
+
+/* 地图 */
+.maps{display:grid;grid-template-columns:repeat(2,1fr);gap:12px;margin-top:12px}
+.map{border-radius:14px;padding:16px;border:1px solid var(--line);position:relative;background:var(--card2)}
+.map .mn{font-size:13px;font-weight:800}
+.map .wr{font-size:32px;font-weight:900;margin-top:3px}
+.map .note{font-size:11px;color:var(--muted);margin-top:2px}
+.map.best{border-color:rgba(60,232,164,.55);background:rgba(60,232,164,.06)}
+.map.best .wr{color:var(--ok)}
+.map.now{border-color:rgba(255,93,125,.6);background:rgba(255,93,125,.06)}
+.map.now .wr{color:var(--bad)}
+.map .live{position:absolute;top:12px;right:12px;font-size:9px;font-weight:900;color:var(--bad);
+  letter-spacing:.15em;display:flex;align-items:center;gap:5px}
+.map .live::before{content:'';width:7px;height:7px;border-radius:50%;background:var(--bad);animation:blink 1.1s infinite}
+@keyframes blink{50%{opacity:.25}}
+
+/* 九宫 */
+.grid9{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:12px}
+.g9{background:var(--card2);border:1px solid var(--line);border-radius:12px;padding:12px;font-size:12px}
+.g9 .s{font-size:15px}
+.g9 b{display:block;font-size:12.5px;margin-top:2px}
+.g9 .r{font-size:10.5px;color:var(--muted);margin-top:2px;line-height:1.5}
+.g9.ok2{border-color:rgba(60,232,164,.4)}
+.g9.wa{border-color:rgba(255,209,102,.45)}
+.debuff{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}
+.db{font-size:11px;font-weight:800;padding:6px 12px;border-radius:20px;
+  background:rgba(255,93,125,.1);border:1px solid rgba(255,93,125,.35);color:var(--bad)}
+.db.mild{background:rgba(255,209,102,.09);border-color:rgba(255,209,102,.35);color:var(--gold)}
+
+/* 阵亡回放 */
+.death{border:1px solid rgba(255,93,125,.35);border-radius:14px;padding:16px 18px;margin-top:12px;
+  background:rgba(255,93,125,.04)}
+.death.mild{border-color:rgba(255,209,102,.35);background:rgba(255,209,102,.04)}
+.death .dh{display:flex;justify-content:space-between;flex-wrap:wrap;gap:6px;font-weight:900;font-size:14px}
+.death .dh .ls{color:var(--bad)}
+.death.mild .dh .ls{color:var(--gold)}
+.death p{font-size:12.5px;color:var(--muted);margin-top:7px;line-height:1.7}
+.death .dx{margin-top:9px;font-size:12px;background:rgba(0,0,0,.3);border-radius:8px;padding:8px 12px}
+
+/* 结算 */
+.settle{margin-top:26px;border-radius:20px;padding:3px;
+  background:linear-gradient(135deg,var(--gold),var(--pink),var(--purple))}
+.settle-in{background:var(--bg2);border-radius:17px;padding:30px}
+.settle .t{font-size:12px;letter-spacing:.4em;color:var(--gold);font-weight:900;text-align:center}
+.settle h2{font-size:32px;font-weight:900;margin-top:8px;text-align:center}
+.fa{max-width:560px;margin:18px auto 0;font-size:13px}
+.fa>div{display:flex;justify-content:space-between;padding:6px 4px;border-bottom:1px dashed rgba(160,107,255,.2)}
+.fa>div:last-child{border:0;font-weight:900;font-size:15px;color:var(--gold);
+  border-top:2px solid rgba(255,209,102,.4);margin-top:4px;padding-top:10px}
+.fa .m{font-family:ui-monospace,monospace;font-weight:800}
+.pmv{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:20px;font-size:12.5px}
+.pmv h4{font-size:12px;letter-spacing:.2em;margin-bottom:8px}
+.pmv ul{list-style:none}
+.pmv li{padding:5px 0 5px 18px;position:relative;color:var(--muted);line-height:1.55}
+.pmv .lk li::before{content:'▲';position:absolute;left:0;color:var(--ok);font-size:9px;top:9px}
+.pmv .wr2 li::before{content:'▼';position:absolute;left:0;color:var(--bad);font-size:9px;top:9px}
+.trigger{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;margin-top:18px}
+.tg{font-size:11px;font-weight:800;padding:6px 13px;border-radius:20px;
+  border:1px solid rgba(255,93,125,.4);color:var(--bad);background:rgba(255,93,125,.07)}
+.foot{margin-top:36px;text-align:center;font-size:11px;color:var(--ghost);line-height:2}
+@media(max-width:760px){.gacha,.hexwrap,.pmv{grid-template-columns:1fr}
+  .gacha-r h1{font-size:28px}.maps{grid-template-columns:1fr}.grid9{grid-template-columns:1fr 1fr}}
+</style>
+</head>
+<body>
+<div class="mock">模拟数据演示</div>
+<div class="wrap">
+
+<div class="hud"><span class="logo">◆ 基金经理图鉴</span><span>PLAYER DATABASE</span>
+  <span class="r">赛季数据截止 2026-06-30 · 样本 8.5 年 34 季</span></div>
+
+<!-- 抽卡 -->
+<div class="gacha">
+  <div class="ssr-card"><div class="ssr-in">
+    <div class="rarity"><span class="ssr-tag">SSR</span>
+      <div class="ovr"><div class="n">78</div><div class="k">综合评分</div></div></div>
+    <div class="avatar">陈<span class="lv">50 岁 · 入行 25 年 · 独管 8.5 年</span></div>
+    <div class="cname">陈 述</div>
+    <div class="cpos">宏观配置手 / 小盘散修流 · 一人一基金</div>
+    <p class="clore">出身:某财经大学金融硕士(本科数学)· 2001 券商债研起号 →
+      2005 保险资管练大类配置 → 2013 公募刷小盘副本 → 2017 单排至今 · 无违规记录</p>
+    <div class="ctags">
+      <span class="ct g">自购100万+</span><span class="ct g">员工跟投7.25%</span>
+      <span class="ct g">主动限购</span><span class="ct p">独狼</span>
+      <span class="ct p">逆风不甩锅</span><span class="ct r">独苗风险</span>
+    </div>
+  </div></div>
+
+  <div class="gacha-r">
+    <p class="call">// 鉴定完成 · 稀有度评定</p>
+    <h1>你抽到了一张<br><span class="em">「不跟风还真能赢」</span>的卡</h1>
+    <div class="buy-bar">
+      <div class="buy">可以买<small>APPROVED · 评级 A- · 证据置信度高</small></div>
+      <div class="pos">建议装备位<b>副 C · ≤ 总仓位 5%</b></div>
+    </div>
+    <div class="punch">被动技能:<span class="hl">跟全公司对着干时,伤害翻五倍</span>。
+      分化期年化 +7.2%,跟大部队走只有 +1.3%。</div>
+    <div class="srcbar">属性来源(本事拆解)
+      <div class="bar"><span class="s1" style="width:65%"></span><span class="s2" style="width:20%"></span><span class="s3" style="width:15%"></span></div>
+      <div class="lg"><span class="pp">■ 本体 65%</span><span style="color:var(--muted)">■ 战队装备 20%</span><span style="color:var(--ghost)">■ 版本红利 15%</span></div>
+      <span style="font-size:11px;color:var(--ghost)">转会不掉战力 —— 大部分本事长在自己身上</span>
+    </div>
+  </div>
+</div>
+
+<!-- 属性面板 -->
+<div class="panel">
+  <div class="p-head"><span class="p-ico">📊</span><span class="p-ti">属性面板 · 十维</span>
+    <span class="p-sub">全部由 8.5 年真实交易反推<br>不采信本人语音台词</span></div>
+  <div class="hexwrap">
+    <svg viewBox="0 0 300 300" style="width:100%;max-width:290px">
+      <defs><linearGradient id="hx" x1="0" y1="0" x2="1" y2="1">
+        <stop offset="0%" stop-color="#a06bff" stop-opacity=".55"/>
+        <stop offset="100%" stop-color="#4dd8ff" stop-opacity=".25"/></linearGradient></defs>
+      <g stroke="rgba(160,107,255,.25)" fill="none">
+        <polygon points="150,30 254,90 254,210 150,270 46,210 46,90"/>
+        <polygon points="150,70 219,110 219,190 150,230 81,190 81,110" opacity=".6"/>
+        <polygon points="150,110 185,130 185,170 150,190 115,170 115,130" opacity=".4"/>
+        <line x1="150" y1="150" x2="150" y2="30"/><line x1="150" y1="150" x2="254" y2="90"/>
+        <line x1="150" y1="150" x2="254" y2="210"/><line x1="150" y1="150" x2="150" y2="270"/>
+        <line x1="150" y1="150" x2="46" y2="210"/><line x1="150" y1="150" x2="46" y2="90"/></g>
+      <polygon points="150,40 246,95 236,199 150,234 92,183 60,98" fill="url(#hx)"
+        stroke="#a06bff" stroke-width="2.5" stroke-linejoin="round"/>
+      <circle cx="150" cy="40" r="4" fill="#ffd166"/><circle cx="246" cy="95" r="4" fill="#a06bff"/>
+      <circle cx="236" cy="199" r="4" fill="#a06bff"/><circle cx="150" cy="234" r="4" fill="#645a8f"/>
+      <circle cx="92" cy="183" r="4" fill="#645a8f"/><circle cx="60" cy="98" r="4" fill="#a06bff"/>
+      <text x="150" y="18" text-anchor="middle" font-size="12" fill="#ffd166" font-weight="800">独立 92</text>
+      <text x="262" y="86" font-size="11" fill="#9d93c4" font-weight="700">逆向 88</text>
+      <text x="262" y="216" font-size="11" fill="#9d93c4" font-weight="700">纪律 84</text>
+      <text x="150" y="290" text-anchor="middle" font-size="11" fill="#9d93c4" font-weight="700">卖出 70</text>
+      <text x="38" y="216" text-anchor="end" font-size="11" fill="#9d93c4" font-weight="700">重注 81</text>
+      <text x="38" y="86" text-anchor="end" font-size="11" fill="#9d93c4" font-weight="700">选股 79</text>
+    </svg>
+    <div class="stat-l">
+      <div class="st"><span class="k">独立思考</span><div class="bar"><div class="f max" style="width:92%"></div></div><span class="v">92</span></div>
+      <div class="st"><span class="k">逆向能力</span><div class="bar"><div class="f" style="width:88%"></div></div><span class="v">88</span></div>
+      <div class="st"><span class="k">择时</span><div class="bar"><div class="f" style="width:86%"></div></div><span class="v">86</span></div>
+      <div class="st"><span class="k">情绪稳定</span><div class="bar"><div class="f" style="width:85%"></div></div><span class="v">85</span></div>
+      <div class="st"><span class="k">风险纪律</span><div class="bar"><div class="f" style="width:84%"></div></div><span class="v">84</span></div>
+      <div class="st"><span class="k">学习能力</span><div class="bar"><div class="f" style="width:82%"></div></div><span class="v">82</span></div>
+      <div class="st"><span class="k">下重注</span><div class="bar"><div class="f" style="width:81%"></div></div><span class="v">81</span></div>
+      <div class="st"><span class="k">选股</span><div class="bar"><div class="f" style="width:79%"></div></div><span class="v">79</span></div>
+      <div class="st"><span class="k">卖出</span><div class="bar"><div class="f low" style="width:70%"></div></div><span class="v">70</span></div>
+      <div class="st"><span class="k">利益一致</span><div class="bar"><div class="f max" style="width:95%"></div></div><span class="v">95</span></div>
+    </div>
+  </div>
+  <div class="weak"><span class="ico">🎯</span>
+    <span><b>已知弱点:卖出(70)。</b>赢了的票总想再拿一会儿 —— 卖掉之后平均又涨 14%,每次提前下车看车继续开。</span></div>
+  <div class="weak gold"><span class="ico">🧬</span>
+    <span><b>流派一致性 88:</b>「分散买 · 敢逆着来 · 知道钱多了不好办」,2018 / 2022 / 2026 三次抽查打法没变过。
+    两年换一套打法的选手才危险。动机鉴定:<b class="gd">图把钱管好</b>(不图规模、不图升官 —— 高位限购谢客为证)。</span></div>
+</div>
+
+<!-- 升级路线 -->
+<div class="panel">
+  <div class="p-head"><span class="p-ico">🗺️</span><span class="p-ti">养成路线 · 这个号怎么练成的</span>
+    <span class="p-sub">关键节点金色标记</span></div>
+  <div class="route">
+    <div class="rt"><b>2001-2005</b>券商债券研究 <span class="d">— 打宏观利率底子</span></div>
+    <div class="rt"><b>2005-2013</b>保险资管多资产 <span class="d">— 学会大类配置与风险预算</span></div>
+    <div class="rt"><b>2013-2016</b>公募研究员刷小盘副本 <span class="d">— 建立小票猎场</span></div>
+    <div class="rt key"><b>2017-11</b>单排开号,起步仅 0.8 亿 <span class="d">— 从零带起,没蹭任何人</span></div>
+    <div class="rt key"><b>2018</b>沪深300 -25%,主动降仓到 42% <span class="d">— 证明会配置,也证明逆风不甩锅</span></div>
+    <div class="rt"><b>2020-2023</b>小微盘超神赛季 <span class="d">— 规模 2 亿 → 12 亿</span></div>
+    <div class="rt key"><b>2022-2024</b>连续限购 <span class="d">— 知道自己的打法带不动太多钱</span></div>
+    <div class="rt"><b>2026-Q2</b>版本削弱,单季 -12.79% <span class="d">— 正在挨打,未增聘未卸任</span></div>
+  </div>
+</div>
+
+<!-- 核心天赋 -->
+<div class="panel">
+  <div class="p-head"><span class="p-ico">⚡</span><span class="p-ti">核心天赋 · 独立决策</span>
+    <span class="p-sub">本图鉴唯一考核的天赋</span></div>
+  <div class="talent">
+    <div class="ta"><div class="n pp">88</div><div class="k">敢不敢跟队友不一样</div></div>
+    <div class="ta"><div class="n ok">91</div><div class="k">不一样的时候赚不赚钱</div></div>
+    <div class="ta-verdict">👑 双天赋齐满 —— 有自己的想法,而且想法值钱</div>
+  </div>
+  <div class="season">
+    <div class="se"><div class="n ok">+7.2%</div><div class="k">分化期年化超额</div></div>
+    <div class="se"><div class="n">+1.3%</div><div class="k">跟风期年化超额</div></div>
+    <div class="se"><div class="n gd">2.1 季</div><div class="k">平均领先大部队</div></div>
+    <div class="se"><div class="n pp">83</div><div class="k">持仓差异度(挤水后)</div></div>
+  </div>
+  <table class="gtb">
+    <tr><th>2020Q4 经典战役 · 阵容对比</th><th style="text-align:right">队友(按人头)</th><th style="text-align:right">队友(按钱算)</th><th style="text-align:right">他</th></tr>
+    <tr class="hl"><td>白酒</td><td class="r">+9.8%</td><td class="r">+13.2%</td><td class="r bad">-8.1%</td></tr>
+    <tr><td>食品饮料</td><td class="r">+6.4%</td><td class="r">+8.1%</td><td class="r bad">-4.2%</td></tr>
+    <tr><td>医药</td><td class="r">+4.8%</td><td class="r">+4.8%</td><td class="r">+1.3%</td></tr>
+    <tr class="hl"><td>新能源</td><td class="r">+2.1%</td><td class="r">+1.2%</td><td class="r ok">+9.4%</td></tr>
+    <tr class="hl"><td>半导体</td><td class="r">-0.7%</td><td class="r">-0.7%</td><td class="r ok">+6.8%</td></tr>
+  </table>
+  <div class="weak gold"><span class="ico">🕵️</span>
+    <span><b>数据造假检测:</b>"按钱算"白酒共识 +13.2%,"按人头"只有 +9.8% ——
+    所谓全队共识其实是一个土豪队友刷出来的。另:该卡无行业限制合同,挤掉规则水分后差异度 91 → <b class="gd">83(采用)</b>。
+    先手数据:半导体 2020Q1 他先进 → Q2 仅 2 人跟 → Q3 涨到 9 人;煤炭 2022Q1 先进 → Q4 8 人跟。
+    <b>11 个方向 8 个他打头</b> —— 是开团的人,不是跟团的人。</span></div>
+  <div class="weak"><span class="ico">🏰</span>
+    <span><b>战队环境:</b>他相对战队独立(83),但<b class="bad">战队相对全服偏抱团(44)</b> ——
+    他躲开的是队友,没躲开全服拥挤,团灭的时候一样跑不掉。</span></div>
+</div>
+
+<!-- 对战记录 -->
+<div class="panel">
+  <div class="p-head"><span class="p-ico">🏟️</span><span class="p-ti">对战记录 · vs 全战队</span>
+    <span class="p-sub">5 赛季 11 战 7 胜 4 负<br>胜率 63.6% · 赔率 2.34x · 场均期望 +5.9%</span></div>
+  <div class="match"><span class="wl w">W</span>
+    <span><b>2020 春季赛 · 砍白酒买新能源</b>(分歧度 87)<br>
+      <span class="d">17/21 队友重仓消费,他反向清仓</span>
+      <span class="ref">此后一年:他 +56 ‖ 战队 +33 ‖ 同段位 +28</span></span>
+    <span class="pts ok">+23%</span></div>
+  <div class="match"><span class="wl w">W</span>
+    <span><b>2022 春季赛 · 新能源撤退转煤炭</b>(分歧度 79)<br>
+      <span class="d">战队新能源仓位历史顶点那季,他跑路</span>
+      <span class="ref">此后一年:他 +18 ‖ 战队 -21 ‖ 同段位 -14</span></span>
+    <span class="pts ok">+39%</span></div>
+  <div class="match"><span class="wl l">L</span>
+    <span><b>2023 春季赛 · 拒绝追 AI</b>(分歧度 73)<br>
+      <span class="d">9 个队友进场他不去,说估值算不过账</span>
+      <span class="ref">此后一年:他 +4 ‖ 战队 +15 ‖ 同段位 +9</span></span>
+    <span class="pts bad">-11.2%</span></div>
+  <div class="match"><span class="wl l">L</span>
+    <span><b>2026 夏季赛 · 加仓踩空</b>(分歧度 81)<br>
+      <span class="d">战队转大盘,他加仓小盘,至今没调</span>
+      <span class="ref">此后一年:他 -12.8 ‖ 战队 +6.2 ‖ 同段位 +2.1</span></span>
+    <span class="pts bad">-19.0%</span></div>
+  <p style="margin-top:10px;font-size:12.5px;color:var(--muted)">
+    战绩备注:赢均 <b class="gd">+12.4%</b>、输均 -5.3% —— 赢一场顶亏两场,典型<b>赔率型选手</b>。败仗全公示,不删战绩。</p>
+
+  <div class="p-head" style="margin-top:22px"><span class="p-ico">💀</span><span class="p-ti">阵亡回放 · 输的怎么处理</span></div>
+  <div class="death">
+    <div class="dh"><span>2026Q2 加仓踩空(急性)</span><span class="ls">单季 -12.79%(基准 +6.23%)</span></div>
+    <p>自判"小盘跌够了"加仓,随即小微盘流动性失血。<b>Q3 未调仓</b> —— 他历史认错平均耗时半年,还在窗口内。</p>
+    <div class="dx">恢复力评级 <b class="gd">B+</b> · 连续观察两个赛季,2026Q3 还不动就降级</div>
+  </div>
+  <div class="death mild">
+    <div class="dh"><span>2023 拒追 AI(慢性)</span><span class="ls">少赚 11.2%</span></div>
+    <p>全程没追,跌下来没说"早说了",涨上去也没改口。但连续两季没跟粉丝解释,沟通减分。</p>
+    <div class="dx">定性 <b class="ok">B</b> · 这叫"错过"不叫"犯错" —— 但入手这张卡就得受得了眼睁睁看别人超神</div>
+  </div>
+</div>
+
+<!-- 输出统计 -->
+<div class="panel">
+  <div class="p-head"><span class="p-ico">⚔️</span><span class="p-ti">输出统计 · 年化 17.2% 的伤害来源</span>
+    <span class="p-sub">版本红利 62% / 操作 34%<br>打新彩蛋 0.4pp 已剥离</span></div>
+  <table class="gtb">
+    <tr><th>伤害来源</th><th style="text-align:right">年化贡献</th><th style="text-align:right">性质</th></tr>
+    <tr><td>大盘上涨(版本)</td><td class="r">+4.1%</td><td class="r" style="color:var(--ghost)">红利</td></tr>
+    <tr><td>小盘风格(版本)</td><td class="r">+3.0%</td><td class="r" style="color:var(--ghost)">红利</td></tr>
+    <tr><td>微盘风格(版本)</td><td class="r">+2.2%</td><td class="r" style="color:var(--ghost)">红利</td></tr>
+    <tr><td>价值风格(版本)</td><td class="r">+1.4%</td><td class="r" style="color:var(--ghost)">红利</td></tr>
+    <tr class="hl"><td><b>仓位操作</b></td><td class="r ok">+1.8%</td><td class="r ok">操作</td></tr>
+    <tr class="hl"><td><b>选股操作</b></td><td class="r ok">+3.1%</td><td class="r ok">操作</td></tr>
+    <tr class="hl"><td><b>时机操作</b></td><td class="r ok">+1.0%</td><td class="r ok">操作</td></tr>
+    <tr><td>零头</td><td class="r">+0.6%</td><td class="r" style="color:var(--ghost)">—</td></tr>
+    <tr><td><b>合计(校验 ✓)</b></td><td class="r"><b>17.2%</b></td><td class="r"></td></tr>
+  </table>
+  <div class="season" style="margin-top:14px">
+    <div class="se"><div class="n ok">✓ t=2.4</div><div class="k">扣红利后仍显著为正</div></div>
+    <div class="se"><div class="n ok">78%</div><div class="k">任取三年窗口在跑赢</div></div>
+    <div class="se"><div class="n ok">6/8</div><div class="k">正超额年度</div></div>
+    <div class="se"><div class="n gd">+1.8%</div><div class="k">删掉最赚 3 只票仍为正</div></div>
+  </div>
+  <p style="margin-top:8px;font-size:12px;color:var(--muted)">反作弊校验六项全过:非单票爆发(伤害分散于几十只)、删 Top1 仍正、一次性彩蛋已剥离 —— <b style="color:var(--ink)">不是运气号</b>。</p>
+
+  <table class="gtb" style="margin-top:16px">
+    <tr><th>技能评级</th><th style="text-align:center">买入</th><th style="text-align:center">卖出</th><th style="text-align:center">下注</th><th style="text-align:center">拿住</th><th style="text-align:center">踩点</th></tr>
+    <tr><td>等级</td><td class="r" style="text-align:center;color:var(--ok);font-size:17px">A</td>
+      <td class="r" style="text-align:center;color:var(--gold);font-size:17px">B-</td>
+      <td class="r" style="text-align:center;color:var(--ok);font-size:17px">A-</td>
+      <td class="r" style="text-align:center;color:var(--ok);font-size:17px">A</td>
+      <td class="r" style="text-align:center;color:var(--ok);font-size:17px">A-</td></tr>
+  </table>
+  <table class="gtb" style="margin-top:16px">
+    <tr><th>生涯 vs 近五赛季(衰减检查)</th><th style="text-align:right">生涯</th><th style="text-align:right">近 5 赛季</th></tr>
+    <tr><td>扣红利后的操作分</td><td class="r">+4.8%</td><td class="r">+2.9%</td></tr>
+    <tr><td>独立决策得分</td><td class="r">+6.2%</td><td class="r">+4.1%</td></tr>
+    <tr class="hl"><td>被打时掉血比例</td><td class="r">72%</td><td class="r bad">81% ▼衰减</td></tr>
+    <tr><td>与队友差异度</td><td class="r">78</td><td class="r">83</td></tr>
+    <tr class="hl"><td>状态稳定度</td><td class="r">81</td><td class="r bad">69 ▼衰减</td></tr>
+  </table>
+  <p style="margin-top:8px;font-size:12px;color:var(--muted)">独立性没衰,<b class="bad">防御和稳定在衰</b> —— 50 岁老将,这两条按赛季盯。</p>
+</div>
+
+<!-- 地图胜率 -->
+<div class="panel">
+  <div class="p-head"><span class="p-ico">🗺️</span><span class="p-ti">地图胜率 · 他吃哪个版本</span>
+    <span class="p-sub">按「小盘/大盘 × 钱多/钱少」分四张图</span></div>
+  <div class="maps">
+    <div class="map best"><div class="mn">🌤 小盘行情 · 钱多</div><div class="wr">+21%</div>
+      <div class="note">本命图,2020-2021 全在这超神</div></div>
+    <div class="map"><div class="mn">⛅ 大盘行情 · 钱多</div><div class="wr">+3%</div>
+      <div class="note">混分,不出彩不送</div></div>
+    <div class="map now"><span class="live">当前版本</span><div class="mn">🌧 小盘行情 · 钱少</div><div class="wr">-8%</div>
+      <div class="note">被版本削惨,2026Q2 的 -12.79% 就在这张图</div></div>
+    <div class="map"><div class="mn">⛈ 大盘行情 · 钱少</div><div class="wr">-12%</div>
+      <div class="note">最烂的图,英雄池完全不适配</div></div>
+  </div>
+  <div class="weak"><span class="ico">🎰</span>
+    <span><b>入手前想清楚:</b>买这张卡 = 赌版本更新回「小盘+钱多」。版本不回,卡再强也带不动;版本一回,他就是 +21% 那个人。<b>你买的不只是卡,还有版本。</b></span></div>
+</div>
+
+<!-- 卡组与背包 -->
+<div class="panel">
+  <div class="p-head"><span class="p-ico">🎒</span><span class="p-ti">卡组构成 · 背包与容量</span>
+    <span class="p-sub">团战模拟已跑</span></div>
+  <div class="season">
+    <div class="se"><div class="n">84%</div><div class="k">股票仓位</div></div>
+    <div class="se"><div class="n">142 只</div><div class="k">持股数量</div></div>
+    <div class="se"><div class="n">10.9%</div><div class="k">前十大合计</div></div>
+    <div class="se"><div class="n">1.16%</div><div class="k">第一大持仓</div></div>
+    <div class="se"><div class="n pp">94%</div><div class="k">与基准不重合(全是自己的主意)</div></div>
+  </div>
+  <div class="debuff">
+    <span class="db">隐藏 debuff:142 只票 76% 押同一条"小盘流动性"血管,分散是表面的</span>
+    <span class="db">独苗 debuff:一人一基金,他退游基金就废</span>
+    <span class="db mild">背包:12.5 亿 / 容量约 25 亿,已用 48% · 清空背包需 4.2 个交易日</span>
+  </div>
+  <table class="gtb" style="margin-top:12px">
+    <tr><th>团战模拟(压力测试)</th><th style="text-align:right">预计伤害</th></tr>
+    <tr><td>小微盘再跌 30%</td><td class="r bad">-18%</td></tr>
+    <tr><td>流动性快速收紧</td><td class="r bad">-14%</td></tr>
+    <tr><td>切换成大盘行情</td><td class="r" style="color:var(--gold)">相对跑输 -7%</td></tr>
+  </table>
+  <div class="p-head" style="margin-top:18px"><span class="p-ico">📣</span><span class="p-ti">粉丝构成 · 谁在真金白银应援</span></div>
+  <div class="ctags" style="margin-top:4px">
+    <span class="ct g">✓ 选手本人 100万份+</span><span class="ct g">✓ 战队员工 7.25%</span>
+    <span class="ct" style="opacity:.4;border:1px dashed var(--ghost);color:var(--ghost)">国家队 未查到</span>
+    <span class="ct" style="opacity:.4;border:1px dashed var(--ghost);color:var(--ghost)">险资 未查到</span>
+    <span class="ct" style="opacity:.4;border:1px dashed var(--ghost);color:var(--ghost)">社保 未查到</span>
+    <span class="ct" style="opacity:.4;border:1px dashed var(--ghost);color:var(--ghost)">FOF 未查到</span>
+    <span class="ct" style="opacity:.4;border:1px dashed var(--ghost);color:var(--ghost)">外资 未查到</span>
+  </div>
+  <p style="margin-top:10px;font-size:12px;color:var(--muted)">
+    机构粉丝占比六期:6.1 → 7.4 → 6.8 → 5.9 → 5.6 → <b class="gd">5.3%</b>(23上→25下) ——
+    散户应援为主,但选手自己就是最大粉头。</p>
+</div>
+
+<!-- 封号审查 -->
+<div class="panel">
+  <div class="p-head"><span class="p-ico">🔍</span><span class="p-ti">封号审查 · 有没有开挂/演员行为</span>
+    <span class="p-sub">九项全查 · 0 红牌 2 黄牌 · 履历真实性 A-</span></div>
+  <div class="grid9">
+    <div class="g9 ok2"><span class="s">✅</span><b>甩锅跑路</b><div class="r">34 个赛季变更记录:三次大跌都没把号丢给新人,自己扛完</div></div>
+    <div class="g9 ok2"><span class="s">✅</span><b>摘桃子</b><div class="r">号从 0.8 亿自己带起,没继承任何人的战绩</div></div>
+    <div class="g9 ok2"><span class="s">✅</span><b>藏尸体</b><div class="r">履历与官方备案一致,无隐藏小号</div></div>
+    <div class="g9 wa"><span class="s">⚠️</span><b>蹭业绩</b><div class="r">早年双排 11 个月(+23%)常被算进单排战绩,本图鉴已剔除记零</div></div>
+    <div class="g9 ok2"><span class="s">✅</span><b>高位圈钱</b><div class="r">最火的时候不开新号,反而限购谢客</div></div>
+    <div class="g9 ok2"><span class="s">✅</span><b>年底冲榜</b><div class="r">8 个年度四季度从不赌命刷分</div></div>
+    <div class="g9 ok2"><span class="s">✅</span><b>人设造假</b><div class="r">34 期赛后采访和实际操作对得上</div></div>
+    <div class="g9 ok2"><span class="s">✅</span><b>偷换尺子</b><div class="r">计分基准 8 年半没动过</div></div>
+    <div class="g9 wa"><span class="s">⚠️</span><b>利益输送</b><div class="r">未发现,但联盟披露有限,只能查到这一层</div></div>
+  </div>
+</div>
+
+<!-- 结算 -->
+<div class="settle"><div class="settle-in">
+  <p class="t">抽 卡 结 算</p>
+  <h2>SSR · 值得入手,别当本命</h2>
+  <div class="fa">
+    <div><span>历史操作分(年化)</span><span class="m">+4.9%</span></div>
+    <div><span>扣:背包变重,调仓变笨</span><span class="m bad">-0.8%</span></div>
+    <div><span>扣:小盘赛道变拥挤</span><span class="m bad">-0.3%</span></div>
+    <div><span>扣:战队辅助折损</span><span class="m bad">-0.2%</span></div>
+    <div><span>扣:操作成本上升</span><span class="m bad">-0.4%</span></div>
+    <div><span>扣:版本可能不回暖</span><span class="m bad">-0.5%</span></div>
+    <div><span>扣:手感回归均值</span><span class="m bad">-0.7%</span></div>
+    <div><span>下赛季预期(每年靠操作多赚)</span><span class="m">+2.0% ~ +4.0%</span></div>
+  </div>
+  <div class="pmv">
+    <div><h4 class="ok">▲ 强度榜好评(五条)</h4><ul class="lk">
+      <li>差异度 83,挤掉水分依然独立</li>
+      <li>分化期 +7.2% vs 跟风期 +1.3%,想法真值钱</li>
+      <li>11 个方向 8 个先手,领先 2.1 个赛季</li>
+      <li>删掉最赚 3 只票仍 +1.8%,不是运气号</li>
+      <li>自购+限购+逆风不甩锅,人品有实据</li></ul></div>
+    <div><h4 class="bad">▼ 强度榜争议(五条)</h4><ul class="wr2">
+      <li>62% 伤害来自版本红利,操作可能被高估</li>
+      <li>76% 卡组押同一条血管,团灭跑不掉</li>
+      <li>独苗号,选手退游卡就废</li>
+      <li>2026Q2 阵亡后一个赛季没动,恢复力存疑</li>
+      <li>战队整体抱团(44),他只是换了个车道</li></ul></div>
+  </div>
+  <div class="trigger">
+    <span class="tg">背包破 25 亿 → 重新鉴定</span><span class="tg">选手退游 → 立即出卡</span>
+    <span class="tg">放开大额申购 → 警惕</span><span class="tg">差异度跌破 40 → 卡被和谐</span>
+    <span class="tg">连续 4 赛季操作分为负 → 降级</span><span class="tg">2026Q3 仍不调仓 → 复查</span>
+  </div>
+</div></div>
+
+<p class="foot">本图鉴全部数字为界面演示用模拟数据,不指向任何真实人物或基金<br>
+非个性化投资建议 · 过往战绩不代表未来版本表现</p>
+
+</div>
+</body>
+</html>

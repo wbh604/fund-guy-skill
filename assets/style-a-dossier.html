@@ -1,0 +1,502 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>绝密档案 · 陈述 · 基金经理侦查卷宗(全卷)</title>
+<style>
+:root{
+  --paper:#e7dfcc; --paper2:#f2ebd8; --card:#faf5e6;
+  --ink:#2b2620; --ink2:#57503f; --faint:#8a7f68;
+  --red:#b0302a; --seal:#c0392b; --ok:#2d6a4f; --warn:#a8731a;
+  --line:#cfc3a6; --line-dk:#8a7f68;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{
+  background:var(--paper);
+  background-image:
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='2'/%3E%3CfeColorMatrix values='0 0 0 0 0.17 0 0 0 0 0.15 0 0 0 0 0.12 0 0 0 .05 0'/%3E%3C/filter%3E%3Crect width='140' height='140' filter='url(%23n)'/%3E%3C/svg%3E"),
+    repeating-linear-gradient(0deg,transparent,transparent 27px,rgba(138,127,104,.13) 28px);
+  color:var(--ink);
+  font-family:"FangSong","STFangsong","仿宋",serif;
+  line-height:1.75;
+}
+.mono{font-family:"Courier New",monospace}
+.wrap{max-width:880px;margin:0 auto;padding:0 20px 100px}
+.topsecret{background:var(--red);color:#f5efe0;text-align:center;padding:9px;
+  font-size:15px;letter-spacing:1.2em;font-weight:900;
+  box-shadow:0 2px 0 rgba(0,0,0,.15)}
+.topsecret small{letter-spacing:.32em;font-size:10px;display:block;opacity:.85}
+.mock-tag{position:fixed;right:-36px;top:26px;transform:rotate(45deg);background:var(--warn);
+  color:#fff;font-size:11px;padding:4px 46px;letter-spacing:.3em;z-index:99;font-weight:900}
+
+/* 封面 */
+.cover{background:var(--card);border:2px solid var(--ink);margin-top:36px;
+  padding:42px 40px 50px;position:relative;
+  box-shadow:7px 7px 0 rgba(43,38,32,.22),0 0 0 6px var(--paper2),0 0 0 7px var(--line)}
+.cover::before{content:'';position:absolute;inset:10px;border:1px dashed var(--line-dk);pointer-events:none}
+.doc-no{display:flex;justify-content:space-between;font-size:12px;color:var(--ink2)}
+.cover h1{text-align:center;font-size:42px;letter-spacing:.32em;margin:24px 0 4px;font-weight:900}
+.cover .sub{text-align:center;font-size:15px;letter-spacing:.5em;color:var(--ink2)}
+.cover-grid{display:grid;grid-template-columns:152px 1fr;gap:30px;margin-top:36px;align-items:start}
+.photo{border:1px solid var(--ink);background:linear-gradient(160deg,#e2d9c2,#d3c8ac);
+  height:192px;position:relative;display:flex;align-items:center;justify-content:center;
+  font-size:54px;color:var(--faint);box-shadow:2px 3px 10px rgba(0,0,0,.2);transform:rotate(-1.5deg)}
+.photo::before{content:'';position:absolute;top:-13px;left:50%;transform:translateX(-50%) rotate(2.5deg);
+  width:78px;height:26px;background:rgba(219,207,175,.9);border:1px solid rgba(0,0,0,.08);
+  box-shadow:0 1px 2px rgba(0,0,0,.08)}
+.photo .cap{position:absolute;bottom:6px;font-size:10px;letter-spacing:.2em}
+.kv dt{float:left;width:96px;color:var(--ink2);letter-spacing:.15em;font-size:14px}
+.kv dd{margin-left:110px;border-bottom:1px solid var(--line);padding-bottom:4px;margin-bottom:10px;
+  font-weight:700;font-size:15px}
+.redline{color:var(--red);font-weight:900}
+.seal{position:absolute;right:24px;bottom:16px;width:152px;height:152px;transform:rotate(-13deg);opacity:.92;
+  filter:drop-shadow(0 1px 1px rgba(0,0,0,.1))}
+.seal svg{width:100%;height:100%}
+
+/* 章节 */
+.sec{margin-top:54px}
+.sec-head{display:flex;align-items:baseline;gap:14px;border-bottom:3px double var(--ink);padding-bottom:8px}
+.sec-no{font-size:27px;font-weight:900;color:var(--red)}
+.sec-ti{font-size:24px;font-weight:900;letter-spacing:.2em}
+.sec-en{margin-left:auto;font-size:10px;color:var(--faint);letter-spacing:.3em}
+.page{background:var(--card);border:1px solid var(--line-dk);padding:26px 30px;margin-top:16px;
+  box-shadow:3px 3px 0 rgba(43,38,32,.12);position:relative}
+.page-tag{position:absolute;top:-1px;right:18px;background:var(--red);color:#f5efe0;
+  font-size:10px;letter-spacing:.25em;padding:3px 12px 4px}
+.subhead{font-size:13px;letter-spacing:.3em;color:var(--red);font-weight:900;margin-bottom:10px}
+.trow{display:grid;grid-template-columns:118px 1fr;gap:16px;padding:8px 0;
+  border-bottom:1px dotted var(--line);font-size:14.5px}
+.trow:last-child{border:0}
+.trow .k{color:var(--ink2);letter-spacing:.12em}
+.pass{color:var(--ok)} .flag{color:var(--warn)} .bad{color:var(--red)}
+.note{font-family:"Kaiti SC","楷体",cursive;color:var(--red);font-size:16px;
+  transform:rotate(-.7deg);margin:14px 4px 0;font-weight:700}
+
+/* 表格 */
+.tb{width:100%;border-collapse:collapse;font-size:13.5px;margin-top:8px}
+.tb th{border:1px solid var(--ink);padding:7px 9px;background:var(--paper2);
+  font-weight:900;letter-spacing:.1em;font-size:12.5px}
+.tb td{border:1px solid var(--line-dk);padding:8px 10px;vertical-align:top}
+.tb .r{text-align:right;font-weight:900;white-space:nowrap;font-family:"Courier New",monospace}
+.tb .c{text-align:center;font-weight:900;white-space:nowrap}
+.tb tr.hl td{background:rgba(176,48,42,.06)}
+
+/* 墨条 */
+.ink-row{display:grid;grid-template-columns:76px 1fr 36px;gap:12px;align-items:center;
+  font-size:13px;padding:4px 0}
+.ink-track{height:11px;background:rgba(43,38,32,.08);border:1px solid var(--line);position:relative}
+.ink-fill{height:100%;background:var(--ink);opacity:.82}
+.ink-fill.low{background:var(--warn);opacity:.9}
+.ink-row .v{font-weight:900;text-align:right;font-family:"Courier New",monospace}
+
+/* 双指标 */
+.duo2{display:grid;grid-template-columns:1fr 1fr;border:2px solid var(--ink);text-align:center;margin-top:14px}
+.duo2>div{padding:18px 12px}
+.duo2>div:first-child{border-right:2px solid var(--ink)}
+.duo2 .n{font-size:50px;font-weight:900;font-family:"Courier New",monospace;line-height:1.1}
+.duo2 .k{font-size:13px;letter-spacing:.18em;color:var(--ink2)}
+
+/* 结论框 */
+.verdict-box{border:3px solid var(--red);padding:18px 22px;margin-top:18px;
+  background:rgba(176,48,42,.04)}
+.verdict-box .t{font-size:12px;letter-spacing:.4em;color:var(--red);font-weight:900}
+.verdict-box .b{font-size:18px;font-weight:900;margin-top:6px;line-height:1.8}
+.verdict-box .hl{background:linear-gradient(transparent 60%,rgba(176,48,42,.22) 60%)}
+
+/* 战役 */
+.battle{display:grid;grid-template-columns:64px 1fr 108px;gap:14px;padding:14px 0;
+  border-bottom:1px solid var(--line);font-size:14px;align-items:start}
+.battle:last-child{border:0}
+.battle .res{font-size:16px;font-weight:900;text-align:center;border:2px solid;padding:4px 0;letter-spacing:.3em}
+.battle .res.w{color:var(--ok);border-color:var(--ok)}
+.battle .res.l{color:var(--red);border-color:var(--red)}
+.battle .num{text-align:right;font-weight:900;font-size:17px;font-family:"Courier New",monospace}
+.battle .refs{font-size:12px;color:var(--faint);margin-top:4px;font-family:"Courier New",monospace}
+
+/* 三格 */
+.tri{display:grid;grid-template-columns:repeat(3,1fr);gap:0;border:2px solid var(--ink);
+  text-align:center;margin-top:14px}
+.tri>div{padding:14px 8px;border-right:2px solid var(--ink)}
+.tri>div:last-child{border-right:0}
+.tri .n{font-size:32px;font-weight:900;font-family:"Courier New",monospace}
+.tri .k{font-size:11.5px;color:var(--ink2);letter-spacing:.1em}
+
+/* 天气 */
+.wq{display:grid;grid-template-columns:1fr 1fr;gap:2px;background:var(--ink);border:2px solid var(--ink);margin-top:12px}
+.wq>div{background:var(--card);padding:16px;font-size:13px}
+.wq b{font-size:23px;font-family:"Courier New",monospace;display:block}
+.wq .here{background:rgba(176,48,42,.08)}
+.wq .tag{display:inline-block;font-size:10px;border:1px solid var(--red);color:var(--red);
+  padding:1px 7px;letter-spacing:.15em;margin-bottom:5px}
+
+/* 机构流 */
+.flowa{display:flex;gap:8px;align-items:flex-end;margin-top:10px;height:76px}
+.flowa>div{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;justify-content:flex-end}
+.flowa .fb{width:100%;max-width:44px;background:var(--ink2);opacity:.65}
+.flowa .fv{font-size:10.5px;font-weight:900;font-family:"Courier New",monospace}
+.flowa .fp{font-size:10px;color:var(--faint)}
+.badge-row{display:flex;flex-wrap:wrap;gap:8px;margin-top:8px}
+.brc{font-size:12px;font-weight:800;padding:4px 12px;border:1.5px solid var(--ok);color:var(--ok)}
+.brc.gr{border-color:var(--line-dk);color:var(--faint);border-style:dashed}
+
+/* 结案 */
+.final{background:var(--card);border:2px solid var(--ink);margin-top:18px;padding:36px 34px;
+  position:relative;box-shadow:5px 5px 0 rgba(43,38,32,.2)}
+.final h3{text-align:center;font-size:24px;letter-spacing:.5em;font-weight:900;
+  border-bottom:2px solid var(--ink);padding-bottom:12px}
+.final .row{display:flex;gap:10px;margin-top:12px;font-size:15px;line-height:1.9}
+.final .row .no{color:var(--red);font-weight:900;flex-shrink:0}
+.calc{border:1.5px solid var(--line-dk);margin-top:10px;font-size:13.5px}
+.calc>div{display:flex;justify-content:space-between;padding:6px 14px;border-bottom:1px dotted var(--line)}
+.calc>div:last-child{border-bottom:0;background:rgba(176,48,42,.06);font-weight:900}
+.calc .m{font-family:"Courier New",monospace;font-weight:900}
+.sig{display:flex;justify-content:space-between;align-items:flex-end;margin-top:32px;
+  padding-top:16px;border-top:1px dashed var(--line-dk);font-size:13px;color:var(--ink2)}
+.foot{margin-top:44px;text-align:center;font-size:11px;color:var(--faint);letter-spacing:.15em;line-height:2}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+@media(max-width:680px){
+  .cover-grid,.two,.duo2{grid-template-columns:1fr}
+  .duo2>div:first-child{border-right:0;border-bottom:2px solid var(--ink)}
+  .photo{width:150px;margin:0 auto}
+  .cover h1{font-size:28px;letter-spacing:.18em}
+  .seal{width:112px;height:112px;right:8px;bottom:8px}
+  .battle{grid-template-columns:52px 1fr}
+  .battle .num{grid-column:2;text-align:left}
+  .tri{grid-template-columns:1fr}
+  .tri>div{border-right:0;border-bottom:2px solid var(--ink)}
+  .tri>div:last-child{border-bottom:0}
+}
+</style>
+</head>
+<body>
+<div class="mock-tag">模拟数据演示</div>
+<div class="topsecret">绝 密<small>启 用 前 · 内 部 侦 查 材 料 · 阅 后 存 档</small></div>
+
+<div class="wrap">
+
+<!-- ═══ 封面 ═══ -->
+<div class="cover">
+  <div class="doc-no mono"><span>档案编号:QY-FM-2026-0810</span><span>立卷日期:2026-06-30</span></div>
+  <h1>基金经理侦查卷宗</h1>
+  <p class="sub">调 查 对 象 : 陈 述 · 全 六 卷</p>
+  <div class="cover-grid">
+    <div class="photo">陈<span class="cap">照片位 · 一寸免冠</span></div>
+    <dl class="kv">
+      <dt>姓名</dt><dd>陈述(化名,模拟数据) · 1976 年生,50 岁</dd>
+      <dt>管理产品</dt><dd>示例灵活配置(000000) · 独管 8 年半</dd>
+      <dt>作案手法</dt><dd>资产配置 + 分散买小盘股,142 只票摊着买</dd>
+      <dt>涉案金额</dt><dd>12.5 亿元(从未同时管理超过 2 只)</dd>
+      <dt>侦查结论</dt><dd class="redline">综合评分 78 / 100 · 评级 A- · 可以买</dd>
+      <dt>危险提示</dt><dd>这只基金就是他一个人,他走了基金就废</dd>
+    </dl>
+  </div>
+  <div class="seal"><svg viewBox="0 0 150 150">
+    <circle cx="75" cy="75" r="70" fill="none" stroke="#c0392b" stroke-width="4"/>
+    <circle cx="75" cy="75" r="52" fill="none" stroke="#c0392b" stroke-width="1.5"/>
+    <text x="75" y="68" text-anchor="middle" font-size="26" fill="#c0392b" font-weight="900" font-family="FangSong">可以买</text>
+    <text x="75" y="93" text-anchor="middle" font-size="11" fill="#c0392b" letter-spacing="2">仓位不超 5%</text>
+    <path id="arc" d="M 75 75 m -60 0 a 60 60 0 1 1 120 0" fill="none"/>
+    <text font-size="10" fill="#c0392b" letter-spacing="3"><textPath href="#arc" startOffset="12%">基金经理照妖镜侦查科专用章</textPath></text>
+  </svg></div>
+</div>
+<div class="note">批注:此人最值钱的时候,恰恰是跟公司所有人都不一样的时候。证据确凿,详见第叁、肆卷。—— 侦查员</div>
+
+<!-- ═══ 壹 人事档案 ═══ -->
+<section class="sec">
+  <div class="sec-head"><span class="sec-no">壹</span><span class="sec-ti">人事档案</span><span class="sec-en">PERSONNEL FILE · 1/6</span></div>
+
+  <div class="page"><span class="page-tag">基本情况</span>
+    <div class="trow"><span class="k">出身</span><span>1976 年生 · 2001 年入行,从业 25 年 · 某财经大学金融学硕士(本科数学系)· 持基金从业资格与 CFA,<b class="pass">无监管处罚记录</b></span></div>
+    <div class="trow"><span class="k">利益绑定</span><span>本人掏钱买自家基金 <b>100 多万份</b>,公司员工持有 <b>7.25%</b> —— 与持有人同坐一条船</span></div>
+    <div class="trow"><span class="k">三观核查</span><span>投资信条「分散买 · 敢逆着来 · 知道钱多了不好办」,2018 / 2022 / 2026 三个时点翻持仓验证,<b class="pass">八年没变过(一致性 88 分)</b>。很多经理两年换一套说法,那种危险</span></div>
+    <div class="trow"><span class="k">图什么</span><span><b class="pass">图把钱管好</b>:规模上来后主动限购谢客,没在高点发新基金,没去争行政职位。另两种是"图规模"和"图升官",要小心</span></div>
+    <div class="trow"><span class="k">靠山几成</span><span>本事拆解:<b>靠自己 65%</b> · 靠公司平台 20% · 靠风口 15% —— 离开现在这家公司,大部分本事带得走</span></div>
+  </div>
+
+  <div class="page"><span class="page-tag">受训记录</span>
+    <p class="subhead">能力是怎么练出来的 · 市场亲手教的八课</p>
+    <div class="trow"><span class="k">2001-2005</span><span>券商债券研究 → 打下宏观利率底子</span></div>
+    <div class="trow"><span class="k">2005-2013</span><span>保险资管管多资产 → 学会大类配置和风险预算</span></div>
+    <div class="trow"><span class="k">2013-2016</span><span>公募研究员covering小盘股 → 建立小票猎场</span></div>
+    <div class="trow"><span class="k">2017-11</span><span>独立接管本基金,起步规模仅 <b>0.8 亿</b> · 非接手成熟产品</span></div>
+    <div class="trow"><span class="k">2018</span><span>沪深300 全年 -25%,他把股票仓位<b>主动降到 42%</b> → 证明配置能力,也证明<b class="pass">熊市不甩锅,自己扛</b></span></div>
+    <div class="trow"><span class="k">2020-2023</span><span>小微盘策略大放异彩 → 规模从 2 亿涨到 12 亿</span></div>
+    <div class="trow"><span class="k">2022-2024</span><span>连续限购 → 知道自己的方法装不下太多钱</span></div>
+    <div class="trow"><span class="k">2026-Q2</span><span>单季 -12.79%,仍为唯一管理人,<b class="pass">未增聘、未卸任</b> → 正在挨打,继续观察</span></div>
+  </div>
+
+  <div class="page"><span class="page-tag">性格鉴定</span>
+    <p class="subhead">十项鉴定 · 不听口供,只看他的钱往哪走</p>
+    <div class="two">
+      <div>
+        <div class="ink-row"><span>独立思考</span><div class="ink-track"><div class="ink-fill" style="width:92%"></div></div><span class="v">92</span></div>
+        <div class="ink-row"><span>逆向能力</span><div class="ink-track"><div class="ink-fill" style="width:88%"></div></div><span class="v">88</span></div>
+        <div class="ink-row"><span>择时能力</span><div class="ink-track"><div class="ink-fill" style="width:86%"></div></div><span class="v">86</span></div>
+        <div class="ink-row"><span>情绪稳定</span><div class="ink-track"><div class="ink-fill" style="width:85%"></div></div><span class="v">85</span></div>
+        <div class="ink-row"><span>风险纪律</span><div class="ink-track"><div class="ink-fill" style="width:84%"></div></div><span class="v">84</span></div>
+      </div>
+      <div>
+        <div class="ink-row"><span>学习能力</span><div class="ink-track"><div class="ink-fill" style="width:82%"></div></div><span class="v">82</span></div>
+        <div class="ink-row"><span>下重注</span><div class="ink-track"><div class="ink-fill" style="width:81%"></div></div><span class="v">81</span></div>
+        <div class="ink-row"><span>选股能力</span><div class="ink-track"><div class="ink-fill" style="width:79%"></div></div><span class="v">79</span></div>
+        <div class="ink-row"><span>卖出能力</span><div class="ink-track"><div class="ink-fill low" style="width:70%"></div></div><span class="v">70</span></div>
+        <div class="ink-row"><span>利益一致</span><div class="ink-track"><div class="ink-fill" style="width:95%"></div></div><span class="v">95</span></div>
+      </div>
+    </div>
+    <div class="note">批注:最短那根是"卖出 70"—— 赢了的票总想再拿一会儿,他卖掉之后平均又涨 14%。老毛病,改不掉就当特征管理。</div>
+  </div>
+</section>
+
+<!-- ═══ 贰 品行审查 ═══ -->
+<section class="sec">
+  <div class="sec-head"><span class="sec-no">贰</span><span class="sec-ti">品行审查</span><span class="sec-en">INTEGRITY CHECK · 2/6</span></div>
+
+  <div class="page"><span class="page-tag">造神审查</span>
+    <p class="subhead">九项审查 · 查那条漂亮曲线是不是"修"出来的</p>
+    <table class="tb">
+      <tr><th style="width:104px">审查项</th><th>调查记录</th><th style="width:78px">结论</th></tr>
+      <tr><td><b>甩锅跑路</b></td><td>调取 34 个季度经理变更公告,2018 / 2022 / 2026 三次大跌期间名下产品均未换人,亏损全程自己扛</td><td class="c pass">☑ 清白</td></tr>
+      <tr><td><b>摘桃子</b></td><td>本基金从 0.8 亿从零带起,无前任遗产可蹭</td><td class="c pass">☑ 清白</td></tr>
+      <tr><td><b>藏尸体</b></td><td>官网履历与监管备案一致,无消失的失败产品</td><td class="c pass">☑ 清白</td></tr>
+      <tr class="hl"><td><b>蹭业绩</b></td><td>2016-17 以助理身份共管 11 个月(期间 +23%),媒体常算进个人战绩。<b>本卷宗已剔除,权重记零</b></td><td class="c flag">⚠ 已剔除</td></tr>
+      <tr><td><b>高位圈钱</b></td><td>2020-21 小盘最火时未发一只新基金,反而连续限购谢客</td><td class="c pass">☑ 清白</td></tr>
+      <tr><td><b>年底冲榜</b></td><td>8 个年度四季度换手与仓位均无异动</td><td class="c pass">☑ 清白</td></tr>
+      <tr><td><b>人设造假</b></td><td>34 期季报所述与实际持仓逐期核对,言行一致</td><td class="c pass">☑ 清白</td></tr>
+      <tr><td><b>偷换尺子</b></td><td>业绩比较基准 8 年半未改动</td><td class="c pass">☑ 清白</td></tr>
+      <tr class="hl"><td><b>利益输送</b></td><td>关联交易未见异常佣金、未见亲属在关联券商任职。<b>披露颗粒度有限,只能证明"未发现",不能证明"不存在"</b></td><td class="c flag">⚠ 查不全</td></tr>
+    </table>
+    <div class="note">批注:九项查完零红旗。下跌不跑、高位不圈钱,这年头算稀有物种。</div>
+  </div>
+
+  <div class="page"><span class="page-tag">事故记录</span>
+    <p class="subhead">他犯过的错 · 优劣之分不在少犯错,在犯错以后怎么办</p>
+    <table class="tb">
+      <tr><th style="width:150px">事故一 · 急性</th><th>2026Q2 加仓踩空 <b class="bad">-12.79%</b>(基准同期 +6.23%)</th></tr>
+      <tr><td>当时为啥买</td><td>判断小盘估值已充分调整,提高权益仓位</td></tr>
+      <tr><td>后来咋了</td><td>小微盘流动性失血,单季跑输基准 19 个百分点</td></tr>
+      <tr><td>他怎么应对</td><td><b class="flag">Q3 未减仓,尚未见纠错动作</b>(既往认错平均耗时约半年,仍在观察窗内)</td></tr>
+      <tr><td>认错速度评级</td><td class="flag"><b>B+</b> · 需连续盯两个季度</td></tr>
+    </table>
+    <table class="tb" style="margin-top:14px">
+      <tr><th style="width:150px">事故二 · 慢性</th><th>2023 全公司追 AI 他没跟,<b class="flag">少赚 11.2%</b></th></tr>
+      <tr><td>当时为啥不买</td><td>"估值算不过账,不在能力圈",全程未参与</td></tr>
+      <tr><td>后来咋了</td><td>AI 涨了一整年,同事平均 +15%,他只有 +4%</td></tr>
+      <tr><td>他怎么应对</td><td>跌下来没说"早说了",涨上去也没改口 · 但连续两季未向持有人解释,<b class="flag">沟通减分</b></td></tr>
+      <tr><td>定性</td><td class="pass"><b>B</b> · 这叫"错过",不叫"犯错" —— 但买他就得受得了眼睁睁看别人赚钱</td></tr>
+    </table>
+  </div>
+</section>
+
+<!-- ═══ 叁 独立性侦查 ═══ -->
+<section class="sec">
+  <div class="sec-head"><span class="sec-no">叁</span><span class="sec-ti">独立性侦查</span><span class="sec-en">INDEPENDENCE PROBE · 3/6</span></div>
+
+  <div class="page"><span class="page-tag">核心疑问</span>
+    <p style="font-size:15px">本案核心疑问只有一个:<b>他跟公司主流观点不一样的时候,有没有反复证明自己是对的?</b>两项指标必须分开看 —— 光"不一样"可能只是瞎搞,"不一样还赚钱"才是本事。</p>
+    <div class="duo2">
+      <div><span class="k">敢不敢不一样</span><div class="n">88</div><span class="k">与同事持仓差异度<br>(含合同水分,未校正)</span></div>
+      <div><span class="k">不一样赚不赚钱</span><div class="n pass">91</div><span class="k">分化后的真实回报</span></div>
+    </div>
+    <div class="trow" style="margin-top:14px"><span class="k">对质记录</span><span>同一时期两边下注:同事们(21 人平均)之后一年赚 <b>+1.3%</b>,他赚 <b class="pass">+7.2%</b> —— 每年多赚 <b class="pass">5.9 个点</b>。他的钱是自己判断赚的,不是跟着公司混的</span></div>
+    <div class="trow"><span class="k">点子源头</span><span>半导体:2020Q1 他第一个重仓 → Q2 才 2 人跟 → Q3 涨到 9 人 → Q4 成公司主方向。煤炭:2022Q1 他先进 → Q3 3 人 → Q4 8 人。<b>11 个重仓方向里 8 个他打头,平均领先大部队 2.1 个季度</b> —— 认定为<b class="pass">点子源头,不是跟风仔</b></span></div>
+  </div>
+
+  <div class="page"><span class="page-tag">物证</span>
+    <p class="subhead">物证一 · 2020 年底白酒案:全公司买白酒,他在买什么</p>
+    <table class="tb">
+      <tr><th>行业</th><th style="width:92px">同事·按人头</th><th style="width:92px">同事·按钱算</th><th style="width:84px">他</th><th style="width:84px">分歧</th></tr>
+      <tr class="hl"><td>白酒</td><td class="r">+9.8%</td><td class="r">+13.2%</td><td class="r bad">-8.1%</td><td class="r">17.9pp</td></tr>
+      <tr><td>食品饮料</td><td class="r">+6.4%</td><td class="r">+8.1%</td><td class="r bad">-4.2%</td><td class="r">10.6pp</td></tr>
+      <tr><td>医药</td><td class="r">+4.8%</td><td class="r">+4.8%</td><td class="r">+1.3%</td><td class="r">3.5pp</td></tr>
+      <tr class="hl"><td>新能源</td><td class="r">+2.1%</td><td class="r">+1.2%</td><td class="r pass">+9.4%</td><td class="r">7.3pp</td></tr>
+      <tr class="hl"><td>半导体</td><td class="r">-0.7%</td><td class="r">-0.7%</td><td class="r pass">+6.8%</td><td class="r">7.5pp</td></tr>
+    </table>
+    <div class="trow" style="margin-top:12px"><span class="k">识破伪证</span><span>按钱算白酒共识高达 +13.2%,按人头只有 +9.8% —— <b class="flag">所谓"全公司共识"是一只大基金拉出来的假象</b>。本卷宗一律按人头口径</span></div>
+    <div class="trow"><span class="k">排除假独立</span><span>该产品无行业限制合同,偏离全部属主动决策。剔除合同约束类水分后,差异度从 91 校正为 <b class="redline">83(报告采用)</b></span></div>
+    <div class="trow"><span class="k">内外勾结</span><span>他相对公司独立(83),但<b class="flag">公司相对全市场偏抱团(44)</b> —— 他躲开的是同事,没躲开全市场的拥挤,真出事一样跑不掉</span></div>
+    <div class="verdict-box">
+      <span class="t">侦查认定</span>
+      <p class="b">属于<span class="hl">"有自己的想法,而且想法值钱"</span>的独立型经理。既非瞎搞,也非跟风,还是公司里多数方向的第一个买家。</p>
+    </div>
+  </div>
+</section>
+
+<!-- ═══ 肆 战绩审计 ═══ -->
+<section class="sec">
+  <div class="sec-head"><span class="sec-no">肆</span><span class="sec-ti">战绩审计</span><span class="sec-en">BATTLE AUDIT · 4/6</span></div>
+
+  <div class="page"><span class="page-tag">对抗记录</span>
+    <p class="subhead">五年 11 次"跟全公司对着干" · 抽查四案,败仗一并记录</p>
+    <div class="battle"><span class="res w">胜</span>
+      <div><b>2020Q2 · 砍白酒买新能源</b>(与公司分歧度 87)—— 17/21 人重仓消费,他反手清仓<br>
+        <span class="refs">此后一年:他 +56% ‖ 公司组合 +33% ‖ 同风格基金 +28%</span></div>
+      <span class="num pass">+23%</span></div>
+    <div class="battle"><span class="res w">胜</span>
+      <div><b>2022Q1 · 新能源撤退转煤炭</b>(分歧度 79)—— 公司新能源仓位历史顶点那季他跑了<br>
+        <span class="refs">此后一年:他 +18% ‖ 公司组合 -21% ‖ 同风格基金 -14%</span></div>
+      <span class="num pass">+39%</span></div>
+    <div class="battle"><span class="res l">负</span>
+      <div><b>2023Q1 · 拒绝追 AI</b>(分歧度 73)—— 9 名同事进场,他说估值算不过账<br>
+        <span class="refs">此后一年:他 +4% ‖ 公司组合 +15% ‖ 同风格基金 +9%</span></div>
+      <span class="num bad">-11.2%</span></div>
+    <div class="battle"><span class="res l">负</span>
+      <div><b>2026Q2 · 加仓踩空</b>(分歧度 81)—— 公司转向大盘,他加仓小盘<br>
+        <span class="refs">此后一年:他 -12.8% ‖ 公司组合 +6.2% ‖ 同风格基金 +2.1%</span></div>
+      <span class="num bad">-19.0%</span></div>
+    <div class="tri">
+      <div><div class="n">63.6%</div><span class="k">胜率 · 7胜4负</span></div>
+      <div><div class="n pass">2.34x</div><span class="k">赔率 · 赢均+12.4% 输均-5.3%</span></div>
+      <div><div class="n pass">+5.9%</div><span class="k">每场期望 · 算上输的</span></div>
+    </div>
+    <div class="note">批注:胜率不吓人,赔率救命 —— 赢一场顶亏两场。输的两仗全认账,没删记录。</div>
+  </div>
+
+  <div class="page"><span class="page-tag">账目审计</span>
+    <p class="subhead">收益来源审计 · 年化 17.2% 到底哪来的</p>
+    <table class="tb">
+      <tr><th>来源</th><th style="width:92px">金额(年化)</th><th style="width:110px">性质认定</th></tr>
+      <tr><td>大盘上涨带的</td><td class="r">+4.1%</td><td class="c" style="color:var(--faint)">风口</td></tr>
+      <tr><td>小盘风格给的</td><td class="r">+3.0%</td><td class="c" style="color:var(--faint)">风口</td></tr>
+      <tr><td>微盘风格给的</td><td class="r">+2.2%</td><td class="c" style="color:var(--faint)">风口</td></tr>
+      <tr><td>价值风格给的</td><td class="r">+1.4%</td><td class="c" style="color:var(--faint)">风口</td></tr>
+      <tr><td colspan="3" style="font-size:12px;color:var(--faint);letter-spacing:.05em">
+        口径说明:本表"真本事"合计 5.9% = 仓位1.8 + 选股3.1 + 时机1.0。
+        别处出现的 4.8%(衰减表)是扣掉风格因子后的口径,4.9%(结案书)单指历史选股 —— 三个数字是同一个人,不是对不上</td></tr>
+      <tr class="hl"><td><b>仓位调得好</b></td><td class="r pass">+1.8%</td><td class="c pass">真本事</td></tr>
+      <tr class="hl"><td><b>股票挑得好</b></td><td class="r pass">+3.1%</td><td class="c pass">真本事</td></tr>
+      <tr class="hl"><td><b>时机踩得准</b></td><td class="r pass">+1.0%</td><td class="c pass">真本事</td></tr>
+      <tr><td>零头(无法归因)</td><td class="r">+0.6%</td><td class="c" style="color:var(--faint)">—</td></tr>
+      <tr><td><b>合计</b>(勾稽无误 ✓)</td><td class="r"><b>17.2%</b></td><td class="c">风口62% / 本事34%</td></tr>
+    </table>
+    <div class="trow" style="margin-top:10px"><span class="k">附注</span><span>打新等一次性收益 0.4pp 已从"股票挑得好"中剥离,不计本事</span></div>
+    <p class="subhead" style="margin-top:18px">防伪六验 · 证明不是运气</p>
+    <div class="trow"><span class="k">验一</span><span class="pass">☑ 扣风口后仍为正,统计显著(t=2.4)</span></div>
+    <div class="trow"><span class="k">验二</span><span class="pass">☑ 任取连续三年,78% 的时间都在跑赢</span></div>
+    <div class="trow"><span class="k">验三</span><span class="pass">☑ 八个年度里六个年度为正</span></div>
+    <div class="trow"><span class="k">验四</span><span class="pass">☑ 删掉最赚的 1 只票,还是赚</span></div>
+    <div class="trow"><span class="k">验五</span><span class="pass">☑ <b>删掉最赚的 3 只票,仍有 +1.8% —— 不是靠一两次撞大运</b></span></div>
+    <div class="trow"><span class="k">验六</span><span class="pass">☑ 赚钱的票分散在几十只,不是全押一个</span></div>
+  </div>
+
+  <div class="page"><span class="page-tag">能力鉴定</span>
+    <p class="subhead">分项技能鉴定 + 老化检查</p>
+    <table class="tb">
+      <tr><th>买入</th><th>卖出</th><th>下注轻重</th><th>拿得住</th><th>踩点</th></tr>
+      <tr><td class="c pass" style="font-size:20px">A</td><td class="c flag" style="font-size:20px">B-</td>
+        <td class="c pass" style="font-size:20px">A-</td><td class="c pass" style="font-size:20px">A</td>
+        <td class="c pass" style="font-size:20px">A-</td></tr>
+    </table>
+    <div class="trow" style="margin-top:8px"><span class="k">已知短板</span><span class="flag">卖得偏早 —— 卖掉的票 12 个月平均又涨 14%,每次提前下车看车继续开</span></div>
+    <table class="tb" style="margin-top:16px">
+      <tr><th>老化检查</th><th style="width:110px">整个生涯</th><th style="width:110px">最近五年</th></tr>
+      <tr><td>扣掉风口后赚的</td><td class="r">+4.8%</td><td class="r">+2.9%</td></tr>
+      <tr><td>靠自己判断赚的</td><td class="r">+6.2%</td><td class="r">+4.1%</td></tr>
+      <tr class="hl"><td>大盘跌时跟跌多少</td><td class="r">72%</td><td class="r bad">81% ↓退步</td></tr>
+      <tr><td>跟同事的差异度</td><td class="r">78</td><td class="r">83</td></tr>
+      <tr class="hl"><td>本事稳不稳</td><td class="r">81</td><td class="r bad">69 ↓退步</td></tr>
+    </table>
+    <div class="note">批注:独立性没老,防守和稳定性在老。50 岁的经理,这两项要按季度盯。</div>
+  </div>
+</section>
+
+<!-- ═══ 伍 风险预警 ═══ -->
+<section class="sec">
+  <div class="sec-head"><span class="sec-no">伍</span><span class="sec-ti">风险预警</span><span class="sec-en">RISK ALERT · 5/6</span></div>
+
+  <div class="page"><span class="page-tag">环境依赖</span>
+    <p class="subhead">作案环境分析 · 什么天气能打,什么天气挨揍</p>
+    <div class="wq">
+      <div><b class="pass">+21%</b>小盘行情 · 市场钱多<br><span style="color:var(--faint)">巅峰状态,2020-2021 全在这种天</span></div>
+      <div><b>+3%</b>大盘行情 · 市场钱多<br><span style="color:var(--faint)">平庸,跟不上大蓝筹但不亏</span></div>
+      <div class="here"><span class="tag">当前天气</span><b class="bad">-8%</b>小盘行情 · 市场钱少<br><span style="color:var(--faint)">挨揍中,2026Q2 事故就发生在这</span></div>
+      <div><b class="bad">-12%</b>大盘行情 · 市场钱少<br><span style="color:var(--faint)">最难受的天</span></div>
+    </div>
+    <div class="verdict-box" style="margin-top:14px">
+      <span class="t">预警一</span>
+      <p class="b">买他 = 赌天气变回「小盘 + 钱多」。<span class="hl">你买的不只是他,还有天气。</span></p>
+    </div>
+  </div>
+
+  <div class="page"><span class="page-tag">持仓透视</span>
+    <table class="tb">
+      <tr><th>股票仓位</th><th>持股数</th><th>前十大合计</th><th>第一大持仓</th><th>与基准重合</th></tr>
+      <tr><td class="c">84%</td><td class="c">142 只</td><td class="c">仅 10.9%</td><td class="c">仅 1.16%</td><td class="c">只有 6%(94% 是自己的主意)</td></tr>
+    </table>
+    <div class="trow" style="margin-top:10px"><span class="k">隐蔽风险</span><span>142 只票摊在 28 个行业,看着极度分散 —— 但 <b class="bad">76% 的持仓押在"小微盘流动性"同一条血管上</b>,分散是表面的</span></div>
+    <div class="trow"><span class="k">容量红线</span><span>策略容量约 20-30 亿(按 48% 反推当前可用上限≈26 亿),当前 12.5 亿(<b>用了 48%</b>)· 清仓全部持股约需 <b>4.2 个交易日</b> · 规模一旦破 25 亿必须重审</span></div>
+    <div class="trow"><span class="k">压力推演</span><span>若小微盘再跌 30% → 预计净值 <b class="bad">-18%</b> ‖ 若流动性快速收紧 → <b class="bad">-14%</b> ‖ 若切换成大盘行情 → 相对跑输 <b class="flag">-7%</b></span></div>
+  </div>
+
+  <div class="page"><span class="page-tag">同伙资金</span>
+    <p class="subhead">谁跟他一起押了钱 · 亮=有实据,虚线=没查到不瞎猜</p>
+    <div class="badge-row">
+      <span class="brc">✓ 经理本人 100万份+</span><span class="brc">✓ 公司员工 7.25%</span>
+      <span class="brc gr">国家队</span><span class="brc gr">险资</span><span class="brc gr">社保</span>
+      <span class="brc gr">养老金</span><span class="brc gr">FOF</span><span class="brc gr">外资</span>
+    </div>
+    <div class="flowa">
+      <div><span class="fv">6.1</span><div class="fb" style="height:50px"></div><span class="fp">23上</span></div>
+      <div><span class="fv">7.4</span><div class="fb" style="height:62px"></div><span class="fp">23下</span></div>
+      <div><span class="fv">6.8</span><div class="fb" style="height:56px"></div><span class="fp">24上</span></div>
+      <div><span class="fv">5.9</span><div class="fb" style="height:48px"></div><span class="fp">24下</span></div>
+      <div><span class="fv">5.6</span><div class="fb" style="height:45px"></div><span class="fp">25上</span></div>
+      <div><span class="fv">5.3</span><div class="fb" style="height:43px;background:var(--warn)"></div><span class="fp">25下</span></div>
+    </div>
+    <div class="trow" style="margin-top:8px"><span class="k">解读</span><span>机构占比(%)三年缓降,本基金以散户为主 · 最硬的证据仍是<b>经理本人和员工真金白银押在里面</b></span></div>
+  </div>
+</section>
+
+<!-- ═══ 陆 结案书 ═══ -->
+<section class="sec">
+  <div class="sec-head"><span class="sec-no">陆</span><span class="sec-ti">结案书</span><span class="sec-en">FINAL VERDICT · 6/6</span></div>
+  <div class="final">
+    <h3>结 案 书</h3>
+    <p class="subhead" style="margin-top:18px">未来还能赚多少 · 从历史本事逐项扣水分</p>
+    <div class="calc">
+      <div><span>历史选股真本事(年化)</span><span class="m">+4.9%</span></div>
+      <div><span>扣:规模翻倍后调仓变笨</span><span class="m bad">-0.8%</span></div>
+      <div><span>扣:小盘赛道变拥挤</span><span class="m bad">-0.3%</span></div>
+      <div><span>扣:研究支持折损</span><span class="m bad">-0.2%</span></div>
+      <div><span>扣:交易成本上升</span><span class="m bad">-0.4%</span></div>
+      <div><span>扣:天气可能不配合</span><span class="m bad">-0.5%</span></div>
+      <div><span>扣:手感回归均值</span><span class="m bad">-0.7%</span></div>
+      <div><span><b>预计未来每年靠本事多赚</b></span><span class="m redline">+2.0% ~ +4.0%</span></div>
+    </div>
+
+    <div class="two" style="margin-top:18px">
+      <div>
+        <p class="subhead">看好他的五条理由</p>
+        <div class="trow"><span class="k pass">①</span><span>与同事差异度 83,挤掉水分后依然显著独立</span></div>
+        <div class="trow"><span class="k pass">②</span><span>分化期 +7.2% 对跟风期 +1.3%,独立是真资产</span></div>
+        <div class="trow"><span class="k pass">③</span><span>11 个方向 8 个他第一个买,领先大部队 2.1 个季度</span></div>
+        <div class="trow"><span class="k pass">④</span><span>删掉最赚 3 只票仍 +1.8%,不是运气</span></div>
+        <div class="trow"><span class="k pass">⑤</span><span>自购+限购+熊市不甩锅,人品有实据</span></div>
+      </div>
+      <div>
+        <p class="subhead">可能看走眼的五处</p>
+        <div class="trow"><span class="k bad">①</span><span>风口贡献占 62%,小盘红利可能被高估成本事</span></div>
+        <div class="trow"><span class="k bad">②</span><span>76% 持仓押同一条流动性血管,极端行情跑不掉</span></div>
+        <div class="trow"><span class="k bad">③</span><span>一人一基金,他走了立即失效</span></div>
+        <div class="trow"><span class="k bad">④</span><span>2026Q2 已过一季未见纠错,恢复力存疑</span></div>
+        <div class="trow"><span class="k bad">⑤</span><span>公司整体抱团(44),他的独立只是换了个车道</span></div>
+      </div>
+    </div>
+
+    <div class="row" style="margin-top:16px"><span class="no">判决</span>
+      <span>综合评分 <b class="redline">78 / 100(A- 级)</b>,证据窗 8.5 年充分可信。
+      <b class="redline">准予购买,仓位不超过总资产 5%</b>,当前正处其最差天气,短期难看属正常,勿以单季定生死。</span></div>
+    <div class="row"><span class="no">重审令</span>
+      <span>触发任一立即重审:① 规模破 25 亿 ② 经理离任 ③ 放开大额申购 ④ 与公司持仓趋同(差异度跌破 40)⑤ 连续四季扣风口后为负 ⑥ 2026Q3 仍无调仓动作</span></div>
+    <div class="sig">
+      <span>侦查科:基金经理照妖镜<br>本卷全部数字为模拟数据,仅作界面演示</span>
+      <span class="mono">2026 年 06 月 30 日</span>
+    </div>
+  </div>
+</section>
+
+<p class="foot">本卷宗不指向任何真实人物或基金 · 非个性化投资建议 · 基金过往业绩不预示未来表现 · 阅后请存档</p>
+
+</div>
+</body>
+</html>

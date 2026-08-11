@@ -1,0 +1,1713 @@
+<!DOCTYPE html>
+<html lang="zh-CN" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>陈述 · 示例灵活配置 · 基金经理独立决策尽调(模拟数据)</title>
+<style>
+:root{
+  --bg:#080a0d; --surface:#11151b; --raised:#171d25; --sunk:rgba(0,0,0,.4);
+  --ink:#f2f5f8; --muted:#8b95a3; --ghost:#5a6472;
+  --line:#1e242d; --line-hard:#2c343f;
+  --accent:#c8ff2e; --accent-ink:#0a0d10; --indep:#a78bfa;
+  --ok:#34d399; --danger:#f87171; --warn:#fbbf24;
+  --ok-tint:rgba(52,211,153,.13); --danger-tint:rgba(248,113,113,.13);
+  --indep-tint:rgba(167,139,250,.13); --warn-tint:rgba(251,191,36,.13);
+  --accent-tint:rgba(200,255,46,.11);
+  --brutal:var(--accent); --glow:0 0 22px rgba(200,255,46,.28);
+  --grid-ink:rgba(255,255,255,.028);
+  --radius:16px; --radius-sm:8px;
+  --shadow-brutal:5px 5px 0 var(--brutal);
+  --gap:20px;
+}
+[data-theme="light"]{
+  --bg:#eef1f5; --surface:#ffffff; --raised:#f6f8fa; --sunk:rgba(15,23,42,.07);
+  --ink:#0d1420; --muted:#4a5568; --ghost:#94a3b8;
+  --line:#dfe5ec; --line-hard:#0d1420;
+  --accent:#3f6212; --accent-ink:#ffffff; --indep:#6d28d9;
+  --ok:#047857; --danger:#be123c; --warn:#b45309;
+  --ok-tint:rgba(4,120,87,.09); --danger-tint:rgba(190,18,60,.08);
+  --indep-tint:rgba(109,40,217,.08); --warn-tint:rgba(180,83,9,.09);
+  --accent-tint:rgba(63,98,18,.08);
+  --brutal:#0d1420; --glow:0 3px 14px rgba(13,20,32,.12);
+  --grid-ink:rgba(13,20,32,.035);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth;scroll-padding-top:80px}
+body{
+  color:var(--ink);
+  background-color:var(--bg);
+  background-image:linear-gradient(var(--grid-ink) 1px,transparent 1px),
+                   linear-gradient(90deg,var(--grid-ink) 1px,transparent 1px);
+  background-size:44px 44px;
+  font-family:Inter,'PingFang SC',-apple-system,system-ui,sans-serif;
+  font-variant-numeric:tabular-nums;
+  line-height:1.6;-webkit-font-smoothing:antialiased;
+  transition:background-color .25s,color .25s;
+}
+.wrap{max-width:1080px;margin:0 auto;padding:0 24px 120px}
+
+/* 主题开关 */
+.theme-btn{position:fixed;right:20px;top:20px;z-index:60;width:46px;height:46px;
+  border-radius:50%;border:2px solid var(--line-hard);background:var(--surface);
+  color:var(--ink);font-size:19px;cursor:pointer;box-shadow:var(--glow);
+  display:flex;align-items:center;justify-content:center;transition:.2s}
+.theme-btn:hover{transform:rotate(-18deg) scale(1.08)}
+.lbl{font-size:11px;font-weight:600;letter-spacing:.25em;text-transform:uppercase;color:var(--muted);display:block}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);padding:28px}
+b,strong{font-weight:800}
+.ok{color:var(--ok)} .danger{color:var(--danger)} .warn{color:var(--warn)} .indep{color:var(--indep)}
+
+/* 滚入动画 */
+.fade-in{opacity:0;transform:translateY(20px);transition:opacity .5s,transform .5s}
+.fade-in.visible{opacity:1;transform:translateY(0)}
+
+/* ===== 锚点导航 ===== */
+.toc{position:fixed;left:16px;top:50%;transform:translateY(-50%);z-index:50;display:flex;flex-direction:column;gap:4px}
+.toc a{display:flex;align-items:center;gap:10px;padding:7px 12px;border-radius:20px;text-decoration:none;
+  color:var(--ghost);font-size:11px;font-weight:600;letter-spacing:.1em;
+  background:rgba(17,21,27,.7);backdrop-filter:blur(8px);border:1px solid transparent;transition:.25s}
+.toc a:hover{color:var(--ink);border-color:var(--line)}
+.toc a.on{color:var(--accent);border-color:var(--accent);background:var(--accent-tint)}
+.toc .n{font-size:10px;opacity:.6}
+@media(max-width:1300px){.toc{display:none}}
+
+/* ===== section 头 ===== */
+.sec{padding-top:72px}
+.sec-head{display:flex;align-items:center;gap:16px;margin-bottom:24px}
+.sec-tag{font-size:11px;font-weight:700;letter-spacing:.25em;color:var(--accent);white-space:nowrap}
+.sec-title{font-size:32px;font-weight:800;letter-spacing:-.02em;white-space:nowrap}
+.sec-line{flex:1;height:1px;background:linear-gradient(90deg,var(--accent),transparent)}
+
+/* ===== 首屏 ===== */
+.hero{display:grid;grid-template-columns:2fr 1fr 1fr;gap:var(--gap);padding-top:56px}
+.brand{display:flex;align-items:center;gap:10px;padding-bottom:18px;margin-bottom:28px;
+  border-bottom:2px solid var(--accent)}
+.brand-dot{width:10px;height:10px;border-radius:50%;background:var(--accent)}
+.brand-txt{font-size:12px;font-weight:700;letter-spacing:.3em;text-transform:uppercase}
+.mgr-name{font-size:72px;font-weight:900;letter-spacing:-.04em;line-height:1}
+.mgr-fund{font-size:15px;color:var(--muted);margin-top:10px}
+.mgr-arch{display:inline-block;margin-top:18px;padding:7px 14px;border-radius:var(--radius-sm);
+  background:var(--indep-tint);border:1px solid var(--indep);color:var(--indep);
+  font-size:13px;font-weight:700}
+.tags{display:flex;flex-wrap:wrap;gap:8px;margin-top:20px}
+.tag{font-size:11px;font-weight:600;padding:5px 11px;border-radius:4px;
+  background:var(--raised);border:1px solid var(--line);color:var(--muted)}
+.tag.hot{border-color:var(--danger);color:var(--danger);background:var(--danger-tint)}
+.tag.good{border-color:var(--ok);color:var(--ok);background:var(--ok-tint)}
+.score-card{display:flex;flex-direction:column;justify-content:center;align-items:center;text-align:center}
+.score-giant{font-size:110px;font-weight:900;line-height:.9;color:var(--accent);letter-spacing:-.05em}
+.score-giant::after{content:'/100';font-size:.2em;color:var(--muted);font-weight:700}
+.score-rate{font-size:36px;font-weight:900;margin-top:6px}
+.conf{margin-top:16px;font-size:12px;font-weight:700;color:var(--ok)}
+.verdict-card{display:flex;flex-direction:column;justify-content:center;text-align:center;gap:6px}
+.verdict-emo{font-size:40px;line-height:1}
+.verdict-txt{font-size:30px;font-weight:900;color:var(--ok);letter-spacing:-.02em}
+.verdict-sub{font-size:13px;color:var(--muted);margin-top:8px}
+.verdict-pos{font-size:15px;font-weight:800;margin-top:2px}
+
+/* ===== 判词 ===== */
+.punchline{background:var(--raised);border:2px solid var(--line);border-left:12px solid var(--accent);
+  box-shadow:var(--shadow-brutal);padding:28px 32px;margin-top:36px;
+  font-size:24px;font-weight:700;line-height:1.55;letter-spacing:-.01em}
+.punchline .em{color:var(--accent)}
+@media(max-width:860px){
+  .hero{grid-template-columns:1fr}
+  .mgr-name{font-size:52px}
+  .punchline{font-size:19px;padding:22px 24px}
+  .sec-title{font-size:24px}
+}
+
+/* ===== 对战擂台 ===== */
+.arena{display:grid;grid-template-columns:1fr 96px 1fr;align-items:stretch;gap:0;
+  margin-top:var(--gap);border:3px solid var(--line-hard);border-radius:var(--radius);
+  overflow:hidden;background:var(--surface)}
+.fighter{padding:26px}
+.fighter.house{background:var(--sunk)}
+.fighter.mgr{background:var(--indep-tint)}
+.f-who{font-size:11px;font-weight:800;letter-spacing:.24em;color:var(--muted)}
+.f-name{font-size:26px;font-weight:900;margin-top:6px;letter-spacing:-.02em}
+.fighter.mgr .f-name{color:var(--indep)}
+.f-desc{font-size:13px;color:var(--muted);margin-top:8px;line-height:1.5;min-height:42px}
+.hp{margin-top:16px}
+.hp-lbl{display:flex;justify-content:space-between;font-size:11px;font-weight:800;
+  color:var(--muted);margin-bottom:5px}
+.hp-bar{height:18px;background:var(--sunk);border-radius:9px;overflow:hidden;
+  border:1px solid var(--line)}
+.hp-fill{height:100%;width:0;border-radius:9px;transition:width 1.5s cubic-bezier(.22,1,.36,1)}
+.hp-fill.lose{background:var(--muted)}
+.hp-fill.win{background:var(--ok);box-shadow:0 0 16px rgba(52,211,153,.45)}
+.vs{display:flex;flex-direction:column;align-items:center;justify-content:center;
+  background:var(--line-hard);color:var(--bg);font-weight:900;gap:4px}
+[data-theme="light"] .vs{color:#fff}
+.vs .bolt{font-size:30px;line-height:1}
+.vs .t{font-size:15px;letter-spacing:.1em}
+.arena-foot{grid-column:1/-1;padding:18px 26px;border-top:3px solid var(--line-hard);
+  background:var(--raised);font-size:15px;font-weight:800;display:flex;
+  align-items:center;gap:12px;flex-wrap:wrap}
+.arena-foot .k{font-size:11px;letter-spacing:.2em;color:var(--muted);font-weight:800}
+@media(max-width:860px){.arena{grid-template-columns:1fr}
+  .vs{flex-direction:row;padding:10px;gap:10px}}
+
+/* ===== 判决印章 ===== */
+.stamp{display:inline-flex;flex-direction:column;align-items:center;justify-content:center;
+  width:132px;height:132px;border-radius:50%;border:5px double var(--ok);
+  color:var(--ok);transform:rotate(-11deg);background:var(--ok-tint)}
+.stamp .big{font-size:34px;font-weight:900;line-height:1;letter-spacing:-.02em}
+.stamp .sm{font-size:10px;font-weight:800;letter-spacing:.2em;margin-top:5px}
+.stamp.no{border-color:var(--danger);color:var(--danger);background:var(--danger-tint)}
+
+/* ===== 半圆仪表 ===== */
+.gauge{position:relative;width:196px;height:112px;margin:0 auto}
+.gauge svg{width:100%;height:100%;overflow:visible}
+.gauge .val{position:absolute;left:0;right:0;bottom:2px;text-align:center}
+.gauge .n{font-size:50px;font-weight:900;line-height:1;color:var(--accent);letter-spacing:-.04em}
+.gauge .u{font-size:11px;font-weight:800;letter-spacing:.2em;color:var(--muted)}
+
+/* ===== 头像与履历 ===== */
+.id-card{display:grid;grid-template-columns:128px 1fr;gap:22px;align-items:start}
+.avatar{width:128px;height:160px;border-radius:12px;overflow:hidden;position:relative;flex-shrink:0;
+  background:linear-gradient(150deg,#252d39,#13181f);border:1px solid var(--line);
+  display:flex;align-items:center;justify-content:center}
+.avatar img{width:100%;height:100%;object-fit:cover;display:block}
+.avatar .ini{font-size:44px;font-weight:900;color:var(--ghost)}
+.avatar .src{position:absolute;bottom:0;left:0;right:0;padding:4px;font-size:9px;
+  text-align:center;background:rgba(0,0,0,.78);color:var(--ghost)}
+.cv{display:flex;flex-direction:column;gap:6px;margin-top:14px}
+.cv-line{display:grid;grid-template-columns:70px 1fr;gap:12px;font-size:13px;line-height:1.5}
+.cv-line b{color:var(--ghost);font-weight:700;font-size:10px;letter-spacing:.12em;padding-top:3px}
+@media(max-width:860px){.id-card{grid-template-columns:1fr}.avatar{width:104px;height:130px}}
+
+/* ===== 履历真实性 / 造神检测 ===== */
+.fl-sum{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-top:var(--gap)}
+.fl{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius-sm);
+  padding:18px;text-align:center}
+.fl .n{font-size:34px;font-weight:900;display:block;line-height:1;margin-bottom:4px}
+.fl.red{border-color:var(--danger);background:var(--danger-tint)} .fl.red .n{color:var(--danger)}
+.fl.amber{border-color:var(--warn);background:var(--warn-tint)} .fl.amber .n{color:var(--warn)}
+.fl.green{border-color:var(--ok);background:var(--ok-tint)} .fl.green .n{color:var(--ok)}
+.chk-row{display:grid;grid-template-columns:24px 1fr 104px;gap:14px;align-items:center;
+  padding:16px 0;border-bottom:1px solid var(--line)}
+.chk-row:last-child{border:0}
+.chk-row .st{font-size:16px;text-align:center}
+.chk-row .ti{font-size:14px;font-weight:800}
+.chk-row .ds{font-size:12px;color:var(--muted);margin-top:4px;line-height:1.55}
+.chk-row .vd{font-size:11px;font-weight:800;text-align:center;padding:6px 8px;border-radius:4px}
+.vd.red{background:var(--danger-tint);color:var(--danger);border:1px solid rgba(248,113,113,.4)}
+.vd.amber{background:var(--warn-tint);color:var(--warn);border:1px solid rgba(251,191,36,.4)}
+.vd.green{background:var(--ok-tint);color:var(--ok);border:1px solid rgba(52,211,153,.4)}
+.ho{display:grid;grid-template-columns:96px 1fr;gap:18px;padding:16px 0;
+  border-bottom:1px solid var(--line);font-size:14px;line-height:1.55}
+.ho:last-child{border:0}
+.ho-d{font-size:14px;font-weight:800}
+.ho-m{font-size:10px;color:var(--ghost);margin-top:3px;letter-spacing:.08em}
+.ho-t{display:inline-block;font-size:10px;font-weight:800;padding:3px 8px;
+  border-radius:3px;margin-left:8px;vertical-align:1px}
+@media(max-width:860px){.fl-sum{grid-template-columns:repeat(2,1fr)}
+  .chk-row{grid-template-columns:24px 1fr;gap:10px}.chk-row .vd{grid-column:2}}
+
+/* ===== 双分数对照条(核心组件) ===== */
+.duo{border:2px solid var(--indep);background:var(--indep-tint);border-radius:var(--radius);padding:32px}
+.duo-row{display:grid;grid-template-columns:190px 1fr 64px;align-items:center;gap:18px;margin-bottom:18px}
+.duo-label{font-size:13px;font-weight:700;letter-spacing:.04em}
+.duo-track{height:16px;background:rgba(0,0,0,.45);border-radius:8px;overflow:hidden}
+.duo-fill{height:100%;border-radius:8px;width:0;background:var(--indep);
+  transition:width 1.3s cubic-bezier(.22,1,.36,1)}
+.duo-fill.ok{background:var(--ok);box-shadow:0 0 14px rgba(52,211,153,.5)}
+.duo-fill.danger{background:var(--danger);box-shadow:0 0 14px rgba(248,113,113,.5)}
+.duo-num{font-size:30px;font-weight:900;text-align:right;letter-spacing:-.03em}
+.duo-verdict{margin-top:20px;padding-top:20px;border-top:1px dashed rgba(255,255,255,.15);
+  font-size:22px;font-weight:900;text-align:center;letter-spacing:-.01em}
+.duo-note{text-align:center;font-size:12px;color:var(--muted);margin-top:6px}
+
+/* ===== 七数网格 ===== */
+.stat-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-top:var(--gap)}
+.stat{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius-sm);padding:18px}
+.stat.hero-stat{border-color:var(--indep);background:var(--indep-tint)}
+.stat .v{font-size:32px;font-weight:900;letter-spacing:-.03em;margin-top:6px;display:block}
+.stat .sub{font-size:11px;color:var(--ghost);margin-top:2px}
+@media(max-width:860px){.stat-grid{grid-template-columns:repeat(2,1fr)}}
+
+/* ===== House vs Manager 双向横条 ===== */
+.hvm{margin-top:var(--gap)}
+.hvm-switch{display:flex;gap:8px;margin-bottom:18px}
+.chip{font-size:11px;font-weight:700;padding:7px 14px;border-radius:20px;cursor:pointer;
+  background:var(--raised);border:1px solid var(--line);color:var(--muted);transition:.2s}
+.chip.on{border-color:var(--accent);color:var(--accent);background:var(--accent-tint)}
+.alert{display:flex;gap:12px;padding:16px 18px;border-radius:var(--radius-sm);margin-bottom:20px;
+  background:var(--warn-tint);border:1px solid var(--warn);font-size:13px;line-height:1.5}
+.alert b{color:var(--warn)}
+.hvm-row{display:grid;grid-template-columns:1fr 108px 1fr 88px;align-items:center;gap:10px;
+  padding:9px 0;border-bottom:1px solid var(--line)}
+.hvm-row.gap-hi .hvm-ind{color:var(--indep);font-weight:800}
+.hvm-bar{display:flex;align-items:center;gap:8px}
+.hvm-bar.L{justify-content:flex-end}
+.hvm-fill{height:20px;border-radius:3px;transition:width 1s cubic-bezier(.22,1,.36,1)}
+.hvm-bar.L .hvm-fill{background:var(--muted)}
+.hvm-bar.R .hvm-fill{background:var(--indep)}
+.hvm-bar.R .hvm-fill.neg{background:var(--ghost)}
+.hvm-num{font-size:12px;font-weight:700;color:var(--muted);white-space:nowrap}
+.hvm-ind{font-size:12px;font-weight:600;text-align:center;color:var(--muted)}
+.hvm-gap{font-size:11px;font-weight:700;color:var(--ghost);text-align:right;white-space:nowrap}
+.hvm-head{display:grid;grid-template-columns:1fr 108px 1fr 88px;gap:10px;padding-bottom:8px;
+  border-bottom:2px solid var(--line);margin-bottom:4px}
+.hvm-head span{font-size:10px;font-weight:700;letter-spacing:.2em;color:var(--ghost);text-transform:uppercase}
+.hvm-head span:nth-child(1){text-align:right}
+.hvm-head span:nth-child(2),.hvm-head span:nth-child(4){text-align:center}
+
+/* ===== 战役卡 ===== */
+.calls{display:flex;flex-direction:column;gap:14px;margin-top:var(--gap)}
+.call{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);padding:24px 26px}
+.call.win{border-left:6px solid var(--ok)}
+.call.loss{border-left:6px solid var(--danger)}
+.call-head{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:18px}
+.call-no{font-size:12px;font-weight:800;letter-spacing:.12em;color:var(--muted)}
+.call-period{font-size:20px;font-weight:900;letter-spacing:-.02em}
+.call-badge{margin-left:auto;font-size:12px;font-weight:800;padding:6px 13px;border-radius:20px}
+.call-badge.win{background:var(--ok-tint);color:var(--ok);border:1px solid var(--ok)}
+.call-badge.loss{background:var(--danger-tint);color:var(--danger);border:1px solid var(--danger)}
+.call-body{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:18px}
+.call-side{background:var(--raised);border-radius:var(--radius-sm);padding:16px}
+.call-side p{font-size:14px;margin-top:6px;line-height:1.5}
+.call-side.mgr{border-left:3px solid var(--indep)}
+.call-metrics{display:grid;grid-template-columns:repeat(5,1fr);gap:10px;
+  padding-top:16px;border-top:1px solid var(--line)}
+.call-metrics>div b{font-size:20px;font-weight:900;display:block;margin-top:3px;letter-spacing:-.02em}
+.call-metrics .m-hero{background:var(--accent-tint);border:1px solid var(--accent);
+  border-radius:var(--radius-sm);padding:8px 10px;margin:-8px -4px}
+.call-metrics .m-hero b{color:var(--accent)}
+.call.loss .m-hero{background:var(--danger-tint);border-color:var(--danger)}
+.call.loss .m-hero b{color:var(--danger)}
+@media(max-width:860px){
+  .call-body{grid-template-columns:1fr}
+  .call-metrics{grid-template-columns:repeat(2,1fr);gap:14px}
+}
+
+/* ===== Hit Rate 三数 ===== */
+.hitrate{display:grid;grid-template-columns:repeat(3,1fr);gap:var(--gap);margin-top:var(--gap)}
+.hr-box{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);
+  padding:26px;text-align:center}
+.hr-box.main{border-color:var(--accent)}
+.hr-box .big{font-size:46px;font-weight:900;letter-spacing:-.04em;line-height:1;margin:10px 0 6px}
+.hr-box.main .big{color:var(--accent)}
+.hr-box .det{font-size:12px;color:var(--muted)}
+.hr-read{margin-top:14px;padding:16px 20px;border-radius:var(--radius-sm);
+  background:var(--ok-tint);border-left:4px solid var(--ok);font-size:15px;font-weight:700}
+@media(max-width:860px){.hitrate{grid-template-columns:1fr}}
+
+/* ===== Idea Lead 时间轴 ===== */
+.lead-row{margin-top:12px;padding:18px 22px;background:var(--raised);
+  border-radius:var(--radius-sm);border:1px solid var(--line)}
+.lead-name{font-size:13px;font-weight:800;margin-bottom:6px;color:var(--accent)}
+.lead-track{position:relative;height:3px;background:var(--line);border-radius:2px;
+  margin:44px 14px 30px}
+.lead-pt{position:absolute;top:50%;transform:translate(-50%,-50%);border-radius:50%;
+  background:var(--ghost);border:2px solid var(--bg)}
+.lead-pt.first{background:var(--accent);box-shadow:0 0 0 4px var(--accent-tint)}
+.lead-pt .cap{position:absolute;top:-30px;left:50%;transform:translateX(-50%);
+  font-size:10px;font-weight:700;color:var(--muted);white-space:nowrap}
+.lead-pt.first .cap{color:var(--accent);font-size:11px}
+.lead-pt .qt{position:absolute;top:16px;left:50%;transform:translateX(-50%);
+  font-size:10px;color:var(--ghost);white-space:nowrap}
+.lead-sum{display:flex;align-items:center;gap:14px;margin-top:8px;padding:18px 22px;
+  border-radius:var(--radius-sm);background:var(--accent-tint);border:1px solid var(--accent)}
+.lead-sum .big{font-size:34px;font-weight:900;color:var(--accent);letter-spacing:-.03em}
+.badge-gen{font-size:12px;font-weight:800;padding:7px 14px;border-radius:20px;margin-left:auto;
+  background:var(--accent);color:#0a0d10}
+
+/* ===== 四象限 ===== */
+.quad-wrap{display:grid;grid-template-columns:1fr 320px;gap:var(--gap);margin-top:var(--gap)}
+.quad{display:grid;grid-template-columns:1fr 1fr;grid-template-rows:1fr 1fr;gap:3px;
+  aspect-ratio:1.25;position:relative;background:var(--line);border-radius:var(--radius);overflow:hidden}
+.q{background:var(--surface);padding:20px;display:flex;flex-direction:column;justify-content:center;
+  font-size:13px;font-weight:700;line-height:1.4;position:relative}
+.q.here{background:var(--warn-tint);border:2px solid var(--warn)}
+.q .qt{font-size:10px;color:var(--ghost);font-weight:600;letter-spacing:.15em;margin-bottom:6px}
+.q .dot{position:absolute;top:14px;right:14px;width:12px;height:12px;border-radius:50%;
+  background:var(--warn);box-shadow:0 0 0 5px var(--warn-tint)}
+.quad-ax{font-size:10px;color:var(--ghost);font-weight:700;letter-spacing:.15em;text-align:center;margin-top:8px}
+@media(max-width:860px){.quad-wrap{grid-template-columns:1fr}}
+
+/* ===== Alpha 瀑布 ===== */
+.wf-row{display:grid;grid-template-columns:130px 1fr 74px;align-items:center;gap:14px;padding:6px 0}
+.wf-name{font-size:13px;font-weight:700}
+.wf-name .en{font-size:10px;color:var(--ghost);display:block;letter-spacing:.1em}
+.wf-track{height:22px;background:rgba(0,0,0,.3);border-radius:3px;overflow:hidden}
+.wf-fill{height:100%;border-radius:3px;width:0;background:var(--muted);
+  transition:width 1.1s cubic-bezier(.22,1,.36,1)}
+.wf-fill.skill{background:var(--accent)}
+.wf-val{font-size:15px;font-weight:800;text-align:right}
+.wf-total{display:flex;align-items:center;gap:12px;margin-top:16px;padding-top:16px;
+  border-top:2px solid var(--line);font-size:16px;font-weight:800}
+.wf-total .chk{margin-left:auto;font-size:12px;color:var(--ok);font-weight:700}
+.wf-legend{display:flex;gap:20px;margin-top:14px;font-size:11px;color:var(--muted)}
+.wf-legend i{display:inline-block;width:11px;height:11px;border-radius:2px;margin-right:6px;vertical-align:-1px}
+
+/* ===== Evidence 六检验 ===== */
+.ev-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:11px;margin-top:var(--gap)}
+.ev{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius-sm);
+  padding:16px;display:flex;align-items:center;gap:11px;font-size:13px;font-weight:600}
+.ev.pass{border-color:rgba(52,211,153,.4)}
+.ev.fail{border-color:rgba(248,113,113,.4)}
+.ev .ic{font-size:16px;flex-shrink:0}
+.ev.key{grid-column:span 3;background:var(--accent-tint);border-color:var(--accent);
+  font-size:17px;font-weight:800;padding:20px}
+@media(max-width:860px){.ev-grid{grid-template-columns:1fr}.ev.key{grid-column:span 1}}
+
+/* ===== 通用两列 ===== */
+.cols2{display:grid;grid-template-columns:1fr 1fr;gap:var(--gap);margin-top:var(--gap)}
+.cols3{display:grid;grid-template-columns:repeat(3,1fr);gap:var(--gap);margin-top:var(--gap)}
+@media(max-width:860px){.cols2,.cols3{grid-template-columns:1fr}}
+
+/* ===== 表格 ===== */
+table{width:100%;border-collapse:collapse;margin-top:14px}
+th,td{padding:11px 8px;text-align:right;font-size:14px;border-bottom:1px solid var(--line)}
+th{font-size:10px;font-weight:700;letter-spacing:.18em;color:var(--ghost);text-transform:uppercase}
+td:first-child,th:first-child{text-align:left;font-weight:600}
+tr.decay td{color:var(--warn)}
+.decay-tag{font-size:10px;font-weight:800;padding:2px 7px;border-radius:3px;
+  background:var(--warn-tint);color:var(--warn);margin-left:8px}
+
+/* ===== DNA 条 ===== */
+.dna{display:flex;flex-direction:column;gap:9px;margin-top:6px}
+.dna-row{display:grid;grid-template-columns:76px 1fr 32px;align-items:center;gap:12px;font-size:12px}
+.dna-track{height:9px;background:rgba(0,0,0,.35);border-radius:5px;overflow:hidden}
+.dna-fill{height:100%;border-radius:5px;width:0;background:var(--indep);transition:width 1s ease-out}
+.dna-fill.hi{background:var(--ok)} .dna-fill.lo{background:var(--warn)}
+.dna-v{font-weight:800;text-align:right}
+
+/* ===== 等级块 ===== */
+.grades{display:grid;grid-template-columns:repeat(5,1fr);gap:11px;margin-top:6px}
+.grade{text-align:center;background:var(--raised);border:1px solid var(--line);
+  border-radius:var(--radius-sm);padding:16px 8px}
+.grade .g{font-size:30px;font-weight:900;letter-spacing:-.03em;display:block;margin-bottom:4px}
+.grade .g.a{color:var(--ok)} .grade .g.b{color:var(--warn)}
+.weak{margin-top:16px;padding:16px 20px;border-radius:var(--radius-sm);
+  background:var(--warn-tint);border-left:4px solid var(--warn);font-size:14px;font-weight:600}
+
+/* ===== 容量条 ===== */
+.cap-track{height:26px;background:rgba(0,0,0,.35);border-radius:5px;overflow:hidden;margin:14px 0 10px}
+.cap-fill{height:100%;background:var(--ok);width:0;transition:width 1.2s cubic-bezier(.22,1,.36,1);
+  display:flex;align-items:center;justify-content:flex-end;padding-right:10px;
+  font-size:12px;font-weight:800;color:#0a0d10}
+
+/* ===== 资金徽章 ===== */
+.badges{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-top:6px}
+.bdg{text-align:center;padding:16px 8px;border-radius:var(--radius-sm);
+  background:var(--raised);border:1px solid var(--line);font-size:12px;font-weight:700;opacity:.25}
+.bdg.on{opacity:1;border-color:var(--ok);background:var(--ok-tint);color:var(--ok)}
+.bdg .e{font-size:20px;display:block;margin-bottom:5px}
+
+/* ===== 错误档案 ===== */
+.mk{background:var(--surface);border:1px solid var(--line);border-left:5px solid var(--danger);
+  border-radius:var(--radius);padding:24px;margin-top:14px}
+.mk-head{display:flex;align-items:baseline;gap:12px;flex-wrap:wrap;margin-bottom:16px}
+.mk-t{font-size:19px;font-weight:900}
+.mk-loss{margin-left:auto;font-size:22px;font-weight:900;color:var(--danger)}
+.mk-line{display:grid;grid-template-columns:96px 1fr;gap:14px;padding:9px 0;
+  border-bottom:1px solid var(--line);font-size:14px}
+.mk-line:last-of-type{border:0}
+.mk-grade{margin-top:14px;padding:13px 18px;border-radius:var(--radius-sm);
+  background:var(--raised);font-size:14px;font-weight:700;display:flex;gap:12px;align-items:center}
+
+/* ===== Forward Alpha 扣减 ===== */
+.fa-row{display:grid;grid-template-columns:1fr 92px;gap:14px;padding:10px 0;
+  border-bottom:1px solid var(--line);font-size:14px}
+.fa-row .v{text-align:right;font-weight:800}
+.fa-row.start{font-weight:800;font-size:16px}
+.fa-row.end{border:0;border-top:2px solid var(--accent);margin-top:8px;padding-top:16px;
+  font-size:19px;font-weight:900;color:var(--accent)}
+.fa-row.deduct .v{color:var(--danger)}
+
+/* ===== IC 结论 ===== */
+.ic-hero{border:2px solid var(--ok);background:var(--ok-tint);border-radius:var(--radius);
+  padding:36px;text-align:center;margin-top:var(--gap)}
+.ic-hero .big{font-size:52px;font-weight:900;color:var(--ok);letter-spacing:-.03em;line-height:1}
+.ic-list li{list-style:none;padding:11px 0 11px 26px;position:relative;font-size:14px;
+  border-bottom:1px solid var(--line);line-height:1.5}
+.ic-list li:last-child{border:0}
+.ic-list.like li::before{content:'✓';position:absolute;left:0;color:var(--ok);font-weight:900}
+.ic-list.wrong li::before{content:'!';position:absolute;left:0;color:var(--danger);font-weight:900}
+.trig{display:flex;flex-wrap:wrap;gap:9px;margin-top:14px}
+.trig span{font-size:12px;font-weight:700;padding:8px 13px;border-radius:20px;
+  background:var(--danger-tint);border:1px solid rgba(248,113,113,.4);color:var(--danger)}
+.foot{margin-top:80px;padding-top:28px;border-top:1px solid var(--line);
+  font-size:12px;color:var(--ghost);line-height:1.8}
+.mock{display:inline-block;font-size:11px;font-weight:800;padding:5px 12px;border-radius:4px;
+  background:var(--warn-tint);color:var(--warn);border:1px solid var(--warn);margin-bottom:20px}
+
+/* ===== 浅色主题适配 ===== */
+[data-theme="light"] .card,[data-theme="light"] .stat,[data-theme="light"] .call,
+[data-theme="light"] .hr-box,[data-theme="light"] .ev,[data-theme="light"] .mk,
+[data-theme="light"] .lead-row,[data-theme="light"] .grade,[data-theme="light"] .bdg,
+[data-theme="light"] .q{box-shadow:0 1px 3px rgba(13,20,32,.07)}
+[data-theme="light"] .punchline{background:var(--surface)}
+[data-theme="light"] .duo-track,[data-theme="light"] .wf-track,
+[data-theme="light"] .dna-track,[data-theme="light"] .cap-track,
+[data-theme="light"] .hp-bar{background:var(--sunk)}
+[data-theme="light"] .toc a{background:rgba(255,255,255,.86)}
+[data-theme="light"] .cap-fill{color:#fff}
+[data-theme="light"] .badge-gen{color:#fff}
+[data-theme="light"] .sec-num{color:rgba(13,20,32,.05)}
+/* 分享卡永远深色 —— 发出去要辨识度 */
+#share-card,#war-report{color:#f2f5f8}
+#share-card .cd-quote,#war-report .cd-quote{background:#12161d;border-color:#262d38;
+  border-left-color:#c8ff2e;box-shadow:9px 9px 0 #c8ff2e}
+#share-card .indep,#war-report .indep{color:#a78bfa}
+#share-card .ok,#war-report .ok{color:#34d399}
+#share-card .cd-brand,#war-report .cd-brand{border-bottom-color:#c8ff2e}
+#share-card .cd-brand .d,#war-report .cd-brand .d{background:#c8ff2e}
+#share-card .cd-sub,#war-report .cd-sub{color:#c8ff2e}
+#share-card .cd-score .n{color:#c8ff2e}
+#war-report .wr-r{background:rgba(200,255,46,.075);border-color:#c8ff2e}
+#war-report .wr-r .k,#war-report .wr-r .n{color:#c8ff2e}
+#war-report .wr-r .st{background:#34d399;color:#080b0e}
+#share-card .cd-verdict{background:rgba(52,211,153,.13);border-color:#34d399;color:#34d399}
+#share-card .cd-arch,#war-report .cd-arch{background:rgba(167,139,250,.13);
+  border-color:#a78bfa;color:#a78bfa}
+#share-card .cd-three>div{background:rgba(167,139,250,.1);border-color:rgba(167,139,250,.55)}
+#share-card .cd-quote .k{color:#c8ff2e}
+#share-card .cd-name,#war-report .cd-name{color:#f2f5f8}
+
+/* 巨型段号水印 */
+.sec{position:relative}
+.sec-num{position:absolute;right:-6px;top:44px;font-size:150px;font-weight:900;
+  line-height:1;color:rgba(255,255,255,.035);pointer-events:none;user-select:none;
+  letter-spacing:-.06em;z-index:0}
+.sec>*{position:relative;z-index:1}
+@media(max-width:860px){.sec-num{display:none}}
+
+/* ===== 机构资金流 ===== */
+.flow{display:flex;gap:10px;align-items:flex-end;margin-top:14px}
+.flow>div{flex:1;display:flex;flex-direction:column;align-items:center;gap:5px}
+.flow .fv{font-size:11px;font-weight:800;color:var(--muted)}
+.flow .fb{width:100%;max-width:52px;background:var(--muted);opacity:.65;border-radius:5px 5px 0 0}
+.flow .fb.dim{background:var(--warn);opacity:.8}
+.flow .fp{font-size:10px;color:var(--ghost)}
+
+/* ===== 悬停微动 ===== */
+.stat,.hr-box,.bdg,.grade{transition:transform .22s}
+.stat:hover,.hr-box:hover,.grade:hover{transform:translateY(-3px)}
+.bdg.on:hover{transform:scale(1.05)}
+
+/* ===== 传播卡片 ===== */
+.card-stage{position:fixed;left:-99999px;top:0}
+.card-stage.show{position:static;left:auto;margin:60px auto;display:block}
+
+#share-card{width:1080px;height:1920px;padding:88px 72px;box-sizing:border-box;
+  display:flex;flex-direction:column;
+  background:
+    radial-gradient(900px 620px at 82% 6%, rgba(200,255,46,.16), transparent 62%),
+    radial-gradient(760px 560px at 8% 94%, rgba(167,139,250,.15), transparent 60%),
+    linear-gradient(168deg,#0a0d12 0%,#070a0e 55%,#0b0f14 100%)}
+#war-report{width:1920px;height:1080px;padding:76px 84px;box-sizing:border-box;
+  display:grid;grid-template-columns:1.32fr 1fr;gap:72px;
+  background:
+    radial-gradient(820px 620px at 92% 12%, rgba(200,255,46,.15), transparent 60%),
+    radial-gradient(680px 520px at 4% 92%, rgba(167,139,250,.14), transparent 58%),
+    linear-gradient(150deg,#0a0d12,#070a0e)}
+
+.cd-brand{display:flex;align-items:center;gap:16px;padding-bottom:26px;
+  border-bottom:3px solid var(--accent)}
+.cd-brand .d{width:18px;height:18px;border-radius:50%;background:var(--accent)}
+.cd-brand .t{font-size:26px;font-weight:900;letter-spacing:.24em}
+.cd-brand .r{margin-left:auto;font-size:19px;color:var(--muted)}
+.cd-sub{font-size:20px;font-weight:700;letter-spacing:.34em;color:var(--accent);
+  text-transform:uppercase;margin:52px 0 20px}
+.cd-name{font-size:132px;font-weight:900;letter-spacing:-.05em;line-height:.94}
+.cd-fund{font-size:30px;color:var(--muted);margin-top:20px}
+.cd-arch{display:inline-block;margin-top:26px;padding:12px 24px;border-radius:12px;
+  background:var(--indep-tint);border:2px solid var(--indep);color:var(--indep);
+  font-size:24px;font-weight:800}
+
+.cd-score{display:flex;align-items:flex-end;gap:40px;margin-top:56px}
+.cd-score .n{font-size:250px;font-weight:900;color:var(--accent);line-height:.82;letter-spacing:-.06em}
+.cd-score .n em{font-size:70px;color:var(--muted);font-style:normal}
+.cd-verdict{padding:20px 34px;border-radius:16px;background:var(--ok-tint);
+  border:3px solid var(--ok);font-size:52px;font-weight:900;color:var(--ok);margin-bottom:22px}
+
+.cd-three{display:grid;grid-template-columns:repeat(3,1fr);gap:22px;margin-top:16px}
+.cd-three>div{background:rgba(167,139,250,.1);border:2px solid rgba(167,139,250,.55);
+  border-radius:16px;padding:26px 20px}
+.cd-three .k{font-size:19px;color:var(--muted);font-weight:700}
+.cd-three .v{font-size:62px;font-weight:900;line-height:1.05;margin-top:8px;letter-spacing:-.03em}
+.cd-three .u{font-size:17px;color:var(--ghost)}
+
+.cd-rec{display:flex;gap:20px;margin-top:22px}
+.cd-rec>div{flex:1;background:rgba(255,255,255,.045);border:2px solid var(--line);
+  border-radius:16px;padding:26px}
+.cd-rec .k{font-size:19px;color:var(--muted);font-weight:700}
+.cd-rec .v{font-size:44px;font-weight:900;margin-top:8px}
+.cd-rec .n{font-size:18px;color:var(--ghost);margin-top:6px}
+
+.cd-quote{margin-top:auto;background:#12161d;border:3px solid #262d38;
+  border-left:20px solid var(--accent);box-shadow:9px 9px 0 var(--accent);
+  padding:44px 46px}
+.cd-quote .k{font-size:19px;font-weight:900;letter-spacing:.3em;color:var(--accent)}
+.cd-quote .t{font-size:50px;font-weight:900;line-height:1.36;margin-top:20px;letter-spacing:-.02em}
+.cd-foot{display:flex;align-items:center;gap:32px;margin-top:44px}
+.cd-qr{width:150px;height:150px;border-radius:14px;background:#fff;flex-shrink:0;
+  display:flex;align-items:center;justify-content:center;font-size:15px;color:#666;text-align:center}
+.cd-foot .fx{font-size:19px;color:var(--ghost);line-height:1.7}
+
+/* 横版 */
+.wr-l{display:flex;flex-direction:column}
+.wr-r{display:flex;flex-direction:column;justify-content:center;align-items:center;
+  background:rgba(200,255,46,.075);border:3px solid var(--accent);border-radius:26px;padding:56px 40px}
+.wr-r .k{font-size:24px;font-weight:800;letter-spacing:.24em;color:var(--accent);text-align:center}
+.wr-r .n{font-size:230px;font-weight:900;color:var(--accent);line-height:.86;
+  letter-spacing:-.06em;margin:26px 0}
+.wr-r .st{padding:20px 40px;border-radius:16px;background:var(--ok);color:#080b0e;
+  font-size:52px;font-weight:900}
+.wr-r .nt{font-size:22px;color:var(--muted);margin-top:26px;text-align:center;line-height:1.6}
+.wr-rows{margin-top:auto}
+.wr-row{display:flex;align-items:baseline;gap:20px;padding:20px 0;border-bottom:2px solid #1b212a}
+.wr-row .k{font-size:23px;color:var(--muted);width:250px;flex-shrink:0;font-weight:700}
+.wr-row .v{font-size:30px;font-weight:900}
+</style>
+</head>
+<body>
+<button class="theme-btn" id="themeBtn" title="切换黑白主题">🌙</button>
+
+<nav class="toc">
+  <a href="#s1" class="on"><span class="n">01</span>一句话结论</a>
+  <a href="#s2"><span class="n">02</span>这人靠谱吗</a>
+  <a href="#s3"><span class="n">03</span>他敢不敢跟别人不一样</a>
+  <a href="#s4"><span class="n">04</span>钱怎么赚的</a>
+  <a href="#s5"><span class="n">05</span>有什么坑</a>
+  <a href="#s6"><span class="n">06</span>到底买不买</a>
+</nav>
+
+<div class="wrap">
+
+<!-- ============ 01 OVERVIEW ============ -->
+<section id="s1">
+  <div class="brand">
+    <span class="brand-dot"></span>
+    <span class="brand-txt">基金经理照妖镜</span>
+    <span style="margin-left:auto;font-size:11px;color:var(--ghost)">数据截止 2026-06-30</span>
+  </div>
+
+  <span class="mock">模拟数据 · 仅用于界面演示</span>
+
+  <div class="hero">
+    <div class="card">
+      <div class="id-card">
+        <div class="avatar">
+          <span class="ini">陈</span>
+          <span class="src">照片位 · 公司官网</span>
+        </div>
+        <div>
+          <h1 class="mgr-name" style="font-size:56px">陈述</h1>
+          <p class="mgr-fund">示例灵活配置 · 000000 · 灵活配置型</p>
+          <div class="mgr-arch">资产配置选手 · 分散小盘选股</div>
+          <div class="cv">
+            <div class="cv-line"><b>年龄</b><span>1976 年生 · 47 岁 · 从业 21 年 · 管这只基金 8.5 年</span></div>
+            <div class="cv-line"><b>学历</b><span>某财经大学金融学硕士 · 本科数学系</span></div>
+            <div class="cv-line"><b>资格</b><span>基金从业资格 · 无处罚记录</span></div>
+            <div class="cv-line"><b>履历</b><span>2001 券商债券研究 → 2005 保险资管 → 2013 公募研究员
+              → 2016 基金经理助理 → 2017 起独立管这只基金</span></div>
+            <div class="cv-line"><b>现在</b><span>只管 1 只产品 12.5 亿 · 从没同时管超过 2 只</span></div>
+          </div>
+        </div>
+      </div>
+      <div class="tags">
+        <span class="tag good">一个人管了 8 年多</span>
+        <span class="tag good">他自己也买了 100 多万</span>
+        <span class="tag good">公司员工也买了 7.25%</span>
+        <span class="tag good">主动关门不多收钱</span>
+        <span class="tag">不跟同事抱团</span>
+        <span class="tag">主要买小盘股</span>
+        <span class="tag hot">他走了基金就废</span>
+      </div>
+    </div>
+
+    <div class="card score-card">
+      <span class="lbl">总分</span>
+      <div class="score-giant" data-count="78">0</div>
+      <div class="score-rate ok">A- 级</div>
+      <div class="conf">🟢 证据够硬 · 有 8.5 年数据可查</div>
+      <div class="gauge" style="margin-top:6px">
+        <svg viewBox="0 0 196 112">
+          <path d="M16 100 A82 82 0 0 1 180 100" fill="none"
+                stroke="var(--sunk)" stroke-width="15" stroke-linecap="round"/>
+          <path id="gArc" d="M16 100 A82 82 0 0 1 180 100" fill="none"
+                stroke="var(--accent)" stroke-width="15" stroke-linecap="round"
+                stroke-dasharray="258" stroke-dashoffset="258"
+                style="transition:stroke-dashoffset 1.6s cubic-bezier(.22,1,.36,1)"/>
+        </svg>
+        <div class="val"><div class="n">83</div>
+          <div class="u">跟同事有多不一样</div></div>
+      </div>
+    </div>
+
+    <div class="card verdict-card">
+      <div class="stamp"><span class="big">可以买</span><span class="sm">APPROVED</span></div>
+      <div class="verdict-sub" style="margin-top:18px">敢下多少信心</div>
+      <div class="verdict-pos">比较有信心</div>
+      <div class="verdict-sub" style="margin-top:10px">建议买多少</div>
+      <div class="verdict-pos">别超过总仓位 5%</div>
+    </div>
+  </div>
+
+  <div class="punchline">
+    他最有价值的时候,恰恰是和公司所有人都不一样的时候 ——
+    过去五年 <span class="em">11 次</span>跟同事对着干 <span class="em">7 胜 4 负</span>,
+    不一样的时候多赚 <span class="em">7.2%</span>、跟大家一样的时候只多赚 <span class="em">1.3%</span>。
+    他的天花板是钱管多了这套方法就不好使,不是本事不行。
+  </div>
+
+  <div class="stat-grid">
+    <div class="stat hero-stat"><span class="lbl">跟同事像不像</span>
+      <span class="v indep">83</span><span class="sub">越高越有自己的想法</span></div>
+    <div class="stat hero-stat"><span class="lbl">不一样时多赚</span>
+      <span class="v ok">+4.7%</span><span class="sub">每年 · 比公司平均多赚这么多</span></div>
+    <div class="stat"><span class="lbl">以后还能赚多少</span>
+      <span class="v">2~4%</span><span class="sub">每年 · 已扣掉规模变大的影响</span></div>
+    <div class="stat"><span class="lbl">本事能不能延续</span>
+      <span class="v">72</span><span class="sub">满分 100</span></div>
+  </div>
+
+  <div class="alert" style="margin-top:var(--gap);background:var(--indep-tint);border-color:var(--indep)">
+    <span>💡</span>
+    <span><b style="color:var(--indep)">先说个大实话:</b>你买基金,买的不是"基金",是<b>基金经理这个人</b>。
+    基金名字只是个壳,换个经理就是完全另一只基金了。所以这份报告 90% 的篇幅都在查这个人 ——
+    他过去赚的钱是本事还是运气,他会不会甩锅,他敢不敢跟同事想得不一样。</span>
+  </div>
+</section>
+
+<!-- ============ 02 MANAGER ============ -->
+<section id="s2" class="sec">
+  <span class="sec-num">02</span>
+  <div class="sec-head">
+    <span class="sec-tag">02 / 这人靠谱吗</span>
+    <h2 class="sec-title">先看他是个什么人</h2>
+    <span class="sec-line"></span>
+  </div>
+
+  <div class="cols2">
+    <div class="card">
+      <span class="lbl">他是怎么被市场练出来的</span>
+      <div style="margin-top:18px">
+        <div class="mk-line"><b>1998–2005</b><span>做债券和资产管理 → 学会从大方向上分配钱</span></div>
+        <div class="mk-line"><b>2005–2016</b><span>管多种资产 → 养成先算风险再下手的习惯</span></div>
+        <div class="mk-line"><b>2017</b><span>开始自己管这只基金 → 摸索出"买很多只小盘股"的路子</span></div>
+        <div class="mk-line"><b>2018</b><span>大跌前把股票仓位砍到 42% → 证明他真会躲</span></div>
+        <div class="mk-line"><b>2020–2023</b><span>小盘股大涨,他这套方法赶上了 → 规模跟着涨起来</span></div>
+        <div class="mk-line"><b>2022–2024</b><span>连续关门不收钱 → 知道钱多了不好办</span></div>
+        <div class="mk-line"><b>2026Q2</b><span>单季亏 12.79% → 正在挨打,还没看到他怎么应对</span></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <span class="lbl">性格体检 · 不听他嘴上说什么,只看他的钱往哪走</span>
+      <p style="font-size:12px;color:var(--ghost);margin-top:6px">
+        采访里谁都说自己长期主义,这十项全是从历史持仓反推出来的</p>
+      <svg viewBox="0 0 360 372" style="width:100%;max-width:340px;margin:12px auto 0;display:block">
+        <defs><linearGradient id="rg" x1="0" y1="0" x2="1" y2="1">
+          <stop offset="0%" stop-color="var(--indep)" stop-opacity=".38"/>
+          <stop offset="100%" stop-color="var(--accent)" stop-opacity=".18"/>
+        </linearGradient></defs>
+        <polygon points="180.0,156.5 197.3,162.1 208.1,176.9 208.1,195.1 197.3,209.9 180.0,215.5 162.7,209.9 151.9,195.1 151.9,176.9 162.7,162.1" fill="none" stroke="var(--line)" stroke-width="1" opacity="0.18"/><polygon points="180.0,127.0 214.7,138.3 236.1,167.8 236.1,204.2 214.7,233.7 180.0,245.0 145.3,233.7 123.9,204.2 123.9,167.8 145.3,138.3" fill="none" stroke="var(--line)" stroke-width="1" opacity="0.18"/><polygon points="180.0,97.5 232.0,114.4 264.2,158.7 264.2,213.3 232.0,257.6 180.0,274.5 128.0,257.6 95.8,213.3 95.8,158.7 128.0,114.4" fill="none" stroke="var(--line)" stroke-width="1" opacity="0.18"/><polygon points="180.0,68.0 249.4,90.5 292.2,149.5 292.2,222.5 249.4,281.5 180.0,304.0 110.6,281.5 67.8,222.5 67.8,149.5 110.6,90.5" fill="none" stroke="var(--line)" stroke-width="1" opacity="0.35"/>
+        <line x1="180" y1="186" x2="180.0" y2="68.0" stroke="var(--line)" stroke-width="1" opacity=".3"/><line x1="180" y1="186" x2="249.4" y2="90.5" stroke="var(--line)" stroke-width="1" opacity=".3"/><line x1="180" y1="186" x2="292.2" y2="149.5" stroke="var(--line)" stroke-width="1" opacity=".3"/><line x1="180" y1="186" x2="292.2" y2="222.5" stroke="var(--line)" stroke-width="1" opacity=".3"/><line x1="180" y1="186" x2="249.4" y2="281.5" stroke="var(--line)" stroke-width="1" opacity=".3"/><line x1="180" y1="186" x2="180.0" y2="304.0" stroke="var(--line)" stroke-width="1" opacity=".3"/><line x1="180" y1="186" x2="110.6" y2="281.5" stroke="var(--line)" stroke-width="1" opacity=".3"/><line x1="180" y1="186" x2="67.8" y2="222.5" stroke="var(--line)" stroke-width="1" opacity=".3"/><line x1="180" y1="186" x2="67.8" y2="149.5" stroke="var(--line)" stroke-width="1" opacity=".3"/><line x1="180" y1="186" x2="110.6" y2="90.5" stroke="var(--line)" stroke-width="1" opacity=".3"/>
+        <polygon points="180.0,77.4 241.0,102.0 276.5,154.6 275.4,217.0 238.3,266.2 180.0,282.8 123.8,263.3 91.3,214.8 101.4,160.5 114.1,95.3" fill="url(#rg)" stroke="var(--indep)" stroke-width="2.5" stroke-linejoin="round"/>
+        <circle cx="180.0" cy="77.4" r="3.5" fill="var(--indep)"/><circle cx="241.0" cy="102.0" r="3.5" fill="var(--indep)"/><circle cx="276.5" cy="154.6" r="3.5" fill="var(--indep)"/><circle cx="275.4" cy="217.0" r="3.5" fill="var(--indep)"/><circle cx="238.3" cy="266.2" r="3.5" fill="var(--indep)"/><circle cx="180.0" cy="282.8" r="3.5" fill="var(--indep)"/><circle cx="123.8" cy="263.3" r="3.5" fill="var(--indep)"/><circle cx="91.3" cy="214.8" r="3.5" fill="var(--indep)"/><circle cx="101.4" cy="160.5" r="3.5" fill="var(--indep)"/><circle cx="114.1" cy="95.3" r="3.5" fill="var(--indep)"/>
+        <text x="180" y="42" text-anchor="middle" font-size="11" fill="var(--muted)" font-weight="700">独立思考 92</text><text x="267" y="70" text-anchor="start" font-size="11" fill="var(--muted)" font-weight="700">逆向能力 88</text><text x="321" y="144" text-anchor="start" font-size="11" fill="var(--muted)" font-weight="700">择时能力 86</text><text x="321" y="236" text-anchor="start" font-size="11" fill="var(--muted)" font-weight="700">情绪稳定 85</text><text x="267" y="310" text-anchor="start" font-size="11" fill="var(--muted)" font-weight="700">风险纪律 84</text><text x="180" y="338" text-anchor="middle" font-size="11" fill="var(--muted)" font-weight="700">学习能力 82</text><text x="93" y="310" text-anchor="end" font-size="11" fill="var(--muted)" font-weight="700">下重注 81</text><text x="39" y="236" text-anchor="end" font-size="11" fill="var(--muted)" font-weight="700">选股能力 79</text><text x="39" y="144" text-anchor="end" font-size="11" fill="var(--warn)" font-weight="700">卖出能力 70</text><text x="93" y="70" text-anchor="end" font-size="11" fill="var(--muted)" font-weight="700">利益一致 95</text>
+      </svg>
+      <p style="font-size:12px;color:var(--muted);margin-top:10px;text-align:center">
+        最短的那根是<b class="warn">卖出能力 70</b> —— 赢了的股票总想再拿一会儿,
+        历史上卖掉之后平均又涨了 14%</p>
+        </div>
+  </div>
+
+  <div class="cols3">
+    <div class="card"><span class="lbl">他信什么</span>
+      <p style="margin-top:12px;font-size:16px;font-weight:800">分散买 · 敢逆着来 · 知道钱多了不好办</p>
+      <p style="margin-top:10px;font-size:13px;color:var(--muted)">
+        <b class="ok">八年没变过(88 分)</b> —— 2018、2022、2026 三个时间点翻他的持仓,
+        路子是同一套。很多经理是每两年换一个说法,那种危险。</p></div>
+    <div class="card"><span class="lbl">他到底图什么</span>
+      <p style="margin-top:12px;font-size:20px;font-weight:900" class="ok">图把钱管好</p>
+      <p style="margin-top:10px;font-size:13px;color:var(--muted)">
+        钱多了主动关门不收,没在高点趁热发新基金,没去争当领导。
+        <b>另两种是"图规模"和"图升官",那种你要小心。</b></p></div>
+    <div class="card"><span class="lbl">离开公司还行不行</span>
+      <p style="margin-top:12px;font-size:20px;font-weight:900">基本靠自己</p>
+      <p style="margin-top:10px;font-size:13px;color:var(--muted)">
+        本事拆开算:<b>他自己占 65%</b>,公司研究团队帮的 20%,纯撞上风口 15%。
+        跳槽了大概还能打。</p></div>
+  </div>
+
+  <!-- ===== 造神检测 ===== -->
+  <h3 style="margin-top:44px;font-size:18px;font-weight:800">
+    造神检测 · 那条漂亮的曲线是不是"修"出来的</h3>
+  <p style="font-size:13px;color:var(--muted);margin-top:6px">
+    很多经理的"神话"是这么来的:亏钱的基金甩给新人,只留赚钱的那只给你看。
+    这里一条条查</p>
+
+  <div class="fl-sum">
+    <div class="fl green"><span class="n">0</span><span class="lbl">严重问题</span></div>
+    <div class="fl amber"><span class="n">2</span><span class="lbl">要留个心眼</span></div>
+    <div class="fl green"><span class="n">7</span><span class="lbl">查完没事</span></div>
+    <div class="fl green"><span class="n">A-</span><span class="lbl">履历干不干净</span></div>
+  </div>
+
+  <div class="card" style="margin-top:var(--gap)">
+    <div class="chk-row">
+      <span class="st">✅</span>
+      <div><div class="ti">甩锅跑路 · 亏钱的时候有没有把烂摊子塞给新人</div>
+        <div class="ds">我们把他 8.5 年、34 个季度的所有变更公告翻了一遍。2018、2022、
+          2026 年这几次大跌,他名下的基金<b>一次都没换过人</b>,亏的时候是他自己扛的。
+          没有出现"亏一半就辞职、留给新人收拾"这种情况。</div></div>
+      <span class="vd green">没问题</span>
+    </div>
+
+    <div class="chk-row">
+      <span class="st">✅</span>
+      <div><div class="ti">摘桃子 · 是不是等别人做出成绩了才来接手</div>
+        <div class="ds">这只基金是他从 0.8 亿一手带起来的,不是接手别人做好的。
+          他也没接过任何已经有漂亮业绩的成熟基金。</div></div>
+      <span class="vd green">没问题</span>
+    </div>
+
+    <div class="chk-row">
+      <span class="st">✅</span>
+      <div><div class="ti">藏尸体 · 有没有失败的基金被悄悄清盘藏起来</div>
+        <div class="ds">全网检索其任职过的全部产品(含已清盘)。未发现清盘产品,
+          未发现"从简历中消失"的管理经历。公司官网履历与监管备案一致。</div></div>
+      <span class="vd green">没问题</span>
+    </div>
+
+    <div class="chk-row">
+      <span class="st">⚠️</span>
+      <div><div class="ti">蹭业绩 · 是不是挂个名就把别人的成绩算自己的</div>
+        <div class="ds">2016–2017 有 11 个月以助理身份共管一只产品,该期收益
+          +23%,常被媒体计入其个人战绩。<b class="warn">本报告把这段全部剔除了</b>,只算 2017 年他自己单干以后的成绩。</div></div>
+      <span class="vd amber">已剔除</span>
+    </div>
+
+    <div class="chk-row">
+      <span class="st">✅</span>
+      <div><div class="ti">高位圈钱 · 是不是趁行情好猛发新基金</div>
+        <div class="ds">2020Q4 与 2021Q1 小盘估值高位期,公司多次提出发行新产品,
+          其名下未新增任何产品,反而于 2021Q2 起连续限购。</div></div>
+      <span class="vd green">没问题</span>
+    </div>
+
+    <div class="chk-row">
+      <span class="st">✅</span>
+      <div><div class="ti">年底冲排名 · 是不是为了名次年底赌一把</div>
+        <div class="ds">检查 8 个年度的 Q4 行为。未发现年末显著提升仓位或
+          切换至当年热门板块的模式,Q4 换手率与其他季度无显著差异。</div></div>
+      <span class="vd green">没问题</span>
+    </div>
+
+    <div class="chk-row">
+      <span class="st">✅</span>
+      <div><div class="ti">人设造假 · 嘴上说的和实际买的是不是一回事</div>
+        <div class="ds">对比 34 期季报表述与实际持仓。所述"分散、逆向、
+          容量敏感"三点均被持仓数据验证。未发现说一套做一套。</div></div>
+      <span class="vd green">没问题</span>
+    </div>
+
+    <div class="chk-row">
+      <span class="st">✅</span>
+      <div><div class="ti">偷换尺子 · 是不是悄悄改了比较标准</div>
+        <div class="ds">合同基准 8.5 年未修改。宣传材料使用的基准与合同一致。</div></div>
+      <span class="vd green">没问题</span>
+    </div>
+
+    <div class="chk-row">
+      <span class="st">⚠️</span>
+      <div><div class="ti">有没有利益冲突 · 亲戚在不在里面掺和</div>
+        <div class="ds">定期报告关联交易章节:未发现异常佣金分配,未发现其
+          直系亲属在关联券商任职或持有本基金重仓股的公开记录。
+          <b class="warn">但公募对亲属关联的披露颗粒度有限,此项只能证明
+          "未发现",不能证明"不存在"。</b></div></div>
+      <span class="vd amber">查不全</span>
+    </div>
+  </div>
+
+  <div class="alert" style="margin-top:16px">
+    <span>ℹ️</span>
+    <span>本模块只做<b>关联方与利益冲突</b>筛查,不采集配偶姓名、职业、学历等
+    私人传记信息 —— 那些既无投资含义,也不属于可核实的公开记录。
+    只有"亲属是否在关联机构任职 / 是否持有重仓股 / 佣金是否异常"进入评估。</span>
+  </div>
+
+  <!-- 任职轨迹 -->
+  <h3 style="margin-top:44px;font-size:18px;font-weight:800">
+    他每次换岗,当时市场是什么情况</h3>
+  <div class="card" style="margin-top:16px">
+    <div class="ho">
+      <div><div class="ho-d">2016-03</div><div class="ho-m">当助理</div></div>
+      <div>以基金经理助理身份共管某产品
+        <span class="ho-t" style="background:var(--warn-tint);color:var(--warn)">权重 0</span>
+        <div class="ds" style="font-size:12px;color:var(--muted);margin-top:4px">
+          市场:震荡 · 该段业绩不计入个人评价</div></div>
+    </div>
+    <div class="ho">
+      <div><div class="ho-d">2017-11</div><div class="ho-m">自己单干</div></div>
+      <div>独立接管本基金,规模 0.8 亿
+        <span class="ho-t" style="background:var(--ok-tint);color:var(--ok)">权重 1.0</span>
+        <div class="ds" style="font-size:12px;color:var(--muted);margin-top:4px">
+          市场:小盘估值低位 · 从零起步,非接手成熟产品</div></div>
+    </div>
+    <div class="ho">
+      <div><div class="ho-d">2018 全年</div><div class="ho-m">熊市没跑</div></div>
+      <div>市场大幅下跌,主动降低股票仓位至 42%
+        <span class="ho-t" style="background:var(--ok-tint);color:var(--ok)">自己扛</span>
+        <div class="ds" style="font-size:12px;color:var(--muted);margin-top:4px">
+          市场:沪深300 -25% · 未转移产品,未新增共管人</div></div>
+    </div>
+    <div class="ho">
+      <div><div class="ho-d">2026Q2</div><div class="ho-m">亏钱没跑</div></div>
+      <div>单季 -12.79%,仍为唯一管理人
+        <span class="ho-t" style="background:var(--ok-tint);color:var(--ok)">自己扛</span>
+        <div class="ds" style="font-size:12px;color:var(--muted);margin-top:4px">
+          市场:小微盘因子失效 · 最新一期报告未见经理变更公告</div></div>
+    </div>
+  </div>
+
+  <h3 style="margin-top:44px;font-size:18px;font-weight:800">他犯过的错 · 优秀和平庸的区别不在少犯错,在犯错以后怎么办</h3>
+  <div class="mk">
+    <div class="mk-head">
+      <span class="mk-t">最近这次 · 2026 年二季度加仓踩空</span>
+      <span class="mk-loss">-12.79%</span>
+    </div>
+    <div class="mk-line"><span class="lbl">当时为啥买</span><span>判断小盘估值已充分调整,提高权益暴露</span></div>
+    <div class="mk-line"><span class="lbl">后来咋了</span><span>小微盘因子急速失效,单季 -12.79% 对基准 +6.23%</span></div>
+    <div class="mk-line"><span class="lbl">他怎么应对</span><span>Q3 未减仓,继续持有 → 尚未观察到纠错动作</span></div>
+    <div class="mk-line"><span class="lbl">问题在哪</span><span>两件事撞一起:他判断错了,小盘股也正好不行了。到现在还没见他改</span></div>
+    <div class="mk-grade"><span class="lbl" style="display:inline">认错速度</span>
+      <b class="warn" style="font-size:20px">B+</b>
+      <span style="font-size:13px;color:var(--muted)">他以前平均半年就认错调整,这次已经过了一个季度还没动静</span></div>
+  </div>
+
+  <div class="mk" style="border-left-color:var(--warn)">
+    <div class="mk-head">
+      <span class="mk-t">另一次 · 2023 年全公司追 AI,他没跟</span>
+      <span class="mk-loss" style="color:var(--warn)">少赚 11.2%</span>
+    </div>
+    <div class="mk-line"><span class="lbl">当时为啥不买</span><span>觉得 AI 盈利兑现太远,估值算不过账,不在自己能力圈</span></div>
+    <div class="mk-line"><span class="lbl">后来咋了</span><span>AI 涨了一整年,公司同事平均赚 15%,他只赚 4%</span></div>
+    <div class="mk-line"><span class="lbl">他怎么应对</span><span>全程没追。跌下来没说"你看我早说了",涨上去也没改口</span></div>
+    <div class="mk-line"><span class="lbl">问题在哪</span><span>守纪律没错,但连续两个季度没跟持有人解释为什么不买 —— 沟通减分</span></div>
+    <div class="mk-grade"><span class="lbl" style="display:inline">怎么看这事</span>
+      <b class="ok" style="font-size:20px">B</b>
+      <span style="font-size:13px;color:var(--muted)">这叫"错过",不叫"犯错"。不懂的不碰亏不了大钱,
+      但买他就得受得了这种眼睁睁看别人赚钱的日子</span></div>
+  </div>
+</section>
+
+<!-- ============ 03 INDEPENDENCE ============ -->
+<section id="s3" class="sec">
+  <span class="sec-num">03</span>
+  <div class="sec-head">
+    <span class="sec-tag" style="color:var(--indep)">03 / 敢不敢跟别人不一样</span>
+    <h2 class="sec-title">他不一样的时候,赚到钱了吗</h2>
+    <span class="sec-line" style="background:linear-gradient(90deg,var(--indep),transparent)"></span>
+  </div>
+
+  <div class="alert" style="background:var(--indep-tint);border-color:var(--indep);margin-bottom:var(--gap)">
+    <span>💡</span>
+    <span><b style="color:var(--indep)">这一页最值钱,别跳过。</b>同一家公司几十个基金经理,
+    经常抱在一起买同样的股票。要是他跟同事买的一模一样,那你付管理费买的是什么?
+    但光"跟别人不一样"也不行 —— <b>有可能他只是在瞎搞。</b>
+    所以下面两个分数必须一起看。</span>
+  </div>
+
+  <div class="duo">
+    <div class="duo-row">
+      <span class="duo-label">有多不一样</span>
+      <div class="duo-track"><div class="duo-fill" data-w="88"></div></div>
+      <span class="duo-num indep">88</span>
+    </div>
+    <div class="duo-row">
+      <span class="duo-label">不一样赚没赚钱</span>
+      <div class="duo-track"><div class="duo-fill ok" data-w="91"></div></div>
+      <span class="duo-num ok">91</span>
+    </div>
+    <p class="duo-verdict ok">👑 有自己的想法,而且想法值钱</p>
+    <p class="duo-note">
+      这两条永远分开看。只有上面那条高 = 主见没价值(说白了就是瞎搞);
+      两条都高 = 真本事</p>
+  </div>
+
+  <!-- 对战擂台 -->
+  <div class="arena">
+    <div class="fighter house">
+      <div class="f-who">红方 · 公司里其他人</div>
+      <div class="f-name">同事们</div>
+      <div class="f-desc">21 位基金经理的平均打法。大家一起重仓消费白酒,
+        谁也不想第一个跳车。</div>
+      <div class="hp">
+        <div class="hp-lbl"><span>他们后来赚了</span><span>+1.3%</span></div>
+        <div class="hp-bar"><div class="hp-fill lose" data-w="18"></div></div>
+      </div>
+    </div>
+    <div class="vs"><span class="bolt">⚡</span><span class="t">VS</span></div>
+    <div class="fighter mgr">
+      <div class="f-who">蓝方 · 这位经理</div>
+      <div class="f-name">陈述</div>
+      <div class="f-desc">砍掉白酒,去买当时没人要的新能源和半导体。
+        当时同事大概觉得他疯了。</div>
+      <div class="hp">
+        <div class="hp-lbl"><span>他后来赚了</span><span class="ok">+7.2%</span></div>
+        <div class="hp-bar"><div class="hp-fill win" data-w="100"></div></div>
+      </div>
+    </div>
+    <div class="arena-foot">
+      <span class="k">判定</span>
+      <span>蓝方胜 —— 他不一样的时候,每年比同事多赚 <b class="ok">5.9 个点</b></span>
+      <span style="margin-left:auto;font-size:12px;color:var(--muted);font-weight:600">
+        五年 11 场,7 胜 4 负</span>
+    </div>
+  </div>
+
+  <div class="stat-grid">
+    <div class="stat"><span class="lbl">跟同事不一样的时候</span>
+      <span class="v ok">+7.2%</span><span class="sub">之后一年多赚这么多</span></div>
+    <div class="stat"><span class="lbl">跟同事一样的时候</span>
+      <span class="v">+1.3%</span><span class="sub">之后一年只多赚这么点</span></div>
+    <div class="stat"><span class="lbl">是不是第一个发现的</span>
+      <span class="v" style="color:var(--accent)">91</span><span class="sub">满分 100 · 越高越像带头的</span></div>
+    <div class="stat"><span class="lbl">比同事早多久</span>
+      <span class="v">半年</span><span class="sub">平均领先 2 个季度</span></div>
+  </div>
+
+  <div class="hr-read" style="margin-top:var(--gap)">
+    看懂这两个数就够了:他<b>跟大家想得不一样的时候赚 7.2%</b>,
+    <b>跟大家一样的时候只赚 1.3%</b>。说明他的钱是靠自己判断赚的,不是跟着公司混的。
+  </div>
+
+
+  <!-- House vs Manager -->
+  <div class="hvm">
+    <h3 style="margin-top:44px;font-size:18px;font-weight:800">
+      2020 年底,全公司都在买白酒,他在买什么</h3>
+    <div class="hvm-switch">
+      <span class="chip on" data-mode="eq">按人头算</span>
+      <span class="chip" data-mode="aum">按钱多少算</span>
+    </div>
+    <div class="alert">
+      <span>⚠️</span>
+      <span><b>这里有个坑:</b>按钱算,公司白酒超配 13.2%;但按人头算只有 9.8%。
+      说明<b>是某一只大基金一个人在猛买白酒,把整个公司的数据拉高了</b>,
+      并不是几十个经理都看好白酒。所以本报告默认按人头算 —— 那才代表"公司里的人怎么想"。</span>
+    </div>
+
+    <div class="hvm-head">
+      <span>公司其他人在买</span><span>行业</span><span>他在买</span><span>差多少</span>
+    </div>
+    <div class="hvm-row gap-hi">
+      <div class="hvm-bar L"><span class="hvm-num" data-eq="+9.8%" data-aum="+13.2%">+9.8%</span><div class="hvm-fill" data-w="62" data-eq-w="62" data-aum-w="84"></div></div>
+      <span class="hvm-ind">白酒</span>
+      <div class="hvm-bar R"><div class="hvm-fill neg" data-w="52"></div><span class="hvm-num">-8.1%</span></div>
+      <span class="hvm-gap indep" data-eq="↔ 17.9pp" data-aum="↔ 21.3pp">↔ 17.9pp</span>
+    </div>
+    <div class="hvm-row gap-hi">
+      <div class="hvm-bar L"><span class="hvm-num" data-eq="+6.4%" data-aum="+8.1%">+6.4%</span><div class="hvm-fill" data-w="41" data-eq-w="41" data-aum-w="52"></div></div>
+      <span class="hvm-ind">食品饮料</span>
+      <div class="hvm-bar R"><div class="hvm-fill neg" data-w="27"></div><span class="hvm-num">-4.2%</span></div>
+      <span class="hvm-gap indep" data-eq="↔ 10.6pp" data-aum="↔ 12.3pp">↔ 10.6pp</span>
+    </div>
+    <div class="hvm-row">
+      <div class="hvm-bar L"><span class="hvm-num" data-eq="+4.8%" data-aum="+4.8%">+4.8%</span><div class="hvm-fill" data-w="30" data-eq-w="30" data-aum-w="30"></div></div>
+      <span class="hvm-ind">医药</span>
+      <div class="hvm-bar R"><div class="hvm-fill" data-w="8"></div><span class="hvm-num">+1.3%</span></div>
+      <span class="hvm-gap" data-eq="↔ 3.5pp" data-aum="↔ 3.5pp">↔ 3.5pp</span>
+    </div>
+    <div class="hvm-row gap-hi">
+      <div class="hvm-bar L"><span class="hvm-num" data-eq="+2.1%" data-aum="+1.2%">+2.1%</span><div class="hvm-fill" data-w="13" data-eq-w="13" data-aum-w="8"></div></div>
+      <span class="hvm-ind">新能源</span>
+      <div class="hvm-bar R"><div class="hvm-fill" data-w="60"></div><span class="hvm-num">+9.4%</span></div>
+      <span class="hvm-gap indep" data-eq="↔ 7.3pp" data-aum="↔ 8.2pp">↔ 7.3pp</span>
+    </div>
+    <div class="hvm-row gap-hi">
+      <div class="hvm-bar L"><span class="hvm-num" data-eq="-0.7%" data-aum="-0.7%">-0.7%</span><div class="hvm-fill" data-w="5" data-eq-w="5" data-aum-w="5"></div></div>
+      <span class="hvm-ind">半导体</span>
+      <div class="hvm-bar R"><div class="hvm-fill" data-w="44"></div><span class="hvm-num">+6.8%</span></div>
+      <span class="hvm-gap indep" data-eq="↔ 7.5pp" data-aum="↔ 7.5pp">↔ 7.5pp</span>
+    </div>
+    <p style="margin-top:16px;font-size:13px;color:var(--muted)">
+      <b>我们还排除了一种假独立:</b>如果他管的是"科技主题基金",那他不买白酒是合同规定的,
+      不算他有主见。这只基金什么都能买,所以他的选择全是自己决定的。
+      去掉这类水分后,分数从 91 降到 <b class="indep">83</b> —— 报告用的是 83 这个实数。</p>
+  </div>
+
+  <!-- 战役档案 -->
+  <h3 style="margin-top:44px;font-size:18px;font-weight:800">
+    五年打过 11 场"我跟你们都不一样"的仗</h3>
+  <p style="font-size:13px;color:var(--muted);margin-top:6px">
+    赢的输的一样大、按时间混着排、不藏 —— 只晒赢的那种报告别信</p>
+
+  <div class="calls">
+    <article class="call win">
+      <div class="call-head">
+        <span class="call-no">第 1 战</span><span class="call-period">2020Q2</span>
+        <span class="call-badge win">🟢 赢了,赢得漂亮</span>
+      </div>
+      <div class="call-body">
+        <div class="call-side"><span class="lbl">公司其他人在干什么</span>
+          <p>白酒 / 消费明显超配,全公司 21 位经理中 17 位重仓消费</p></div>
+        <div class="call-side mgr"><span class="lbl">他在干什么</span>
+          <p>白酒明显低配,新能源与半导体明显超配</p></div>
+      </div>
+      <div class="call-metrics">
+        <div><span class="lbl">有多不一样</span><b class="indep">87</b></div>
+        <div><span class="lbl">他这一年</span><b class="ok">+56%</b></div>
+        <div><span class="lbl">公司这一年</span><b>+33%</b></div>
+        <div><span class="lbl">同风格基金</span><b>+28%</b></div>
+        <div class="m-hero"><span class="lbl">多赚/少赚</span><b>+23%</b></div>
+      </div>
+    </article>
+
+    <article class="call win">
+      <div class="call-head">
+        <span class="call-no">第 2 战</span><span class="call-period">2022Q1</span>
+        <span class="call-badge win">🟢 赢了,赢得漂亮</span>
+      </div>
+      <div class="call-body">
+        <div class="call-side"><span class="lbl">公司其他人在干什么</span>
+          <p>新能源持续加仓,公司整体新能源暴露达历史高位</p></div>
+        <div class="call-side mgr"><span class="lbl">他在干什么</span>
+          <p>转向煤炭与周期,大幅降低新能源暴露</p></div>
+      </div>
+      <div class="call-metrics">
+        <div><span class="lbl">有多不一样</span><b class="indep">79</b></div>
+        <div><span class="lbl">他这一年</span><b class="ok">+18%</b></div>
+        <div><span class="lbl">公司这一年</span><b class="danger">-21%</b></div>
+        <div><span class="lbl">同风格基金</span><b class="danger">-14%</b></div>
+        <div class="m-hero"><span class="lbl">多赚/少赚</span><b>+39%</b></div>
+      </div>
+    </article>
+
+    <article class="call loss">
+      <div class="call-head">
+        <span class="call-no">第 3 战</span><span class="call-period">2023Q1</span>
+        <span class="call-badge loss">❌ 输了,认</span>
+      </div>
+      <div class="call-body">
+        <div class="call-side"><span class="lbl">公司其他人在干什么</span>
+          <p>逐步增配 AI 与算力,公司 9 位经理进入该方向</p></div>
+        <div class="call-side mgr"><span class="lbl">他在干什么</span>
+          <p>坚持低配科技,继续重仓小微盘价值股</p></div>
+      </div>
+      <div class="call-metrics">
+        <div><span class="lbl">有多不一样</span><b class="indep">73</b></div>
+        <div><span class="lbl">他这一年</span><b>+4%</b></div>
+        <div><span class="lbl">公司这一年</span><b class="ok">+15%</b></div>
+        <div><span class="lbl">同风格基金</span><b>+9%</b></div>
+        <div class="m-hero"><span class="lbl">多赚/少赚</span><b class="danger">-11.2%</b></div>
+      </div>
+    </article>
+
+    <article class="call loss">
+      <div class="call-head">
+        <span class="call-no">第 4 战</span><span class="call-period">2026Q2</span>
+        <span class="call-badge loss">❌ 输了,认</span>
+      </div>
+      <div class="call-body">
+        <div class="call-side"><span class="lbl">公司其他人在干什么</span>
+          <p>公司整体降低小盘暴露,转向大盘蓝筹</p></div>
+        <div class="call-side mgr"><span class="lbl">他在干什么</span>
+          <p>提高权益仓位,维持小微盘高暴露</p></div>
+      </div>
+      <div class="call-metrics">
+        <div><span class="lbl">有多不一样</span><b class="indep">81</b></div>
+        <div><span class="lbl">他这一年</span><b class="danger">-12.8%</b></div>
+        <div><span class="lbl">公司这一年</span><b class="ok">+6.2%</b></div>
+        <div><span class="lbl">同风格基金</span><b>+2.1%</b></div>
+        <div class="m-hero"><span class="lbl">多赚/少赚</span><b class="danger">-19.0%</b></div>
+      </div>
+    </article>
+  </div>
+
+  <!-- Hit Rate -->
+  <div class="hitrate">
+    <div class="hr-box main"><span class="lbl">胜率</span>
+      <div class="big">63.6%</div><div class="det">11 场 7 胜 4 负</div></div>
+    <div class="hr-box"><span class="lbl">赢的比输的多几倍</span>
+      <div class="big ok">2.34x</div><div class="det">赢平均赚 12.4% · 输平均亏 5.3%</div></div>
+    <div class="hr-box"><span class="lbl">平均下来每场赚</span>
+      <div class="big ok">+5.9%</div><div class="det">算上输的那几场之后</div></div>
+  </div>
+  <div class="hr-read">胜率不离谱,但赔率很好 —— 他对的时候赚得比错的时候亏得多 2.3 倍。</div>
+
+  <!-- Idea Lead -->
+  <h3 style="margin-top:44px;font-size:18px;font-weight:800">
+    他是第一个吃螃蟹的,还是最后一个跟风的</h3>
+  <div class="card" style="margin-top:16px">
+    <div class="lead-row">
+      <div class="lead-name">半导体</div>
+      <div class="lead-track">
+        <div class="lead-pt first" style="left:2%;width:16px;height:16px">
+          <span class="cap">他首次重仓</span><span class="qt">2020Q1</span></div>
+        <div class="lead-pt" style="left:33%;width:9px;height:9px">
+          <span class="cap">2 人</span><span class="qt">2020Q2</span></div>
+        <div class="lead-pt" style="left:66%;width:14px;height:14px">
+          <span class="cap">9 人</span><span class="qt">2020Q3</span></div>
+        <div class="lead-pt" style="left:98%;width:18px;height:18px">
+          <span class="cap">成为主要方向</span><span class="qt">2020Q4</span></div>
+      </div>
+    </div>
+    <div class="lead-row">
+      <div class="lead-name">煤炭 / 周期</div>
+      <div class="lead-track">
+        <div class="lead-pt first" style="left:2%;width:16px;height:16px">
+          <span class="cap">他首次重仓</span><span class="qt">2022Q1</span></div>
+        <div class="lead-pt" style="left:50%;width:9px;height:9px">
+          <span class="cap">3 人</span><span class="qt">2022Q3</span></div>
+        <div class="lead-pt" style="left:98%;width:14px;height:14px">
+          <span class="cap">8 人</span><span class="qt">2022Q4</span></div>
+      </div>
+    </div>
+    <div class="lead-sum">
+      <div><span class="lbl">平均比同事早</span>
+        <div class="big">2.1 <span style="font-size:16px">个季度</span></div></div>
+      <span style="font-size:13px;color:var(--muted);max-width:340px">
+        11 个重要判断里 8 个都比同事先动手,平均早半年</span>
+      <span class="badge-gen">带头的那个人</span>
+    </div>
+  </div>
+
+  <!-- 四象限 -->
+  <h3 style="margin-top:44px;font-size:18px;font-weight:800">
+    他独立 ≠ 你就安全了</h3>
+  <div class="quad-wrap">
+    <div>
+      <div class="quad">
+        <div class="q">
+          <span class="qt">他独立 · 公司也独立</span>最理想<br><span style="color:var(--muted);font-weight:400">整个公司都不跟风</span></div>
+        <div class="q">
+          <span class="qt">他跟风 · 公司独立</span>看不出他本人行不行<br><span style="color:var(--muted);font-weight:400">公司厉害而已</span></div>
+        <div class="q here">
+          <span class="dot"></span>
+          <span class="qt">他独立 · 公司抱团 ← 现在在这</span>说白了就是在一条挤爆的路上换了个车道<br>
+          <span style="color:var(--muted);font-weight:400">他在公司里算特别的,但整个公司都挤在消费股里</span></div>
+        <div class="q">
+          <span class="qt">他跟风 · 公司也抱团</span>全都在跟风<br><span style="color:var(--danger);font-weight:400">最该跑</span></div>
+      </div>
+      <div class="quad-ax">← 这家公司跟全市场比:跟风 ······ 独立 →</div>
+    </div>
+    <div class="card">
+      <span class="lbl">怎么读</span>
+      <p style="margin-top:14px;font-size:15px;line-height:1.7">
+        他 vs 公司同事 <b class="indep">83 分</b>(很独立)<br>
+        公司 vs 全市场 <b class="warn">44 分</b>(挺跟风)</p>
+      <div class="alert" style="margin-top:18px">
+        <span>⚠️</span>
+        <span>别高兴太早。他是在公司内部显得独立,<b>但整个公司都挤在消费股里</b>。
+        所以他躲开的是同事,没躲开全市场的拥挤 —— 真出事的时候一样跑不掉。</span>
+      </div>
+    </div>
+  </div>
+
+</section>
+
+<!-- ============ 04 PERFORMANCE ============ -->
+<section id="s4" class="sec">
+  <span class="sec-num">04</span>
+  <div class="sec-head">
+    <span class="sec-tag">04 / 钱怎么赚的</span>
+    <h2 class="sec-title">是真本事,还是运气好</h2>
+    <span class="sec-line"></span>
+  </div>
+
+  <div class="card">
+    <span class="lbl">把收益拆开看 · 每年 17.2% 到底哪来的</span>
+    <div style="margin-top:20px">
+      <div class="wf-row"><span class="wf-name">大盘涨的<span class="en">跟他没关系</span></span>
+        <div class="wf-track"><div class="wf-fill" data-w="24"></div></div><span class="wf-val">+4.1%</span></div>
+      <div class="wf-row"><span class="wf-name">小盘股风口<span class="en">跟他没关系</span></span>
+        <div class="wf-track"><div class="wf-fill" data-w="17"></div></div><span class="wf-val">+3.0%</span></div>
+      <div class="wf-row"><span class="wf-name">微盘股风口<span class="en">跟他没关系</span></span>
+        <div class="wf-track"><div class="wf-fill" data-w="13"></div></div><span class="wf-val">+2.2%</span></div>
+      <div class="wf-row"><span class="wf-name">低估值风口<span class="en">跟他没关系</span></span>
+        <div class="wf-track"><div class="wf-fill" data-w="8"></div></div><span class="wf-val">+1.4%</span></div>
+      <div class="wf-row"><span class="wf-name">仓位控制得好<span class="en">这是他的本事</span></span>
+        <div class="wf-track"><div class="wf-fill skill" data-w="10"></div></div><span class="wf-val ok">+1.8%</span></div>
+      <div class="wf-row"><span class="wf-name">股票选得准<span class="en">这是他的本事</span></span>
+        <div class="wf-track"><div class="wf-fill skill" data-w="18"></div></div><span class="wf-val ok">+3.1%</span></div>
+      <div class="wf-row"><span class="wf-name">买卖时机好<span class="en">这是他的本事</span></span>
+        <div class="wf-track"><div class="wf-fill skill" data-w="6"></div></div><span class="wf-val ok">+1.0%</span></div>
+      <div class="wf-row"><span class="wf-name">算不清的零头<span class="en">忽略</span></span>
+        <div class="wf-track"><div class="wf-fill" data-w="3"></div></div><span class="wf-val">+0.6%</span></div>
+    </div>
+    <div class="wf-total"><span>一年总共赚</span><span>17.2%</span>
+      <span class="chk">✓ 加起来对得上,没糊弄</span></div>
+    <div class="wf-legend">
+      <span><i style="background:var(--accent)"></i>他的本事 5.9%(占三成)</span>
+      <span><i style="background:var(--muted)"></i>风口给的 10.7%(占六成)</span>
+      <span>打新赚的 0.4% 已经单独扣掉了</span>
+    </div>
+  </div>
+
+  <h3 style="margin-top:40px;font-size:18px;font-weight:800">六项测谎 · 看这本事是不是蒙的</h3>
+  <div class="ev-grid">
+    <div class="ev pass"><span class="ic ok">✓</span>扣掉风口后还是赚的,统计上站得住</div>
+    <div class="ev pass"><span class="ic ok">✓</span>随便挑任意三年,78% 的情况都赚</div>
+    <div class="ev pass"><span class="ic ok">✓</span>八年里六年跑赢</div>
+    <div class="ev pass"><span class="ic ok">✓</span>把最赚的那只股票删掉,还是赚</div>
+    <div class="ev pass"><span class="ic ok">✓</span>赚钱的股票很多只,不是靠一只</div>
+    <div class="ev pass"><span class="ic ok">✓</span>打新那种一次性收入已扣掉</div>
+    <div class="ev pass key"><span class="ic ok">✓</span>
+      把他<b>最赚钱的三只股票全删掉</b>,居然还赚 <b class="ok">1.8%</b> —— 这条最关键,说明不是靠撞大运</div>
+  </div>
+
+  <div class="cols2">
+    <div class="card">
+      <span class="lbl">分项打分 · 他哪一步强哪一步弱</span>
+      <div class="grades" style="margin-top:16px">
+        <div class="grade"><span class="g a">A</span><span class="lbl">会买</span></div>
+        <div class="grade"><span class="g b">B-</span><span class="lbl">会卖</span></div>
+        <div class="grade"><span class="g a">A-</span><span class="lbl">下注</span></div>
+        <div class="grade"><span class="g a">A</span><span class="lbl">拿得住</span></div>
+        <div class="grade"><span class="g a">A-</span><span class="lbl">看时机</span></div>
+      </div>
+      <div class="weak">⚠️ 他的老毛病:<b>卖太早</b>。他卖掉的股票,后面一年平均还能再涨 14%</div>
+    </div>
+
+    <div class="card">
+      <span class="lbl">年轻时 vs 最近五年 · 有没有退步</span>
+      <table>
+        <tr><th>看什么</th><th>整个职业生涯</th><th>最近五年</th></tr>
+        <tr><td>扣掉风口后赚的</td><td>+4.8%</td><td>+2.9%</td></tr>
+        <tr><td>靠自己判断赚的</td><td>+6.2%</td><td>+4.1%</td></tr>
+        <tr class="decay"><td>大盘跌时跟着跌多少</td><td>72%</td><td>81%<span class="decay-tag">↓ 退步了</span></td></tr>
+        <tr><td>跟同事有多不一样</td><td>78</td><td>83</td></tr>
+        <tr class="decay"><td>本事稳不稳</td><td>81</td><td>69<span class="decay-tag">↓ 退步了</span></td></tr>
+      </table>
+    </div>
+  </div>
+
+  <!-- Regime 天气图 -->
+  <h3 style="margin-top:44px;font-size:18px;font-weight:800">
+    他在什么天气能打,什么天气挨揍</h3>
+  <p style="font-size:13px;color:var(--muted);margin-top:6px">
+    把过去 8 年按「小盘/大盘行情 × 市场上钱多/钱少」切成四种天气,
+    分别算他每种天气下的年化超额</p>
+  <div class="quad-wrap">
+    <div>
+      <div class="quad">
+        <div class="q" style="background:var(--ok-tint)">
+          <span class="qt">小盘行情 · 钱多</span>
+          <b style="font-size:26px" class="ok">+21%</b>巅峰状态<br>
+          <span style="color:var(--muted);font-weight:400">2020–2021 就是这种天</span></div>
+        <div class="q">
+          <span class="qt">大盘行情 · 钱多</span>
+          <b style="font-size:26px">+3%</b>平庸<br>
+          <span style="color:var(--muted);font-weight:400">跟不上大蓝筹,但不亏</span></div>
+        <div class="q here">
+          <span class="dot"></span>
+          <span class="qt">小盘行情 · 钱少 ← 现在</span>
+          <b style="font-size:26px" class="danger">-8%</b>挨揍<br>
+          <span style="color:var(--muted);font-weight:400">小票跌起来没人接盘</span></div>
+        <div class="q">
+          <span class="qt">大盘行情 · 钱少</span>
+          <b style="font-size:26px" class="danger">-12%</b>最难受<br>
+          <span style="color:var(--muted);font-weight:400">他的股票没人买,大票还在涨</span></div>
+      </div>
+      <div class="quad-ax">← 上:市场上钱多 · 下:钱少 ┃ 左:小盘行情 · 右:大盘行情 →</div>
+    </div>
+    <div class="card">
+      <span class="lbl">看懂这张图</span>
+      <p style="margin-top:14px;font-size:14px;line-height:1.7">
+        2026 年二季度那次 -12.79% 的挨打<b>不是意外</b> ——
+        现在正是他最差的天气。</p>
+      <div class="alert" style="margin-top:16px">
+        <span>💡</span>
+        <span>买他 = 赌天气会变回「小盘 + 钱多」。天气不变,他再牛也白搭;
+        天气一变,他又是那个 +21% 的人。<b>你买的不只是他,还有天气。</b></span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ 05 PORTFOLIO & CAPITAL ============ -->
+<section id="s5" class="sec">
+  <span class="sec-num">05</span>
+  <div class="sec-head">
+    <span class="sec-tag">05 / 有什么坑</span>
+    <h2 class="sec-title">买之前你得知道的风险</h2>
+    <span class="sec-line"></span>
+  </div>
+
+  <div class="cols2">
+    <div class="card">
+      <span class="lbl">他的持仓长什么样</span>
+      <table>
+        <tr><td>多少钱买了股票</td><td><b>84%</b></td></tr>
+        <tr><td>一共买了几只</td><td><b>142</b></td></tr>
+        <tr><td>最大十只占多少</td><td><b>10.9%</b></td></tr>
+        <tr><td>最大那只占多少</td><td><b>1.16%</b></td></tr>
+        <tr><td>跟指数有多不一样</td><td><b>94%</b></td></tr>
+      </table>
+      <div class="alert" style="margin-top:18px">
+        <span>⚠️</span>
+        <span><b>看着分散,其实不分散。</b>他买了 28 个行业 142 只股票,看起来很分散对吧?
+        但仔细一看,<b>76% 的钱都在小盘股上</b>。小盘股一起跌的时候,买 142 只和买 1 只没区别。</span>
+      </div>
+    </div>
+
+    <div class="card">
+      <span class="lbl">他这套方法最多能管多少钱</span>
+      <p style="margin-top:14px;font-size:15px">估计最多能管 <b>20~30 亿</b> · 现在管了 <b>12.5 亿</b></p>
+      <p style="font-size:12px;color:var(--ghost);margin-top:6px">钱太多了这套方法就不好使了,小盘股买不进去</p>
+      <div class="cap-track"><div class="cap-fill" data-w="48">48%</div></div>
+      <p style="font-size:13px;color:var(--muted)">🟢 现在规模还健康 · 全部卖光大概需要 4 天</p>
+      <div style="margin-top:22px">
+        <span class="lbl">万一出事能亏多少</span>
+        <table>
+          <tr><td>要是小盘股崩了跌 30%</td><td class="danger"><b>-18%</b></td></tr>
+          <tr><td>要是市场突然没钱了</td><td class="danger"><b>-14%</b></td></tr>
+          <tr><td>要是行情轮到大白马</td><td class="warn"><b>少赚 7%</b></td></tr>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <div class="card" style="margin-top:var(--gap)">
+    <span class="lbl">除了你,还有谁在买这只基金</span>
+    <div class="badges" style="margin-top:16px">
+      <div class="bdg on"><span class="e">👤</span>经理本人<br><span style="font-size:10px">&gt;100 万份</span></div>
+      <div class="bdg on"><span class="e">🏢</span>基金员工<br><span style="font-size:10px">7.25%</span></div>
+      <div class="bdg"><span class="e">🇨🇳</span>国家队</div>
+      <div class="bdg"><span class="e">🛡️</span>险资</div>
+      <div class="bdg"><span class="e">📋</span>社保</div>
+      <div class="bdg"><span class="e">👴</span>养老金</div>
+      <div class="bdg"><span class="e">📦</span>FOF</div>
+      <div class="bdg"><span class="e">🌏</span>外资</div>
+    </div>
+    <div style="margin-top:22px">
+      <span class="lbl">机构占比 · 最近三年</span>
+      <div class="flow">
+        <div><span class="fv">6.1%</span><div class="fb" style="height:74px"></div><span class="fp">23上</span></div>
+        <div><span class="fv">7.4%</span><div class="fb" style="height:90px"></div><span class="fp">23下</span></div>
+        <div><span class="fv">6.8%</span><div class="fb" style="height:83px"></div><span class="fp">24上</span></div>
+        <div><span class="fv">5.9%</span><div class="fb" style="height:72px"></div><span class="fp">24下</span></div>
+        <div><span class="fv">5.6%</span><div class="fb" style="height:68px"></div><span class="fp">25上</span></div>
+        <div><span class="fv">5.3%</span><div class="fb dim" style="height:65px"></div><span class="fp">25下</span></div>
+      </div>
+    </div>
+    <p style="margin-top:16px;font-size:13px;color:var(--muted)">
+      亮着的是<b>查到证据的</b>,灰的是<b>没查到</b>(不是没有,是不敢瞎猜)。<br>
+      机构五年从 6.1% 降到 5.3%,说明<b>这只基金主要是散户在买</b>。<br>
+      但最值钱的信号是:<b>经理自己掏钱买了 100 多万,公司员工也买了 7.25%</b> —— 他跟你坐同一条船。</p>
+  </div>
+</section>
+
+<!-- ============ 06 IC VIEW ============ -->
+<section id="s6" class="sec">
+  <span class="sec-num">06</span>
+  <div class="sec-head">
+    <span class="sec-tag">06 / 到底买不买</span>
+    <h2 class="sec-title">最后说人话</h2>
+    <span class="sec-line"></span>
+  </div>
+
+  <div class="ic-hero">
+    <span class="lbl">结论</span>
+    <div class="big">可以买,但要盯着</div>
+    <p style="margin-top:14px;font-size:15px;color:var(--muted)">
+      把握:比较有把握 · 建议:别超过总仓位 5% · 没有一票否决的硬伤</p>
+  </div>
+
+  <div class="card" style="margin-top:var(--gap)">
+    <span class="lbl">以后还能赚多少 · 不能拿过去直接套</span>
+    <div style="margin-top:16px">
+      <div class="fa-row start"><span>过去靠本事赚的</span><span class="v">+4.9%</span></div>
+      <div class="fa-row deduct"><span>钱变多了,不好操作</span><span class="v">-0.8%</span></div>
+      <div class="fa-row deduct"><span>同类的人多了</span><span class="v">-0.3%</span></div>
+      <div class="fa-row deduct"><span>公司帮的那部分要扣</span><span class="v">-0.2%</span></div>
+      <div class="fa-row deduct"><span>买卖成本变高</span><span class="v">-0.4%</span></div>
+      <div class="fa-row deduct"><span>市场环境变了</span><span class="v">-0.5%</span></div>
+      <div class="fa-row deduct"><span>再牛的人也会往平均值靠</span><span class="v">-0.7%</span></div>
+      <div class="fa-row end"><span>所以以后每年大概能多赚</span><span class="v">+2.0% ~ +4.0%</span></div>
+    </div>
+  </div>
+
+  <div class="cols2">
+    <div class="card">
+      <span class="lbl" style="color:var(--ok)">看好他的理由</span>
+      <ul class="ic-list like" style="margin-top:12px">
+        <li>敢跟同事不一样(83 分),而且不是靠合同限制装出来的</li>
+        <li>不一样的时候赚 7.2%,一样的时候只赚 1.3% —— 主见是真值钱</li>
+        <li>好几次都比同事早半年发现机会,是带头那个,不是跟风的</li>
+        <li>删掉最赚的三只股票还是赚,不是蒙的</li>
+        <li>自己掏钱买了,钱多了还主动关门不收 —— 图的是管好钱,不是做大规模</li>
+      </ul>
+    </div>
+    <div class="card">
+      <span class="lbl" style="color:var(--danger)">我们也可能看错了 · 这几点你要自己想清楚</span>
+      <ul class="ic-list wrong" style="margin-top:12px">
+        <li>风口到底贡献了多少,算法上有误差,可能比我们算的更多</li>
+        <li>小盘股真崩的时候卖都卖不掉,这个风险没法躲</li>
+        <li>这只基金就是他一个人,他要是走了基金就废了。而且他只管一只,没法交叉验证</li>
+        <li>2026 年二季度亏了 12.79%,到现在还没见他调整,不知道是死扛还是没反应过来</li>
+        <li>整个公司都挤在消费股,他的"独立"可能只是在挤爆的路上换了个车道</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="card" style="margin-top:var(--gap)">
+    <span class="lbl">出现下面任何一条,立刻重新评估要不要继续持有</span>
+    <div class="trig">
+      <span>规模超过 25 亿</span>
+      <span>走势跟小盘指数几乎一模一样</span>
+      <span>连续一年跑不赢同类</span>
+      <span>开始跟同事买一样的了(掉到 40 分以下)</span>
+      <span>他离职或者加了共管的人</span>
+      <span>突然放开大额申购开始猛收钱</span>
+    </div>
+  </div>
+
+  <div class="foot">
+    <b style="color:var(--muted)">数据截止 2026-06-30</b><br>
+    本页全部数字为演示用模拟数据,不代表任何真实基金或基金经理的实际情况。<br>
+    本内容为非个性化投资建议,不构成买卖推荐。基金过往业绩不预示其未来表现。
+  </div>
+</section>
+
+<!-- ============ 传播卡片 ============ -->
+<section class="sec">
+  <div class="sec-head">
+    <span class="sec-tag">附 / 分享图</span>
+    <h2 class="sec-title">截图发出去的版本</h2>
+    <span class="sec-line"></span>
+  </div>
+  <p style="font-size:13px;color:var(--muted)">
+    下面两张是等比缩放预览。实际由脚本按原尺寸截图导出:竖版 1080×1920 发朋友圈,
+    横版 1920×1080 发微信群。</p>
+
+  <div style="margin-top:22px;overflow:hidden">
+    <span class="lbl">竖版 · 1080×1920</span>
+    <div style="width:1080px;transform:scale(.44);transform-origin:top left;
+                height:845px;margin-top:12px">
+      <div id="share-card">
+        <div class="cd-brand"><span class="d"></span>
+          <span class="t">基金经理照妖镜</span>
+          <span class="r">2026-06-30</span></div>
+
+        <div class="cd-sub">// 这只基金到底谁在管</div>
+        <div class="cd-name">陈述</div>
+        <div class="cd-fund">示例灵活配置 · 000000 · 他一个人管了 8 年多</div>
+        <div class="cd-arch">资产配置选手 · 分散小盘选股</div>
+
+        <div class="cd-score">
+          <div class="n">78<em>/100</em></div>
+          <div class="cd-verdict">可以买</div>
+        </div>
+
+        <div class="cd-sub">// 他敢不敢跟同事不一样</div>
+        <div class="cd-three">
+          <div><div class="k">有多不一样</div><div class="v indep">83</div>
+            <div class="u">满分 100</div></div>
+          <div><div class="k">不一样时多赚</div><div class="v ok">+4.7%</div>
+            <div class="u">每年</div></div>
+          <div><div class="k">比同事早发现</div><div class="v" style="color:var(--accent)">半年</div>
+            <div class="u">平均领先 2 季</div></div>
+        </div>
+
+        <div class="cd-sub">// 五年战绩</div>
+        <div class="cd-rec">
+          <div><div class="k">跟同事对着干</div><div class="v">11 场 <span class="ok">7 胜</span> 4 负</div>
+            <div class="n">赢的比输的多赚 2.3 倍</div></div>
+          <div><div class="k">不一样 vs 一样</div>
+            <div class="v"><span class="ok">7.2%</span> <span style="color:var(--ghost)">/</span> 1.3%</div>
+            <div class="n">主见是真值钱</div></div>
+        </div>
+
+        <div class="cd-quote">
+          <div class="k">一句话</div>
+          <div class="t">他最值钱的时候,<br>恰恰是跟公司所有人<br>都不一样的时候。</div>
+        </div>
+
+        <div class="cd-foot">
+          <div class="cd-qr">扫码<br>看完整报告</div>
+          <div class="fx">
+            <b style="color:var(--muted)">模拟数据,仅演示界面用</b><br>
+            数据截止 2026-06-30 · 非个性化投资建议,不构成买卖推荐<br>
+            基金过往业绩不预示未来表现</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div style="margin-top:36px;overflow:hidden">
+    <span class="lbl">横版 · 1920×1080</span>
+    <div style="width:1920px;transform:scale(.53);transform-origin:top left;
+                height:578px;margin-top:12px">
+      <div id="war-report">
+        <div class="wr-l">
+          <div class="cd-brand"><span class="d"></span>
+            <span class="t">基金经理照妖镜</span>
+            <span class="r">2026-06-30</span></div>
+          <div style="margin-top:44px">
+            <div class="cd-name" style="font-size:104px">陈述</div>
+            <div class="cd-fund" style="font-size:26px">示例灵活配置 · 000000</div>
+            <div class="cd-arch" style="font-size:21px;margin-top:20px">
+              资产配置选手 · 分散小盘选股</div>
+          </div>
+          <div class="wr-rows">
+            <div class="wr-row"><span class="k">跟同事有多不一样</span>
+              <span class="v indep">83 分</span></div>
+            <div class="wr-row"><span class="k">不一样的时候多赚</span>
+              <span class="v ok">+7.2%</span></div>
+            <div class="wr-row"><span class="k">跟大家一样时只赚</span>
+              <span class="v">+1.3%</span></div>
+            <div class="wr-row"><span class="k">五年对着干战绩</span>
+              <span class="v">11 场 <span class="ok">7 胜</span> 4 负</span></div>
+            <div class="wr-row"><span class="k">删掉最赚三只股</span>
+              <span class="v ok">还是赚 1.8%</span></div>
+            <div class="wr-row" style="border:0"><span class="k">造神检测</span>
+              <span class="v ok">9 项查完 0 严重问题</span></div>
+          </div>
+        </div>
+        <div class="wr-r">
+          <div class="k">靠自己判断赚的</div>
+          <div class="n">4.7<span style="font-size:80px">%</span></div>
+          <div class="st">可以买</div>
+          <div class="nt">每年比公司平均多赚这么多<br>建议别超过总仓位 5%</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+</div>
+
+<script>
+// 巨型分数缓动
+(function(){
+  const el = document.querySelector('.score-giant');
+  if(!el) return;
+  const target = +el.dataset.count, dur = 1400;
+  let t0 = null;
+  function step(ts){
+    if(!t0) t0 = ts;
+    const p = Math.min((ts - t0)/dur, 1);
+    el.textContent = Math.round(target * (1 - Math.pow(1-p, 3)));
+    if(p < 1) requestAnimationFrame(step);
+  }
+  requestAnimationFrame(step);
+})();
+
+// 所有条形图:进入视口时展开
+(function(){
+  const bars = document.querySelectorAll('[data-w]');
+  const io = new IntersectionObserver(es=>{
+    es.forEach(e=>{
+      if(e.isIntersecting){
+        e.target.style.width = e.target.dataset.w + '%';
+        io.unobserve(e.target);
+      }
+    });
+  }, {threshold:.15});
+  bars.forEach(b=>io.observe(b));
+})();
+
+// 锚点高亮
+(function(){
+  const links = [...document.querySelectorAll('.toc a')];
+  const secs = links.map(a=>document.querySelector(a.getAttribute('href')));
+  const io = new IntersectionObserver(es=>{
+    es.forEach(e=>{
+      if(e.isIntersecting){
+        const i = secs.indexOf(e.target);
+        links.forEach((l,j)=>l.classList.toggle('on', i===j));
+      }
+    });
+  }, {rootMargin:'-30% 0px -60% 0px'});
+  secs.forEach(s=>s && io.observe(s));
+})();
+
+// 黑白主题切换
+(function(){
+  const btn = document.getElementById('themeBtn'), root = document.documentElement;
+  const paint = t=>{ root.dataset.theme=t; btn.textContent = t==='dark'?'🌙':'☀️'; };
+  paint(localStorage.getItem('fmTheme') || 'dark');
+  btn.onclick = ()=>{
+    const next = root.dataset.theme==='dark' ? 'light' : 'dark';
+    paint(next); localStorage.setItem('fmTheme', next);
+  };
+})();
+
+// 数字滚动动画
+(function(){
+  document.querySelectorAll('[data-count]').forEach(el=>{
+    const target = +el.dataset.count;
+    const io = new IntersectionObserver(es=>es.forEach(e=>{
+      if(!e.isIntersecting) return;
+      const duration = 1600, start = performance.now();
+      const tick = now => {
+        const t = Math.min(1, (now-start)/duration);
+        const ease = t<.5 ? 2*t*t : 1-Math.pow(-2*t+2,2)/2;  // easeInOutQuad
+        el.textContent = Math.floor(ease * target);
+        if(t<1) requestAnimationFrame(tick);
+        else { el.textContent = target; io.unobserve(e.target); }
+      };
+      requestAnimationFrame(tick);
+    }), {threshold:.3});
+    io.observe(el);
+  });
+})();
+
+// 半圆仪表
+(function(){
+  const arc = document.getElementById('gArc');
+  if(!arc) return;
+  const io = new IntersectionObserver(es=>es.forEach(e=>{
+    if(e.isIntersecting){
+      arc.style.strokeDashoffset = 258 * (1 - 83/100);
+      io.unobserve(e.target);
+    }
+  }), {threshold:.3});
+  io.observe(arc);
+})();
+
+// 血条动画
+(function(){
+  document.querySelectorAll('.hp-fill').forEach(bar=>{
+    const io = new IntersectionObserver(es=>es.forEach(e=>{
+      if(e.isIntersecting){
+        bar.style.width = bar.dataset.w + '%';
+        io.unobserve(e.target);
+      }
+    }), {threshold:.3});
+    io.observe(bar);
+  });
+})();
+
+// 滚入视口淡入
+(function(){
+  const io = new IntersectionObserver(es=>es.forEach(e=>{
+    if(e.isIntersecting) e.target.classList.add('visible');
+  }), {threshold:.1});
+  document.querySelectorAll('.card, .arena, .punchline, .stat').forEach(el=>{
+    el.classList.add('fade-in');
+    io.observe(el);
+  });
+})();
+
+// 口径切换:按人头算 / 按钱多少算,真实换数据
+document.querySelectorAll('.hvm-switch .chip').forEach(c=>{
+  c.onclick = ()=>{
+    document.querySelectorAll('.hvm-switch .chip').forEach(x=>x.classList.remove('on'));
+    c.classList.add('on');
+    const m = c.dataset.mode;
+    document.querySelectorAll('.hvm .hvm-num[data-eq]').forEach(el=>{
+      el.textContent = el.dataset[m];
+    });
+    document.querySelectorAll('.hvm .hvm-fill[data-eq-w]').forEach(el=>{
+      el.style.width = el.dataset[m==='eq'?'eqW':'aumW'] + '%';
+    });
+    document.querySelectorAll('.hvm .hvm-gap[data-eq]').forEach(el=>{
+      el.textContent = el.dataset[m];
+    });
+  };
+});
+</script>
+</body>
+</html>
