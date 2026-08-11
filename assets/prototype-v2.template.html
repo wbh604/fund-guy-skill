@@ -452,6 +452,11 @@ td.v{font-weight:900;font-size:15px;white-space:nowrap;text-align:right}
 .rp-speed span:last-child{border-right:0}
 .rp-speed span:hover{color:#f2f5f8}
 .rp-speed span.on{background:#c8ff2e;color:#0a0d10}
+.rp-zoom{display:flex;border:1.5px solid #2c343f;border-radius:8px;overflow:hidden;flex-shrink:0}
+.rp-zoom span{padding:9px 13px;font-size:13px;font-weight:900;color:#8b95a3;cursor:pointer;
+  border-right:1px solid #2c343f;transition:.15s;background:#171d25;user-select:none}
+.rp-zoom span:last-child{border-right:0}
+.rp-zoom span:hover{color:#f2f5f8}
 @media(max-width:760px){
   .rp-body{grid-template-columns:1fr}
   .rp-list{max-height:260px;border-right:0;border-bottom:1px solid var(--line)}
@@ -666,6 +671,9 @@ td.v{font-weight:900;font-size:15px;white-space:nowrap;text-align:right}
           <button class="rp-play" id="rpPlay">▶ 战役回放</button>
           <div class="rp-speed" id="rpSpeed">
             <span data-x="1" class="on">1x</span><span data-x="2">2x</span><span data-x="4">4x</span>
+          </div>
+          <div class="rp-zoom" id="rpZoomBox">
+            <span data-z="out">−</span><span data-z="reset" style="font-size:11px">默认</span><span data-z="in">+</span>
           </div>
           <div class="rp-news" id="rpNews">
             <span class="nd" id="rpNd">—</span>
@@ -1296,6 +1304,17 @@ function rpStop(){
 }
 
 let rpSpeed = 1, rpRaf = null;
+let rpZoom = 80;                 // 可见K线根数,默认约一年半周K
+const RP_ZOOM_DEF = 80;
+
+function rpCamera(center, total){
+  // 让 center 尽量居中;两端钉住不越界
+  let from = center - rpZoom * 0.5;
+  let to = from + rpZoom;
+  if(to > total + 2){ to = total + 2; from = to - rpZoom; }
+  if(from < -2){ from = -2; to = from + rpZoom; }
+  rpChart.timeScale().setVisibleLogicalRange({from, to});
+}
 
 function rpReplay(){
   if(!rpCur || !rpWin.length) return;
@@ -1316,8 +1335,7 @@ function rpReplay(){
     return out;
   };
   series.setData(frame(2));
-  // 逻辑范围锁定:不依赖空白数据,时间轴恒定覆盖整个窗口
-  rpChart.timeScale().setVisibleLogicalRange({from: -3, to: candles.length + 3});
+  rpCamera(2, candles.length);
   const evs = RPEVENTS.filter(e=>e.date>=candles[0][0] && e.date<=candles[candles.length-1][0]
     && (!e.codes || e.codes.includes(s.code)));
   const KIND_TAG = {macro:'宏观', market:'市场', fund:'本基金', industry:'行业', company:'公司'};
@@ -1340,10 +1358,12 @@ function rpReplay(){
       series.setData(frame(candles.length));
       series.setMarkers(mk);
       rpDrawLines(s, series);
+      rpChart.timeScale().fitContent();
       rpNews(candles[candles.length-1][0], {k:'market', tag:'完', txt:'回放结束 · 全部买卖点与成本线已标出'});
       return;
     }
     series.setData(frame(n, partial));
+    rpCamera(n, candles.length);
     const cd = candles[Math.max(0, n-1)][0];
     if(n !== lastN){
       lastN = n;
@@ -1375,6 +1395,20 @@ document.getElementById('rpSpeed').addEventListener('click', e=>{
   const t = e.target.closest('span[data-x]'); if(!t) return;
   rpSpeed = +t.dataset.x;
   document.querySelectorAll('#rpSpeed span').forEach(x=>x.classList.toggle('on', x===t));
+});
+
+document.getElementById('rpZoomBox').addEventListener('click', e=>{
+  const t = e.target.closest('span[data-z]'); if(!t || !rpChart) return;
+  const total = rpWin.length;
+  if(t.dataset.z === 'in')  rpZoom = Math.max(24, Math.round(rpZoom / 1.4));
+  if(t.dataset.z === 'out') rpZoom = Math.min(Math.max(total + 6, 40), Math.round(rpZoom * 1.4));
+  if(t.dataset.z === 'reset') rpZoom = RP_ZOOM_DEF;
+  if(rpRaf) return;  // 回放中由镜头逐帧应用
+  // 静态视图:围绕当前可见中心缩放;默认=全览
+  if(t.dataset.z === 'reset'){ rpChart.timeScale().fitContent(); return; }
+  const vr = rpChart.timeScale().getVisibleLogicalRange();
+  const center = vr ? (vr.from + vr.to) / 2 : total / 2;
+  rpCamera(center, total);
 });
 
 document.getElementById('rpTabs').addEventListener('click', e=>{
