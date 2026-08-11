@@ -444,6 +444,12 @@ td.v{font-weight:900;font-size:15px;white-space:nowrap;text-align:right}
 .rp-news .nk.act-b{background:rgba(30,158,110,.2);color:#34d399}
 .rp-news .nk.act-s{background:rgba(224,72,62,.2);color:#f87171}
 @keyframes newsin{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+.rp-speed{display:flex;border:1.5px solid #2c343f;border-radius:8px;overflow:hidden;flex-shrink:0}
+.rp-speed span{padding:9px 12px;font-size:12px;font-weight:900;color:#8b95a3;cursor:pointer;
+  border-right:1px solid #2c343f;transition:.15s;background:#171d25}
+.rp-speed span:last-child{border-right:0}
+.rp-speed span:hover{color:#f2f5f8}
+.rp-speed span.on{background:#c8ff2e;color:#0a0d10}
 @media(max-width:760px){
   .rp-body{grid-template-columns:1fr}
   .rp-list{max-height:260px;border-right:0;border-bottom:1px solid var(--line)}
@@ -656,6 +662,9 @@ td.v{font-weight:900;font-size:15px;white-space:nowrap;text-align:right}
         </div>
         <div class="rp-controls">
           <button class="rp-play" id="rpPlay">▶ 战役回放</button>
+          <div class="rp-speed" id="rpSpeed">
+            <span data-x="1" class="on">1x</span><span data-x="2">2x</span><span data-x="4">4x</span>
+          </div>
           <div class="rp-news" id="rpNews">
             <span class="nd" id="rpNd">—</span>
             <span class="ni ghost" id="rpNi">按「战役回放」重演当年:新闻在上,他的操作在下</span>
@@ -1282,58 +1291,89 @@ function rpNews(dateTxt, item){
 
 function rpStop(){
   if(rpTimer){ clearInterval(rpTimer); rpTimer = null; }
+  if(rpRaf){ cancelAnimationFrame(rpRaf); rpRaf = null; }
   const btn = document.getElementById('rpPlay');
   if(btn){ btn.textContent = '▶ 战役回放'; btn.classList.remove('playing'); }
 }
 
+let rpSpeed = 1, rpRaf = null;
+
 function rpReplay(){
   if(!rpCur || !rpWin.length) return;
-  if(rpTimer){ rpStop(); rpChartDraw(rpCur); return; }
+  if(rpRaf){ rpStop(); rpChartDraw(rpCur); return; }
   const s = rpCur, candles = rpWin, mk = rpMk;
   const series = mkRpChart();
-  // 固定时间轴:已播的用实体K线,未播的用空白占位
-  const frame = upto => candles.map((c,idx)=> idx <= upto
-    ? {time:c[0],open:c[1],high:c[2],low:c[3],close:c[4]}
-    : {time:c[0]});
-  series.setData(frame(1));
-  rpChart.timeScale().fitContent();
+  const frame = (n, partial) => {
+    const out = candles.map((c,idx)=> idx < n
+      ? {time:c[0],open:c[1],high:c[2],low:c[3],close:c[4]}
+      : {time:c[0]});
+    if(partial && n < candles.length){
+      const c = candles[n], t = partial;
+      out[n] = {time:c[0], open:c[1],
+        high: c[1] + (c[2]-c[1])*t,
+        low:  c[1] + (c[3]-c[1])*t,
+        close:c[1] + (c[4]-c[1])*t};
+    }
+    return out;
+  };
+  series.setData(frame(2));
+  // 逻辑范围锁定:不依赖空白数据,时间轴恒定覆盖整个窗口
+  rpChart.timeScale().setVisibleLogicalRange({from: -3, to: candles.length + 3});
   const evs = RPEVENTS.filter(e=>e.date>=candles[0][0] && e.date<=candles[candles.length-1][0]);
   const KIND_TAG = {macro:'宏观', market:'市场', fund:'本基金'};
-  let i = 2, ei = 0, mi = 0, hold = 0, shown = [];
+  const BARS_PER_SEC = 9;          // 1x 基准速度
+  const EVENT_HOLD_MS = 2200;      // 新闻停留
+  const ACT_HOLD_MS = 1800;        // 买卖动作停留
+  let p = 2, ei = 0, mi = 0, holdUntil = 0, shown = [], lastTs = null, lastN = -1;
   const btn = document.getElementById('rpPlay');
   btn.textContent = '⏹ 停止'; btn.classList.add('playing');
-  rpTimer = setInterval(()=>{
-    if(hold > 0){ hold--; return; }
-    if(i >= candles.length){
+
+  const step = ts => {
+    if(lastTs === null) lastTs = ts;
+    const dt = Math.min(ts - lastTs, 80); lastTs = ts;
+    if(ts < holdUntil){ rpRaf = requestAnimationFrame(step); return; }
+    p += dt / 1000 * BARS_PER_SEC * rpSpeed;
+    const n = Math.min(Math.floor(p), candles.length);
+    const partial = p - n;
+    if(n >= candles.length){
       rpStop();
+      series.setData(frame(candles.length));
       series.setMarkers(mk);
       rpDrawLines(s, series);
       rpNews(candles[candles.length-1][0], {k:'market', tag:'完', txt:'回放结束 · 全部买卖点与成本线已标出'});
       return;
     }
-    const c = candles[i];
-    series.setData(frame(i));
-    if(shown.length) series.setMarkers(shown);
-    rpNews(c[0], null);
-    // 新闻事件
-    if(ei < evs.length && evs[ei].date <= c[0]){
-      const e = evs[ei++];
-      rpNews(c[0], {k:e.kind, tag:KIND_TAG[e.kind]||e.kind, txt:e.title});
-      hold = 34;  // ≈1.4s
+    series.setData(frame(n, partial));
+    const cd = candles[Math.max(0, n-1)][0];
+    if(n !== lastN){
+      lastN = n;
+      rpNews(cd, null);
+      // 新闻事件(只在整根K线推进时检查)
+      if(ei < evs.length && evs[ei].date <= cd){
+        const e = evs[ei++];
+        rpNews(cd, {k:e.kind, tag:KIND_TAG[e.kind]||e.kind, txt:e.title});
+        holdUntil = ts + EVENT_HOLD_MS / Math.sqrt(rpSpeed);
+      }
+      // 买卖动作
+      else if(mi < mk.length && mk[mi].time <= cd){
+        const m = mk[mi++];
+        shown.push(m);
+        series.setMarkers(shown);
+        rpNews(cd, {k:'act-'+m._act, tag:m._act==='b'?'他买了':'他卖了', txt:s.name + ' · ' + m._label + '(' + m.text.split(' ')[1] + ')'});
+        holdUntil = ts + ACT_HOLD_MS / Math.sqrt(rpSpeed);
+      }
     }
-    // 买卖动作
-    if(mi < mk.length && mk[mi].time <= c[0]){
-      const m = mk[mi++];
-      shown.push(m);
-      series.setMarkers(shown);
-      rpNews(c[0], {k:'act-'+m._act, tag:m._act==='b'?'他买了':'他卖了', txt:s.name + ' · ' + m._label + '(' + m.text.split(' ')[1] + ')'});
-      hold = 30;
-    }
-    i++;
-  }, 36);
+    rpRaf = requestAnimationFrame(step);
+  };
+  rpRaf = requestAnimationFrame(step);
 }
 
 document.getElementById('rpPlay').addEventListener('click', rpReplay);
+document.getElementById('rpSpeed').addEventListener('click', e=>{
+  const t = e.target.closest('span[data-x]'); if(!t) return;
+  rpSpeed = +t.dataset.x;
+  document.querySelectorAll('#rpSpeed span').forEach(x=>x.classList.toggle('on', x===t));
+});
 
 document.getElementById('rpTabs').addEventListener('click', e=>{
   const t = e.target.closest('.rp-tab'); if(!t) return;

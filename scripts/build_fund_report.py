@@ -275,6 +275,9 @@ html = f'''<!DOCTYPE html>
         </div>
         <div class="rp-controls">
           <button class="rp-play" id="rpPlay">▶ 战役回放</button>
+          <div class="rp-speed" id="rpSpeed">
+            <span data-x="1" class="on">1x</span><span data-x="2">2x</span><span data-x="4">4x</span>
+          </div>
           <div class="rp-news" id="rpNews">
             <span class="nd" id="rpNd">—</span>
             <span class="ni ghost" id="rpNi">按「战役回放」重演当年:新闻在上,他的操作在下</span>
