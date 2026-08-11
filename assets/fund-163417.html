@@ -476,6 +476,7 @@ td.v{font-weight:900;font-size:15px;white-space:nowrap;text-align:right}
             <span class="tag purple">五任配置 · 他是常量</span>
             <span class="tag hot">最大回撤 52%</span>
             <span class="tag hot">规模 123.24亿</span>
+            <span class="tag purple">会买 · 拿得住 · 不会卖</span>
           </div>
         </div>
         <div class="hero-style" style="text-align:right;flex-shrink:0;border-left:1px solid var(--line);padding-left:22px">
@@ -487,18 +488,23 @@ td.v{font-weight:900;font-size:15px;white-space:nowrap;text-align:right}
     </div>
 
     <div class="card" style="text-align:center">
-      <span class="lbl">总评分(区间估算)</span>
-      <div class="score-giant" data-count="66">0</div>
-      <div class="rangebar">
-        <div class="seg" style="left:40%;width:26.7%"></div>
-        <div class="pin" style="left:53.3%"></div>
-        <span class="rl" style="left:2%">50</span>
-        <span class="rl" style="left:40%">62</span>
-        <span class="rl" style="left:53.3%;color:var(--accent);font-weight:900">66</span>
-        <span class="rl" style="left:66.7%">70</span>
-        <span class="rl" style="left:96%">80</span>
+      <span class="lbl">总评分 · 评的是行为,不是净值</span>
+      <div class="score-giant" data-count="62">0</div>
+      <div style="margin-top:14px;text-align:left">
+        <div class="bar-row" style="grid-template-columns:96px 1fr 40px;padding:3px 0">
+          <span class="k" style="font-size:12px">择时能力 ⚠</span>
+          <div class="bar-track" style="height:9px"><div class="bar-fill warn" data-w="51"></div></div>
+          <span class="v warn" style="font-size:12.5px">51</span></div>
+        <div class="bar-row" style="grid-template-columns:96px 1fr 40px;padding:3px 0">
+          <span class="k" style="font-size:12px">控制能力</span>
+          <div class="bar-track" style="height:9px"><div class="bar-fill ok" data-w="68"></div></div>
+          <span class="v ok" style="font-size:12.5px">68</span></div>
+        <div class="bar-row" style="grid-template-columns:96px 1fr 40px;padding:3px 0">
+          <span class="k" style="font-size:12px">超额质量</span>
+          <div class="bar-track" style="height:9px"><div class="bar-fill" data-w="68"></div></div>
+          <span class="v" style="font-size:12.5px">68</span></div>
       </div>
-      <div style="font-size:11px;color:var(--ghost)">证据覆盖 6/12 模块 · 独立战争与运气拆解未跑 · 上限 B+</div>
+      <div style="font-size:11px;color:var(--ghost);margin-top:8px">择时35% + 控制35% + 超额质量30%(信息比率) · 规则可复算</div>
     </div>
 
     <div class="card" style="display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px">
@@ -633,6 +639,91 @@ td.v{font-weight:900;font-size:15px;white-space:nowrap;text-align:right}
         <div class="rp-verdict" id="rpVerdict"></div>
         <div class="rp-grades" id="rpGrades"></div>
         <div class="rp-foot">买卖点按季报持股数变化推断(前十大消失≠卖出,仅全持仓期缺席记为清仓) · 盈亏为持仓区间估算 · K线为真实行情(周K·前复权)</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 买卖点验尸:59买 + 49卖 全部拿12个月后的走势验 -->
+  <div class="card" style="margin-top:var(--gap);border-color:var(--indep);background:var(--indep-tint)">
+    <span class="lbl" style="color:var(--indep)">买卖点验尸 · 108 个动作全部拿 12 个月后的走势验</span>
+    <div style="margin-top:16px">
+      <div class="bar-row" style="grid-template-columns:150px 1fr 56px">
+        <span class="k">买点胜率(超额口径)</span>
+        <div class="bar-track"><div class="bar-fill ok" data-w="59"></div></div>
+        <span class="v ok">59%</span></div>
+      <div class="bar-row" style="grid-template-columns:150px 1fr 56px">
+        <span class="k">卖点躲跌率</span>
+        <div class="bar-track"><div class="bar-fill warn" data-w="31"></div></div>
+        <span class="v warn">31%</span></div>
+    </div>
+    <p style="text-align:center;font-size:19px;font-weight:900;margin-top:14px">
+      会买(买后 12 个月平均超额 <span class="ok">+24.6%</span>) ·
+      <span class="danger">不会卖</span>(卖掉的 12 个月平均又涨 <span class="danger">+35.7%</span>)</p>
+  </div>
+
+  <div class="grid g2" style="margin-top:var(--gap)">
+    <div class="card">
+      <span class="lbl">最好与最差的买点</span>
+      <div class="grid g2" style="margin-top:14px;gap:10px">
+        <div class="stat" style="border-color:var(--ok)"><span class="lbl">🏆 澜起科技 · 加仓 25Q2</span>
+          <span class="v ok" style="font-size:26px">+227.1%</span><span class="sub">此后 12 个月</span></div>
+        <div class="stat" style="border-color:var(--danger)"><span class="lbl">💀 隆基绿能 · 买入 22Q2</span>
+          <span class="v danger" style="font-size:26px">-54.8%</span><span class="sub">此后 12 个月</span></div>
+      </div>
+      <div class="chips" style="margin-top:12px">
+        <span class="chip ok">买入动作 59 次 · 平均跑赢大盘 24.6 个点</span>
+      </div>
+    </div>
+    <div class="card">
+      <span class="lbl">最好与最差的卖点</span>
+      <div class="grid g2" style="margin-top:14px;gap:10px">
+        <div class="stat" style="border-color:var(--ok)"><span class="lbl">🏆 隆基绿能 · 清仓 22Q4</span>
+          <span class="v ok" style="font-size:26px">躲过 -45.1%</span><span class="sub">卖后 12 个月它跌了这么多</span></div>
+        <div class="stat" style="border-color:var(--danger)"><span class="lbl">💀 隆基绿能 · 减仓 19Q4</span>
+          <span class="v danger" style="font-size:26px">卖飞 +286.4%</span><span class="sub">卖后 12 个月它又涨了这么多</span></div>
+      </div>
+      <div class="chips" style="margin-top:12px">
+        <span class="chip no">卖出动作 49 次 · 只有 31% 躲过了下跌</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- 控制能力证据 -->
+  <div class="grid g2" style="margin-top:var(--gap)">
+    <div class="card">
+      <span class="lbl">控制能力 · 跌市防守(全真实)</span>
+      <table style="margin-top:12px">
+        <tr><th>熊市年</th><th style="text-align:right">他</th><th style="text-align:right">沪深300</th><th style="text-align:right">防守超额</th></tr>
+        <tr><td class="v" style="text-align:left">2018</td>
+      <td class="v danger">-16.8%</td><td class="v">-25.3%</td>
+      <td class="v ok">+8.5</td></tr><tr><td class="v" style="text-align:left">2021</td>
+      <td class="v danger">-0.0%</td><td class="v">-5.2%</td>
+      <td class="v ok">+5.2</td></tr><tr><td class="v" style="text-align:left">2022</td>
+      <td class="v danger">-22.1%</td><td class="v">-21.6%</td>
+      <td class="v danger">-0.5</td></tr><tr><td class="v" style="text-align:left">2023</td>
+      <td class="v danger">-15.9%</td><td class="v">-11.4%</td>
+      <td class="v danger">-4.5</td></tr>
+      </table>
+      <div class="chips" style="margin-top:12px">
+        <span class="chip">大盘最差 10 个月 · 平均超额 -0.3%</span>
+      </div>
+    </div>
+    <div class="card">
+      <span class="lbl">浮亏时他干什么 + 净值层择时</span>
+      <div class="exits" style="margin-top:8px">
+        <div class="ex"><div class="n ok">20</div><div class="k">止损砍仓</div></div>
+        <div style="font-size:13px;color:var(--ghost);font-weight:900">VS</div>
+        <div class="ex"><div class="n warn">11</div><div class="k">越跌越买</div></div>
+      </div>
+      <div class="chips" style="margin-top:14px;justify-content:center;display:flex">
+        <span class="chip ok">偏纪律型 · 不死扛</span>
+      </div>
+      <div style="margin-top:16px;padding-top:14px;border-top:1px solid var(--line)">
+        <div class="chips">
+          <span class="chip purple">TM 择时回归 γ = <b>+1.29</b>(t=3.3,显著)</span>
+          <span class="chip">仓位调向 12 次 · 对 6 次</span>
+        </div>
+        <p style="font-size:11px;color:var(--ghost);margin-top:10px">净值层面存在统计显著的正择时;个股层面的短板集中在"卖出"这一个动作上。</p>
       </div>
     </div>
   </div>
@@ -867,7 +958,7 @@ td.v{font-weight:900;font-size:15px;white-space:nowrap;text-align:right}
       <span class="lbl">证据缺口 · 以下模块未跑,评分被压上限</span>
       <div class="trig" style="margin-top:14px">
         <span>独立战争(需全公司基金持仓)</span>
-        <span>运气拆解(需因子回归)</span>
+        <span>多因子运气拆解(TM 已跑)</span>
         <span>造神检测九项详查</span>
         <span>抄作业指数</span>
         <span>机构资金画像</span>

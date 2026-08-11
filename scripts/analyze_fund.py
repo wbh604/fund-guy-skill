@@ -282,6 +282,157 @@ pro = {
     "n_stocks": n_stocks_latest, "n_stocks_period": qlabel(latest_full) if latest_full else "",
 }
 
+# ---------- 择时能力:买卖点验尸 ----------
+def date_plus(d, days):
+    from datetime import date as D, timedelta
+    y, mo, dd = map(int, d.split("-"))
+    return str(D(y, mo, dd) + timedelta(days=days))
+
+def csi_at(d):
+    prev = None
+    for r in csi:
+        if r["date"][:10] > d:
+            break
+        prev = r["close"]
+    return prev
+
+buy_calls, sell_calls = [], []
+for st in stocks_out:
+    code = st["code"]
+    for p in st["points"]:
+        if p["act"] == "hold":
+            continue
+        d = p["date"]
+        p0 = px(code, d)
+        d1 = date_plus(d, 365)
+        p1 = px(code, d1)
+        if not p0 or not p1 or d1 > klines[code][-1][0]:
+            continue
+        fwd = p1 / p0 - 1
+        i0, i1 = csi_at(d), csi_at(d1)
+        excess = fwd - (i1 / i0 - 1) if i0 and i1 else None
+        rec = {"name": st["name"], "label": p["label"], "q": p["q"],
+               "fwd": round(fwd * 100, 1),
+               "excess": round(excess * 100, 1) if excess is not None else None}
+        if p["act"] == "buy":
+            buy_calls.append(rec)
+        else:
+            sell_calls.append(rec)
+
+buy_wins = [c for c in buy_calls if c["excess"] is not None and c["excess"] > 0]
+sell_dodge = [c for c in sell_calls if c["fwd"] < 0]
+timing = {
+    "n_buy": len(buy_calls),
+    "buy_win_rate": round(len(buy_wins) / len(buy_calls) * 100) if buy_calls else None,
+    "buy_avg_excess": round(mean([c["excess"] for c in buy_calls if c["excess"] is not None]), 1),
+    "best_buy": max(buy_calls, key=lambda c: c["excess"] or -999),
+    "worst_buy": min(buy_calls, key=lambda c: c["excess"] or 999),
+    "n_sell": len(sell_calls),
+    "dodge_rate": round(len(sell_dodge) / len(sell_calls) * 100) if sell_calls else None,
+    "sell_avg_fwd": round(mean([c["fwd"] for c in sell_calls]), 1),
+    "best_sell": min(sell_calls, key=lambda c: c["fwd"]),
+    "worst_sell": max(sell_calls, key=lambda c: c["fwd"]),
+}
+
+# TM 择时回归: r_f - rf = a + b(r_m - rf) + g(r_m - rf)^2
+rf_d = rf_ann / 250
+X1 = [r - rf_d for r in rets_i]
+X2 = [x * x for x in X1]
+Y = [r - rf_d for r in rets_f]
+mx1, mx2, my = mean(X1), mean(X2), mean(Y)
+s11 = sum((a - mx1) ** 2 for a in X1)
+s22 = sum((a - mx2) ** 2 for a in X2)
+s12 = sum((a - mx1) * (b - mx2) for a, b in zip(X1, X2))
+s1y = sum((a - mx1) * (b - my) for a, b in zip(X1, Y))
+s2y = sum((a - mx2) * (b - my) for a, b in zip(X2, Y))
+det = s11 * s22 - s12 * s12
+tm_b = (s1y * s22 - s2y * s12) / det
+tm_g = (s2y * s11 - s1y * s12) / det
+tm_a = my - tm_b * mx1 - tm_g * mx2
+resid = [y - (tm_a + tm_b * a + tm_g * b) for y, a, b in zip(Y, X1, X2)]
+sse = sum(r * r for r in resid) / (n - 3)
+se_g = math.sqrt(sse * s11 / det)
+tm_t = tm_g / se_g if se_g else 0
+
+# 仓位择时:全持仓期股票仓位变化 vs 随后6个月沪深300
+pos_pts = []
+for q in ALL_Q:
+    if q in FULL:
+        ws = sum(weights[c].get(q, 0) or 0 for c in weights if q in weights[c])
+        if ws > 30:
+            pos_pts.append((q, round(ws, 1)))
+pos_timing = []
+for (q0, w0), (q1, w1) in zip(pos_pts, pos_pts[1:]):
+    d1 = qend(q1)
+    d2 = date_plus(d1, 183)
+    i1, i2 = csi_at(d1), csi_at(d2)
+    if i1 and i2 and d2 <= csi[-1]["date"][:10]:
+        pos_timing.append({"q": qlabel(q1), "dw": round(w1 - w0, 1),
+                           "mkt6m": round((i2 / i1 - 1) * 100, 1)})
+same_dir = sum(1 for p in pos_timing if (p["dw"] > 1 and p["mkt6m"] > 0) or (p["dw"] < -1 and p["mkt6m"] < 0))
+moves = sum(1 for p in pos_timing if abs(p["dw"]) > 1)
+
+# ---------- 控制能力 ----------
+# 熊市年防守(基准为负的年份,他的超额)
+bear_years = [y for y in years_out if y["csi300"] is not None and y["csi300"] < 0]
+bear_defense = [{"year": y["year"], "fund": y["fund"], "idx": y["csi300"],
+                 "excess": round(y["fund"] - y["csi300"], 1)} for y in bear_years]
+# 大盘最差 10 个月的超额
+ranked = sorted(zip(mret_f, mret_i), key=lambda ab: ab[1])[:10]
+worst10_excess = round(mean([a - b for a, b in ranked]) * 100, 1)
+
+# 浮亏时的处置:动作时价格低于当时加权成本 → 加仓(越跌越买) or 减仓(止损)
+addl, cutl = 0, 0
+for st in stocks_out:
+    code = st["code"]
+    c_sh, c_amt = 0.0, 0.0
+    prev_sh = None
+    for p in st["points"]:
+        pnow = px(code, p["date"])
+        if not pnow:
+            continue
+        if p["label"] == "买入":
+            c_sh, c_amt = 1.0, pnow
+        elif p["label"] == "加仓":
+            if c_sh and pnow < c_amt / c_sh:
+                addl += 1
+            c_sh += 0.5
+            c_amt += 0.5 * pnow
+        elif p["act"] == "sell":
+            if c_sh and pnow < c_amt / c_sh:
+                cutl += 1
+
+# ---------- 双轴评分(规则透明) ----------
+timing_score = 0
+if timing["buy_win_rate"] is not None:
+    timing_score += timing["buy_win_rate"] * 0.4
+if timing["dodge_rate"] is not None:
+    timing_score += timing["dodge_rate"] * 0.4
+timing_score += 10 if (tm_g > 0 and tm_t > 1.5) else (5 if tm_g > 0 else 0)
+timing_score += 10 * (same_dir / moves) if moves else 5
+timing_score = round(timing_score)
+
+bear_avg = mean([b["excess"] for b in bear_defense]) if bear_defense else 0
+control_score = 0
+control_score += max(0, min(40, 20 + bear_avg * 2.5))       # 熊市年均超额 ±8pp → 0-40
+control_score += max(0, min(30, 15 + worst10_excess * 7.5))  # 最差10月超额 ±2pp → 0-30
+control_score += max(0, min(30, 16 + (100 - dn_cap) * 2))    # 下行捕获每低1点+2分
+control_score = round(control_score)
+
+# 总分 = 择时35% + 控制35% + 超额质量30%(信息比率映射)
+quality = min(100, round(ir * 100))
+total_score = round(timing_score * 0.35 + control_score * 0.35 + quality * 0.30)
+
+ability = {
+    "timing": timing, "tm_gamma": round(tm_g, 2), "tm_t": round(tm_t, 1),
+    "pos_timing": pos_timing, "pos_same_dir": same_dir, "pos_moves": moves,
+    "bear_defense": bear_defense, "worst10_excess": worst10_excess,
+    "loss_add": addl, "loss_cut": cutl,
+    "timing_score": timing_score, "control_score": control_score,
+    "quality_score": quality, "total_score": total_score,
+    "buy_calls": buy_calls, "sell_calls": sell_calls,
+}
+
 managers = load("managers")
 basic = {r["item"]: r["value"] for r in load("basic")}
 
@@ -297,6 +448,7 @@ out = {
     },
     "scale": scale,
     "pro": pro,
+    "ability": ability,
     "replay": {"aum": None, "stocks": stocks_out},
 }
 json.dump(out, open(os.path.join(DIR, "analysis.json"), "w"), ensure_ascii=False)

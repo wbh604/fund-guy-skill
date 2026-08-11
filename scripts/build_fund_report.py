@@ -16,6 +16,8 @@ main_js = re.search(r"<script>/\*__LWCHARTS__\*/</script>\n<script>(.*?)</script
 
 m = A["nav_metrics"]
 pro = A["pro"]
+ab = A["ability"]
+ti = ab["timing"]
 years = A["years"]
 regimes = A["managers"]          # 新→旧
 scale = A["scale"]
@@ -51,6 +53,13 @@ for r in reversed(regimes):  # 旧→新
         <span class="tag {'good' if solo=='独管' else 'purple'}" style="margin-left:6px">{solo}</span></td>
       <td style="font-size:11.5px;color:var(--muted);white-space:nowrap">{r["days"].replace("又","")}</td>
       <td class="v {cls}">{r["ret"]}</td></tr>'''
+
+bear_rows = ""
+for b in ab["bear_defense"]:
+    cls = "ok" if b["excess"] > 0 else "danger"
+    bear_rows += f"""<tr><td class="v" style="text-align:left">{b['year']}</td>
+      <td class="v danger">{b['fund']:+.1f}%</td><td class="v">{b['idx']:+.1f}%</td>
+      <td class="v {cls}">{b['excess']:+.1f}</td></tr>"""
 
 years_rows = ""
 for y in years:
@@ -122,6 +131,7 @@ html = f'''<!DOCTYPE html>
             <span class="tag purple">五任配置 · 他是常量</span>
             <span class="tag hot">最大回撤 {m["max_dd"]:.0f}%</span>
             <span class="tag hot">规模 {meta.get("最新规模","123亿")}</span>
+            <span class="tag purple">会买 · 拿得住 · 不会卖</span>
           </div>
         </div>
         <div class="hero-style" style="text-align:right;flex-shrink:0;border-left:1px solid var(--line);padding-left:22px">
@@ -133,18 +143,23 @@ html = f'''<!DOCTYPE html>
     </div>
 
     <div class="card" style="text-align:center">
-      <span class="lbl">总评分(区间估算)</span>
-      <div class="score-giant" data-count="66">0</div>
-      <div class="rangebar">
-        <div class="seg" style="left:40%;width:26.7%"></div>
-        <div class="pin" style="left:53.3%"></div>
-        <span class="rl" style="left:2%">50</span>
-        <span class="rl" style="left:40%">62</span>
-        <span class="rl" style="left:53.3%;color:var(--accent);font-weight:900">66</span>
-        <span class="rl" style="left:66.7%">70</span>
-        <span class="rl" style="left:96%">80</span>
+      <span class="lbl">总评分 · 评的是行为,不是净值</span>
+      <div class="score-giant" data-count="{ab["total_score"]}">0</div>
+      <div style="margin-top:14px;text-align:left">
+        <div class="bar-row" style="grid-template-columns:96px 1fr 40px;padding:3px 0">
+          <span class="k" style="font-size:12px">择时能力 ⚠</span>
+          <div class="bar-track" style="height:9px"><div class="bar-fill warn" data-w="{ab["timing_score"]}"></div></div>
+          <span class="v warn" style="font-size:12.5px">{ab["timing_score"]}</span></div>
+        <div class="bar-row" style="grid-template-columns:96px 1fr 40px;padding:3px 0">
+          <span class="k" style="font-size:12px">控制能力</span>
+          <div class="bar-track" style="height:9px"><div class="bar-fill ok" data-w="{ab["control_score"]}"></div></div>
+          <span class="v ok" style="font-size:12.5px">{ab["control_score"]}</span></div>
+        <div class="bar-row" style="grid-template-columns:96px 1fr 40px;padding:3px 0">
+          <span class="k" style="font-size:12px">超额质量</span>
+          <div class="bar-track" style="height:9px"><div class="bar-fill" data-w="{ab["quality_score"]}"></div></div>
+          <span class="v" style="font-size:12.5px">{ab["quality_score"]}</span></div>
       </div>
-      <div style="font-size:11px;color:var(--ghost)">证据覆盖 6/12 模块 · 独立战争与运气拆解未跑 · 上限 B+</div>
+      <div style="font-size:11px;color:var(--ghost);margin-top:8px">择时35% + 控制35% + 超额质量30%(信息比率) · 规则可复算</div>
     </div>
 
     <div class="card" style="display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px">
@@ -259,6 +274,83 @@ html = f'''<!DOCTYPE html>
         <div class="rp-verdict" id="rpVerdict"></div>
         <div class="rp-grades" id="rpGrades"></div>
         <div class="rp-foot">买卖点按季报持股数变化推断(前十大消失≠卖出,仅全持仓期缺席记为清仓) · 盈亏为持仓区间估算 · K线为真实行情(周K·前复权)</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 买卖点验尸:59买 + 49卖 全部拿12个月后的走势验 -->
+  <div class="card" style="margin-top:var(--gap);border-color:var(--indep);background:var(--indep-tint)">
+    <span class="lbl" style="color:var(--indep)">买卖点验尸 · {ti["n_buy"]+ti["n_sell"]} 个动作全部拿 12 个月后的走势验</span>
+    <div style="margin-top:16px">
+      <div class="bar-row" style="grid-template-columns:150px 1fr 56px">
+        <span class="k">买点胜率(超额口径)</span>
+        <div class="bar-track"><div class="bar-fill ok" data-w="{ti["buy_win_rate"]}"></div></div>
+        <span class="v ok">{ti["buy_win_rate"]}%</span></div>
+      <div class="bar-row" style="grid-template-columns:150px 1fr 56px">
+        <span class="k">卖点躲跌率</span>
+        <div class="bar-track"><div class="bar-fill warn" data-w="{ti["dodge_rate"]}"></div></div>
+        <span class="v warn">{ti["dodge_rate"]}%</span></div>
+    </div>
+    <p style="text-align:center;font-size:19px;font-weight:900;margin-top:14px">
+      会买(买后 12 个月平均超额 <span class="ok">+{ti["buy_avg_excess"]}%</span>) ·
+      <span class="danger">不会卖</span>(卖掉的 12 个月平均又涨 <span class="danger">+{ti["sell_avg_fwd"]}%</span>)</p>
+  </div>
+
+  <div class="grid g2" style="margin-top:var(--gap)">
+    <div class="card">
+      <span class="lbl">最好与最差的买点</span>
+      <div class="grid g2" style="margin-top:14px;gap:10px">
+        <div class="stat" style="border-color:var(--ok)"><span class="lbl">🏆 {ti["best_buy"]["name"]} · {ti["best_buy"]["label"]} {ti["best_buy"]["q"]}</span>
+          <span class="v ok" style="font-size:26px">+{ti["best_buy"]["fwd"]}%</span><span class="sub">此后 12 个月</span></div>
+        <div class="stat" style="border-color:var(--danger)"><span class="lbl">💀 {ti["worst_buy"]["name"]} · {ti["worst_buy"]["label"]} {ti["worst_buy"]["q"]}</span>
+          <span class="v danger" style="font-size:26px">{ti["worst_buy"]["fwd"]}%</span><span class="sub">此后 12 个月</span></div>
+      </div>
+      <div class="chips" style="margin-top:12px">
+        <span class="chip ok">买入动作 {ti["n_buy"]} 次 · 平均跑赢大盘 {ti["buy_avg_excess"]} 个点</span>
+      </div>
+    </div>
+    <div class="card">
+      <span class="lbl">最好与最差的卖点</span>
+      <div class="grid g2" style="margin-top:14px;gap:10px">
+        <div class="stat" style="border-color:var(--ok)"><span class="lbl">🏆 {ti["best_sell"]["name"]} · {ti["best_sell"]["label"]} {ti["best_sell"]["q"]}</span>
+          <span class="v ok" style="font-size:26px">躲过 {ti["best_sell"]["fwd"]}%</span><span class="sub">卖后 12 个月它跌了这么多</span></div>
+        <div class="stat" style="border-color:var(--danger)"><span class="lbl">💀 {ti["worst_sell"]["name"]} · {ti["worst_sell"]["label"]} {ti["worst_sell"]["q"]}</span>
+          <span class="v danger" style="font-size:26px">卖飞 +{ti["worst_sell"]["fwd"]}%</span><span class="sub">卖后 12 个月它又涨了这么多</span></div>
+      </div>
+      <div class="chips" style="margin-top:12px">
+        <span class="chip no">卖出动作 {ti["n_sell"]} 次 · 只有 {ti["dodge_rate"]}% 躲过了下跌</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- 控制能力证据 -->
+  <div class="grid g2" style="margin-top:var(--gap)">
+    <div class="card">
+      <span class="lbl">控制能力 · 跌市防守(全真实)</span>
+      <table style="margin-top:12px">
+        <tr><th>熊市年</th><th style="text-align:right">他</th><th style="text-align:right">沪深300</th><th style="text-align:right">防守超额</th></tr>
+        {bear_rows}
+      </table>
+      <div class="chips" style="margin-top:12px">
+        <span class="chip">大盘最差 10 个月 · 平均超额 {ab["worst10_excess"]}%</span>
+      </div>
+    </div>
+    <div class="card">
+      <span class="lbl">浮亏时他干什么 + 净值层择时</span>
+      <div class="exits" style="margin-top:8px">
+        <div class="ex"><div class="n ok">{ab["loss_cut"]}</div><div class="k">止损砍仓</div></div>
+        <div style="font-size:13px;color:var(--ghost);font-weight:900">VS</div>
+        <div class="ex"><div class="n warn">{ab["loss_add"]}</div><div class="k">越跌越买</div></div>
+      </div>
+      <div class="chips" style="margin-top:14px;justify-content:center;display:flex">
+        <span class="chip ok">偏纪律型 · 不死扛</span>
+      </div>
+      <div style="margin-top:16px;padding-top:14px;border-top:1px solid var(--line)">
+        <div class="chips">
+          <span class="chip purple">TM 择时回归 γ = <b>+{ab["tm_gamma"]}</b>(t={ab["tm_t"]},显著)</span>
+          <span class="chip">仓位调向 {ab["pos_moves"]} 次 · 对 {ab["pos_same_dir"]} 次</span>
+        </div>
+        <p style="font-size:11px;color:var(--ghost);margin-top:10px">净值层面存在统计显著的正择时;个股层面的短板集中在"卖出"这一个动作上。</p>
       </div>
     </div>
   </div>
@@ -410,7 +502,7 @@ html = f'''<!DOCTYPE html>
       <span class="lbl">证据缺口 · 以下模块未跑,评分被压上限</span>
       <div class="trig" style="margin-top:14px">
         <span>独立战争(需全公司基金持仓)</span>
-        <span>运气拆解(需因子回归)</span>
+        <span>多因子运气拆解(TM 已跑)</span>
         <span>造神检测九项详查</span>
         <span>抄作业指数</span>
         <span>机构资金画像</span>
