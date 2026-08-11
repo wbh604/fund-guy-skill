@@ -201,6 +201,11 @@ if mkts:
     for r in json.load(open(os.path.join(HOUSE_DIR, mkts[-1]))):
         mkt_funds[r["股票代码"]] = r["基金覆盖家数"]
 
+stock_holders = {}
+sh_path = os.path.join(DIR, "stock_holders.json")
+if os.path.exists(sh_path):
+    stock_holders = json.load(open(sh_path))
+
 for st in stocks_out:
     c = st["code"]
     if latest_q_all in weights[c] and (weights[c][latest_q_all] or 0) > 0:
@@ -210,6 +215,10 @@ for st in stocks_out:
         st["peer_n"] = peer_holds.get(c, 0)
         st["peer_total"] = peer_total
         st["mkt_funds"] = mkt_funds.get(c)
+        sh = stock_holders.get(c)
+        if sh:
+            st["special"] = sh.get("special")
+            st["special_note"] = sh.get("note")
 
 # ---------- 基金层面 ----------
 cumnav = load("cumnav")

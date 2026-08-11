@@ -1220,7 +1220,31 @@ function rpDetail(s, rank){
   } else {
     document.getElementById('rpVerdict').innerHTML = '<b>复盘</b> · ' + s.verdict;
   }
-  document.getElementById('rpGrades').innerHTML = s.rating.split('·').map(r=>'<span>'+r.trim()+'</span>').join('');
+  if(rpCat==='now'){
+    const COLORS = {'国家队':'#c8a03e','社保':'#34d399','养老金':'#34d399','险资':'#a78bfa','北向外资':'#4dd8ff','QFII/外资':'#60a5fa'};
+    const chgTxt = c => c==='新进'?'· 新进':(c==='不变'?'':(parseFloat(c)>0?'· 增持':(parseFloat(c)<0?'· 减持':'')));
+    let chips = '';
+    if(s.special && s.special.length){
+      const byType = {};
+      s.special.forEach(x=>{
+        if(!byType[x.type]) byType[x.type] = {pct:0, chg:x.chg, n:0};
+        byType[x.type].pct += x.pct; byType[x.type].n++;
+        if(x.chg==='新进') byType[x.type].chg = '新进';
+      });
+      chips = Object.entries(byType).map(([t,v])=>{
+        const col = COLORS[t]||'#8b95a3';
+        return `<span style="border-color:${col};color:${col}">${t}${v.n>1?' ×'+v.n:''} ${v.pct.toFixed(1)}% ${chgTxt(v.chg)}</span>`;
+      }).join('');
+      chips = '<span style="color:#5a6472;border:0;padding-left:0">特殊持仓者(十大流通股东):</span>' + chips;
+    } else if(s.special_note){
+      chips = `<span style="opacity:.6">特殊持仓者:${s.special_note}</span>`;
+    } else if(s.special) {
+      chips = '<span style="opacity:.6">十大流通股东中无国家队/社保/险资</span>';
+    }
+    document.getElementById('rpGrades').innerHTML = chips;
+  } else {
+    document.getElementById('rpGrades').innerHTML = s.rating.split('·').map(r=>'<span>'+r.trim()+'</span>').join('');
+  }
   rpChartDraw(s);
 }
 
