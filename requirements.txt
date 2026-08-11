@@ -1,0 +1,5 @@
+# 数据抓取与分析(python3 -m venv .venv && .venv/bin/pip install -r requirements.txt)
+akshare>=1.18
+baostock>=0.8
+pandas
+requests
