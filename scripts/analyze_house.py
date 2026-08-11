@@ -120,11 +120,49 @@ low, high = valid[:half], valid[half:]
 lo_ex = round(sum(fwd6(s["q"]) for s in low) / len(low) * 100, 1) if low else None
 hi_ex = round(sum(fwd6(s["q"]) for s in high) / len(high) * 100, 1) if high else None
 
+# ---------- 全市场维度:他 vs 全市场公募共识 ----------
+def market_analysis():
+    files = sorted(f for f in os.listdir(HDIR) if f.startswith("market_"))
+    if not files:
+        return None
+    ms = []
+    for f in files:
+        period = f[7:-5]                       # 20240630
+        q = f"{period[:4]}Q{2 if period[4:6]=='06' else 4}"
+        if q not in tgt:
+            continue
+        rows = json.load(open(os.path.join(HDIR, f)))
+        tot = sum(r["持股总市值"] or 0 for r in rows)
+        mkt_w = {r["股票代码"]: (r["持股总市值"] or 0) / tot * 100 for r in rows}
+        mkt_names = {r["股票代码"]: r["股票简称"] for r in rows}
+        # 双方归一化后算主动份额式分歧
+        tw_raw = tgt[q]
+        tsum = sum(tw_raw.values())
+        tw_n = {c: w / tsum * 100 for c, w in tw_raw.items()}
+        union = set(tw_n) | set(mkt_w)
+        div = round(0.5 * sum(abs(tw_n.get(c, 0) - mkt_w.get(c, 0)) for c in union), 1)
+        # 全市场抱团 TOP5 他跟不跟 + 他的组合有多少在拥挤区(TOP50)
+        top5 = sorted(mkt_w.items(), key=lambda kv: -kv[1])[:5]
+        top50 = {c for c, _ in sorted(mkt_w.items(), key=lambda kv: -kv[1])[:50]}
+        crowd_w = round(sum(w for c, w in tw_raw.items() if c in top50), 1)
+        ms.append({
+            "q": q[2:], "divergence": div, "crowd_weight": crowd_w,
+            "mkt_top": [{"name": mkt_names.get(c, c), "w": round(w, 2),
+                         "his_w": round(tw_raw.get(c, 0), 2), "he_holds": c in tw_raw}
+                        for c, w in top5],
+        })
+    return ms
+
+mkt_series = market_analysis()
+
 out = {
     "series": series,
     "latest": series[-1] if series else None,
     "avg_divergence": round(sum(s["divergence"] for s in series) / len(series), 1),
     "contrarian": {"low_div_fwd6": lo_ex, "high_div_fwd6": hi_ex, "n": len(valid)},
+    "market": {"series": mkt_series, "latest": mkt_series[-1] if mkt_series else None,
+               "avg": round(sum(m["divergence"] for m in mkt_series) / len(mkt_series), 1)
+               } if mkt_series else None,
 }
 json.dump(out, open(os.path.join(DIR, "house_analysis.json"), "w"), ensure_ascii=False)
 

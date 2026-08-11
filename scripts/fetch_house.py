@@ -99,4 +99,21 @@ for f in peers:
             fail += 1
         time.sleep(0.9)
 print(f"[4] 同门持仓抓取完成 ok={ok} fail={fail}")
+
+# ---------- 5. 全市场公募持股横截面(半年度,巨潮) ----------
+periods = [f"{y}{md}" for y in range(2021, 2026) for md in ("0630", "1231")]
+for p in periods:
+    path = os.path.join(HDIR, f"market_{p}.json")
+    if os.path.exists(path):
+        continue
+    try:
+        df = ak.fund_report_stock_cninfo(date=p)
+        slim = df[["股票代码", "股票简称", "基金覆盖家数", "持股总市值"]]
+        json.dump(json.loads(slim.to_json(orient="records", force_ascii=False)),
+                  open(path, "w"), ensure_ascii=False)
+        print(f"[5] 全市场 {p} ok ({len(df)})")
+    except Exception as e:
+        print(f"[5] 全市场 {p} FAIL: {str(e)[:80]}")
+    time.sleep(1.5)
+
 print("ALL DONE")

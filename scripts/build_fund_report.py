@@ -128,6 +128,52 @@ if hs:
         lab = f"他 {t['his_w']:.1f}%" if t["he_holds"] else "他不碰"
         top_chips += f'<span class="chip {cls}">{t["name"]} · 公司 {t["w"]:.1f}% · {lab}</span>'
 
+    # 第二把尺子:全市场
+    mk = hs.get("market")
+    if mk and mk.get("latest"):
+        mlt = mk["latest"]
+        crowd_bars = ""
+        _cmax = max(x["crowd_weight"] for x in mk["series"])
+        for x in mk["series"]:
+            warn_cls = "warn" if x["crowd_weight"] == _cmax else ""
+            crowd_bars += f"""<div class="bar-row" style="grid-template-columns:44px 1fr 46px;padding:2px 0">
+              <span class="k" style="font-size:10.5px">{x['q']}</span>
+              <div class="bar-track" style="height:7px"><div class="bar-fill cyanf {warn_cls}" data-w="{x['crowd_weight']/_cmax*100:.0f}" style="background:var(--cyan)"></div></div>
+              <span class="v" style="font-size:11px">{x['crowd_weight']:.0f}%</span></div>"""
+        mkt_chips = ""
+        for t in mlt["mkt_top"]:
+            if t["he_holds"] and t["his_w"] > t["w"]:
+                cls, lab = "no", f"他超配 {t['his_w']:.1f}%"
+            elif t["he_holds"]:
+                cls, lab = "", f"他 {t['his_w']:.1f}%"
+            else:
+                cls, lab = "ok", "他不碰"
+            mkt_chips += f'<span class="chip {cls}">{t["name"]} · 全市场 {t["w"]:.1f}% · {lab}</span>'
+        over = [t["name"] for t in mlt["mkt_top"] if t["he_holds"] and t["his_w"] > t["w"] * 1.5]
+        market_card = f"""
+  <div class="card" style="margin-top:var(--gap);border-color:var(--cyan)">
+    <span class="lbl" style="color:var(--cyan)">第二把尺子 · 跟全市场全部公募比(半年度口径)</span>
+    <div class="grid g2" style="margin-top:14px">
+      <div>
+        <div class="rangebar" style="margin:26px 8px 30px">
+          <div class="pin" style="left:{mlt["divergence"]}%;background:var(--cyan)"></div>
+          <span class="rl" style="left:2%">0 · 标准公募抱团</span>
+          <span class="rl" style="left:{mlt["divergence"]}%;color:var(--cyan);font-weight:900;top:-26px">vs 全市场 {mlt["divergence"]}%</span>
+          <span class="rl" style="left:97%;top:-26px">100</span>
+        </div>
+        <div class="chips">{mkt_chips}</div>
+      </div>
+      <div>
+        <span class="lbl">公募抱团区(全市场TOP50)占他的组合</span>
+        <div style="margin-top:8px">{crowd_bars}</div>
+      </div>
+    </div>
+    <p style="text-align:center;font-size:16px;font-weight:900;margin-top:14px">
+      他不躲抱团股 —— 而是在抱团区里<span class="cyan">只挑 {"、".join(over) if over else "个别"} 下重注</span>,拥挤仓位 {mlt["crowd_weight"]}%,近两年在抬升</p>
+  </div>"""
+    else:
+        market_card = ""
+
     house_block = f"""
   <div class="card" style="border-color:var(--indep);background:var(--indep-tint)">
     <span class="lbl" style="color:var(--indep)">这块回答一个问题:他跟公司其他 {lt["n_funds"]} 个基金有多不一样?不一样时赚钱吗?</span>
@@ -145,6 +191,8 @@ if hs:
     <p style="text-align:center;font-size:19px;font-weight:900">
       {"<span class='indep'>比同事之间还独 —— 真孤狼</span>" if is_lone else "同事们本来就各管各的,他反而<span class='indep'>略偏向公司平均</span> —— 不是孤狼"}</p>
   </div>
+
+  {market_card}
 
   <div class="grid g2" style="margin-top:var(--gap)">
     <div class="card">
