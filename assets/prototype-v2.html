@@ -1247,8 +1247,12 @@ function rpPrep(s){
       pos = pos === 'belowBar' ? 'aboveBar' : 'belowBar';
     }
     lastAnchor = {t, pos};
-    mk.push({time:t, position:pos, color:isSell?'#e0483e':'#1e9e6e', shape:'circle', size:1.4,
-      text:(p.label.length<=3?p.label:(isSell?'卖':'买')) + ' ' + p.q, _act:isSell?'s':'b', _label:p.label});
+    const passive = !!p.passive;
+    const short = passive ? '被动减' : (p.label.length<=3 ? p.label : (isSell?'卖':'买'));
+    mk.push({time:t, position:pos,
+      color: passive ? '#fbbf24' : (isSell?'#e0483e':'#1e9e6e'),
+      shape:'circle', size: passive ? 1.1 : 1.4,
+      text: short + ' ' + p.q, _act:isSell?'s':'b', _label:p.label, _passive:passive});
   });
   mk.sort((a,b)=>a.time<b.time?-1:1);
   return {candles, mk};
@@ -1362,7 +1366,9 @@ function rpReplay(){
         const m = mk[mi++];
         shown.push(m);
         series.setMarkers(shown);
-        rpNews(cd, {k:'act-'+m._act, tag:m._act==='b'?'他买了':'他卖了', txt:s.name + ' · ' + m._label + '(' + m.text.split(' ')[1] + ')'});
+        rpNews(cd, {k: m._passive ? 'market' : 'act-'+m._act,
+          tag: m._passive ? '被动' : (m._act==='b'?'他买了':'他卖了'),
+          txt: s.name + ' · ' + m._label + '(' + m.text.split(' ')[1] + ')' + (m._passive ? ' · 非主动决策' : '')});
         holdUntil = ts + ACT_HOLD_MS / Math.sqrt(rpSpeed);
       }
     }

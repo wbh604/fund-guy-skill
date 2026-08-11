@@ -268,7 +268,8 @@ html = f'''<!DOCTYPE html>
         </div>
         <div class="rp-legend">
           <i><b class="mk b">买</b>买入或加仓</i>
-          <i><b class="mk s">卖</b>减仓或清仓</i>
+          <i><b class="mk s">卖</b>主动减/清仓</i>
+          <i><b class="mk" style="background:#fbbf24;color:#0a0d10">被</b>被动减(触线/赎回)</i>
           <i><span style="display:inline-block;width:16px;border-top:2px solid #34d399"></span>成本线</i>
           <i><span style="display:inline-block;width:16px;border-top:2px dashed #f87171"></span>卖出线</i>
           <span class="kinfo" id="rpKinfo"></span>
@@ -286,7 +287,7 @@ html = f'''<!DOCTYPE html>
         <div class="rp-chart" id="rpChart"></div>
         <div class="rp-verdict" id="rpVerdict"></div>
         <div class="rp-grades" id="rpGrades"></div>
-        <div class="rp-foot">买卖点按季报持股数变化推断(前十大消失≠卖出,仅全持仓期缺席记为清仓) · 盈亏为持仓区间估算 · K线为真实行情(周K·前复权)</div>
+        <div class="rp-foot">买卖点按季报持股数变化推断(前十大消失≠卖出,仅全持仓期缺席记为清仓) · 减仓自动判定主动/被动(上季仓位≥9.3%触双十线;基金份额缩水>12%且减幅相当记为赎回被动) · 盈亏为持仓区间估算 · K线为真实行情(周K·前复权)</div>
       </div>
     </div>
   </div>
@@ -300,9 +301,13 @@ html = f'''<!DOCTYPE html>
         <div class="bar-track"><div class="bar-fill ok" data-w="{ti["buy_win_rate"]}"></div></div>
         <span class="v ok">{ti["buy_win_rate"]}%</span></div>
       <div class="bar-row" style="grid-template-columns:150px 1fr 56px">
-        <span class="k">卖点躲跌率</span>
+        <span class="k">卖点躲跌率(仅主动)</span>
         <div class="bar-track"><div class="bar-fill warn" data-w="{ti["dodge_rate"]}"></div></div>
         <span class="v warn">{ti["dodge_rate"]}%</span></div>
+    </div>
+    <div class="chips" style="margin-top:12px">
+      <span class="chip">被动减仓已剔除 <b>{ab["passive_cap"]+ab["passive_redeem"]} 次</b>(触10%线 {ab["passive_cap"]} · 遭赎回 {ab["passive_redeem"]})</span>
+      <span class="chip purple">被动卖出不是决策 · 不计入择时评分</span>
     </div>
     <p style="text-align:center;font-size:19px;font-weight:900;margin-top:14px">
       会买(买后 12 个月平均超额 <span class="ok">+{ti["buy_avg_excess"]}%</span>) ·

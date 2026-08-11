@@ -64,6 +64,29 @@ def px(code, date):
         prev = row
     return prev[4] if prev else None
 
+# ---------- 基金份额估算(判定被动减仓用) ----------
+# 每季度规模 ≈ Σ持仓市值/Σ占比;份额 ≈ 规模/单位净值
+nav_unit_rows = load("nav")
+_k_d = [k for k in nav_unit_rows[0] if "日期" in k][0]
+_k_v = [k for k in nav_unit_rows[0] if "净值" in k and "日期" not in k][0]
+nav_unit = [(r[_k_d][:10], r[_k_v]) for r in nav_unit_rows if r[_k_v]]
+
+def unit_nav_at(d):
+    prev = None
+    for dd, v in nav_unit:
+        if dd > d:
+            break
+        prev = v
+    return prev
+
+fund_shares = {}  # q -> 估算总份额(亿份)
+for q in ALL_Q:
+    tot_mv = sum(mv[c].get(q, 0) or 0 for c in mv if q in mv[c])
+    tot_w = sum(weights[c].get(q, 0) or 0 for c in weights if q in weights[c])
+    u = unit_nav_at(qend(q))
+    if tot_w > 5 and u:
+        fund_shares[q] = (tot_mv / tot_w * 100 / 10000) / u
+
 # ---------- 每只股票:事件 + 盈亏 + 成本/卖出线 ----------
 stocks_out = []
 for code in klines:
@@ -95,7 +118,19 @@ for code in klines:
                         cost_sh += sh - pos
                         cost_amt += (sh - pos) * p_now
                 elif ratio <= 0.75:
-                    events.append({"date": d, "act": "sell", "label": "减仓", "q": qlabel(q)})
+                    # 被动减仓判定:①上季逼近10%双十红线 ②基金份额同期大幅缩水(赎回)
+                    w_prev = weights[code].get(last_q, 0) or 0
+                    f_now, f_prev = fund_shares.get(q), fund_shares.get(last_q)
+                    fund_shrink = (1 - f_now / f_prev) if (f_now and f_prev) else 0
+                    stock_cut = 1 - ratio
+                    if w_prev >= 9.3:
+                        events.append({"date": d, "act": "sell", "label": "被动减·触线",
+                                       "q": qlabel(q), "passive": "cap"})
+                    elif fund_shrink > 0.12 and stock_cut <= fund_shrink + 0.20:
+                        events.append({"date": d, "act": "sell", "label": "被动减·赎回",
+                                       "q": qlabel(q), "passive": "redeem"})
+                    else:
+                        events.append({"date": d, "act": "sell", "label": "减仓", "q": qlabel(q)})
                 else:
                     events.append({"date": d, "act": "hold", "label": "持", "q": qlabel(q)})
             pos, last_q = sh, q
@@ -297,11 +332,15 @@ def csi_at(d):
     return prev
 
 buy_calls, sell_calls = [], []
+n_passive = {"cap": 0, "redeem": 0}
 for st in stocks_out:
     code = st["code"]
     for p in st["points"]:
         if p["act"] == "hold":
             continue
+        if p.get("passive"):
+            n_passive[p["passive"]] += 1
+            continue  # 被动减仓不是决策,不进验尸
         d = p["date"]
         p0 = px(code, d)
         d1 = date_plus(d, 365)
@@ -398,7 +437,7 @@ for st in stocks_out:
                 addl += 1
             c_sh += 0.5
             c_amt += 0.5 * pnow
-        elif p["act"] == "sell":
+        elif p["act"] == "sell" and not p.get("passive"):
             if c_sh and pnow < c_amt / c_sh:
                 cutl += 1
 
@@ -428,6 +467,7 @@ ability = {
     "pos_timing": pos_timing, "pos_same_dir": same_dir, "pos_moves": moves,
     "bear_defense": bear_defense, "worst10_excess": worst10_excess,
     "loss_add": addl, "loss_cut": cutl,
+    "passive_cap": n_passive["cap"], "passive_redeem": n_passive["redeem"],
     "timing_score": timing_score, "control_score": control_score,
     "quality_score": quality, "total_score": total_score,
     "buy_calls": buy_calls, "sell_calls": sell_calls,
