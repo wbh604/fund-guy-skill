@@ -161,6 +161,36 @@ def market_analysis():
 
 mkt_series = market_analysis()
 
+# ---------- 持仓最像的同门基金(最新期,归一化重合度) ----------
+funds_meta = {f["code"]: f for f in json.load(open(os.path.join(HDIR, "funds.json")))}
+
+def similar_funds():
+    if not QS:
+        return []
+    q = QS[-1]
+    tw = norm100(tgt[q])
+    out = []
+    for fc, hp in peers_hold[q].items():
+        if sum(hp.values()) < 8:
+            continue
+        fw = norm100(hp)
+        shared = set(tw) & set(fw)
+        overlap = round(sum(min(tw[c], fw[c]) for c in shared), 1)
+        if overlap < 3:
+            continue
+        top_shared = sorted(shared, key=lambda c: -min(tw[c], fw[c]))[:3]
+        meta = funds_meta.get(fc, {})
+        out.append({
+            "code": fc, "name": meta.get("name", fc),
+            "managers": " ".join(meta.get("managers", [])[:2]),
+            "overlap": overlap,
+            "shared": [names.get(c, c) for c in top_shared],
+        })
+    out.sort(key=lambda x: -x["overlap"])
+    return out[:8]
+
+sim = similar_funds()
+
 out = {
     "series": series,
     "latest": series[-1] if series else None,
@@ -169,6 +199,7 @@ out = {
     "market": {"series": mkt_series, "latest": mkt_series[-1] if mkt_series else None,
                "avg": round(sum(m["divergence"] for m in mkt_series) / len(mkt_series), 1)
                } if mkt_series else None,
+    "similar_funds": sim,
 }
 json.dump(out, open(os.path.join(DIR, "house_analysis.json"), "w"), ensure_ascii=False)
 

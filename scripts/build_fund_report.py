@@ -135,6 +135,20 @@ if hs:
         lab = f"他 {t['his_w']:.1f}%" if t["he_holds"] else "他不碰"
         top_chips += f'<span class="chip {cls}">{t["name"]} · 公司 {t["w"]:.1f}% · {lab}</span>'
 
+    # 持仓最像的同门基金
+    sim_rows = ""
+    _sim = hs.get("similar_funds") or []
+    _smax = max((x["overlap"] for x in _sim), default=1)
+    for x in _sim:
+        chips = "".join(f'<span class="rgrade" style="padding:2px 8px;font-size:10.5px">{n}</span>' for n in x["shared"])
+        sim_rows += f"""<div style="display:grid;grid-template-columns:minmax(150px,1.3fr) 90px 1fr 58px;gap:12px;align-items:center;padding:9px 0;border-bottom:1px dashed var(--line);font-size:13px">
+          <div><b>{x['name']}</b><span style="color:var(--ghost);font-size:11px"> {x['code']}</span><br>
+            <span style="color:var(--muted);font-size:11px">经理 {x['managers']}</span></div>
+          <div style="display:flex;gap:4px;flex-wrap:wrap">{chips}</div>
+          <div class="bar-track" style="height:10px"><div class="bar-fill" data-w="{x['overlap']/_smax*100:.0f}" style="background:var(--indep)"></div></div>
+          <span class="v indep" style="text-align:right">{x['overlap']:.0f}%</span>
+        </div>"""
+
     # 第二把尺子:全市场
     mk = hs.get("market")
     if mk and mk.get("latest"):
@@ -247,6 +261,16 @@ if hs:
         <div class="sub">季报+30天 / 中年报+60天</div></div>
     </div>
     <p style="text-align:center;font-size:16px;font-weight:900;margin-top:14px">低换手打法 · <span class="ok">季报仍有参考价值</span>(超额保留 {round(ab["copy_follow"]/ab["copy_mgr"]*100) if ab["copy_mgr"] else 0}%)</p>
+  </div>
+
+  <!-- 持仓最像的同门基金 -->
+  <div class="card" style="margin-top:var(--gap)">
+    <span class="lbl">买不到他?这些基金现在的持仓跟他最像(同门 · 最新一期)</span>
+    <div style="margin-top:12px">{sim_rows}</div>
+    <div class="alert info" style="margin-top:14px;display:flex;gap:10px;padding:14px 16px;border-radius:8px;background:var(--indep-tint);border:1px solid var(--indep);font-size:13px">
+      <span>💬</span><span><b>想深挖哪只?直接说「分析 兴全品质甄选」</b>,同一套流程(买卖复盘/择时控制/独立战争)再跑一遍。
+      重合度高 ≠ 一样好 —— 抄作业的人未必有他的买点。</span>
+    </div>
   </div>"""
 else:
     house_block = """
