@@ -458,6 +458,125 @@ control_score += max(0, min(30, 15 + worst10_excess * 7.5))  # 最差10月超额
 control_score += max(0, min(30, 16 + (100 - dn_cap) * 2))    # 下行捕获每低1点+2分
 control_score = round(control_score)
 
+# ---------- 抄作业指数:经理时钟 vs 披露时钟 ----------
+# 季报(Q1/Q3)约在季末后 15 个工作日披露(+30 天),中报/年报(Q2/Q4)+60 天
+def copy_trade():
+    mgr_ex, copy_ex = [], []
+    for st in stocks_out:
+        code = st["code"]
+        for p in st["points"]:
+            if p["act"] != "buy" or p.get("passive"):
+                continue
+            d0 = p["date"]
+            lag = 60 if p["q"].endswith(("2", "4")) else 30
+            d_copy = date_plus(d0, lag)
+            for start, sink in ((d0, mgr_ex), (d_copy, copy_ex)):
+                p0, p1 = px(code, start), px(code, date_plus(start, 365))
+                if not p0 or not p1 or date_plus(start, 365) > klines[code][-1][0]:
+                    continue
+                i0, i1 = csi_at(start), csi_at(date_plus(start, 365))
+                if i0 and i1:
+                    sink.append((p1 / p0 - 1) - (i1 / i0 - 1))
+    return (round(mean(mgr_ex) * 100, 1) if mgr_ex else None,
+            round(mean(copy_ex) * 100, 1) if copy_ex else None,
+            len(mgr_ex))
+
+copy_mgr, copy_follow, copy_n = copy_trade()
+
+# ---------- Alpha 到手率:资金加权收益(基民) vs 时间加权收益(基金) ----------
+# 季度申赎流 ≈ 规模变化 - 存量增值;IRR 解资金加权年化
+def money_weighted():
+    sq = [(x["q"], x["yi"]) for x in scale]
+    if len(sq) < 8:
+        return None
+    def nav_at_q(q):
+        y = "20" + q[:2]
+        return unit_nav_at(f"{y}-{['03-31','06-30','09-30','12-31'][int(q[-1])-1]}")
+    flows = [-sq[0][1]]
+    for (q0, s0), (q1, s1) in zip(sq, sq[1:]):
+        n0, n1 = nav_at_q(q0), nav_at_q(q1)
+        if not n0 or not n1:
+            flows.append(0)
+            continue
+        flows.append(-(s1 - s0 * (n1 / n0)))  # 申购为负现金流(投入)
+    flows[-1] += sq[-1][1]  # 期末价值收回
+    # 二分求季度 IRR
+    def npv(r):
+        return sum(f / (1 + r) ** i for i, f in enumerate(flows))
+    lo, hi = -0.5, 0.5
+    for _ in range(80):
+        mid = (lo + hi) / 2
+        if npv(mid) > 0:
+            lo = mid
+        else:
+            hi = mid
+    return round(((1 + (lo + hi) / 2) ** 4 - 1) * 100, 1)
+
+mwr = money_weighted()
+twr = round(ann_f * 100, 1)
+
+# ---------- 机构资金画像(真实持有人结构) ----------
+inst_series = []
+try:
+    for h in reversed(load("holders2")):
+        inst_series.append({"date": h["date"][:7], "inst": float(h["inst"].replace("%", "")),
+                            "share_yi": float(h["total_share_yi"])})
+except Exception:
+    pass
+
+# ---------- 多因子运气拆解(月度收益回归风格因子) ----------
+factor_out = None
+try:
+    idx = {}
+    for nm in ("csi500", "csi1000", "growth", "value"):
+        idx[nm] = {r["date"][:10]: r["close"] for r in load("idx_" + nm)}
+    f_m, x_m = [], []
+    for a, b in zip(months, months[1:]):
+        ok_all = all(a in idx[nm] and b in idx[nm] for nm in idx) and a in csi_close and b in csi_close
+        if not ok_all:
+            # 用月末最近交易日对齐
+            def at(series, d):
+                prev = None
+                for k in sorted(series):
+                    if k > d:
+                        break
+                    prev = series[k]
+                return prev
+            r300 = csi_close[b] / csi_close[a] - 1
+            rets = {nm: at(idx[nm], b) / at(idx[nm], a) - 1 for nm in idx}
+        else:
+            r300 = csi_close[b] / csi_close[a] - 1
+            rets = {nm: idx[nm][b] / idx[nm][a] - 1 for nm in idx}
+        f_m.append(nav_map[b] / nav_map[a] - 1)
+        x_m.append([r300, rets["csi500"] - r300, rets["csi1000"] - rets["csi500"],
+                    rets["growth"] - rets["value"]])
+    # OLS: y = a + Xb (4因子)
+    nn, kk = len(f_m), 4
+    X = [[1.0] + row for row in x_m]
+    XtX = [[sum(X[i][a] * X[i][b] for i in range(nn)) for b in range(kk + 1)] for a in range(kk + 1)]
+    Xty = [sum(X[i][a] * f_m[i] for i in range(nn)) for a in range(kk + 1)]
+    # 高斯消元
+    M = [row[:] + [Xty[r]] for r, row in enumerate(XtX)]
+    for col in range(kk + 1):
+        piv = max(range(col, kk + 1), key=lambda r: abs(M[r][col]))
+        M[col], M[piv] = M[piv], M[col]
+        for r in range(kk + 1):
+            if r != col and M[col][col]:
+                f = M[r][col] / M[col][col]
+                M[r] = [a - f * b for a, b in zip(M[r], M[col])]
+    beta = [M[r][kk + 1] / M[r][r] for r in range(kk + 1)]
+    yhat = [sum(b * x for b, x in zip(beta, X[i])) for i in range(nn)]
+    ss_res = sum((y - h) ** 2 for y, h in zip(f_m, yhat))
+    ss_tot = sum((y - mean(f_m)) ** 2 for y in f_m)
+    factor_out = {
+        "alpha_m": round(beta[0] * 100, 2), "alpha_ann": round(beta[0] * 12 * 100, 1),
+        "b_mkt": round(beta[1], 2), "b_size5": round(beta[2], 2),
+        "b_size10": round(beta[3], 2), "b_growth": round(beta[4], 2),
+        "r2": round(1 - ss_res / ss_tot, 2), "n": nn,
+    }
+except Exception as e:
+    print("factor skip:", e)
+
 # 总分 = 择时35% + 控制35% + 超额质量30%(信息比率映射)
 quality = min(100, round(ir * 100))
 total_score = round(timing_score * 0.35 + control_score * 0.35 + quality * 0.30)
@@ -468,6 +587,10 @@ ability = {
     "bear_defense": bear_defense, "worst10_excess": worst10_excess,
     "loss_add": addl, "loss_cut": cutl,
     "passive_cap": n_passive["cap"], "passive_redeem": n_passive["redeem"],
+    "copy_mgr": copy_mgr, "copy_follow": copy_follow, "copy_n": copy_n,
+    "mwr": mwr, "twr": twr,
+    "inst_series": inst_series,
+    "factor": factor_out,
     "timing_score": timing_score, "control_score": control_score,
     "quality_score": quality, "total_score": total_score,
     "buy_calls": buy_calls, "sell_calls": sell_calls,
