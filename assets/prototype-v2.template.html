@@ -417,6 +417,7 @@ td.v{font-weight:900;font-size:15px;white-space:nowrap;text-align:right}
 .rp-legend .mk{width:16px;height:16px;border-radius:50%;color:#fff;font-size:9.5px;font-weight:900;
   display:inline-flex;align-items:center;justify-content:center}
 .rp-legend .mk.b{background:#1e9e6e} .rp-legend .mk.s{background:#e0483e}
+.rp-legend .mk.h{background:#fbbf24;color:#0a0d10}
 .rp-legend .kinfo{margin-left:auto;color:#5a6472}
 .rp-chart{height:320px;border-radius:8px;overflow:hidden}
 .rp-verdict{font-size:13px;color:#8b95a3;line-height:1.6;margin-top:12px}
@@ -631,6 +632,7 @@ td.v{font-weight:900;font-size:15px;white-space:nowrap;text-align:right}
         </div>
         <div class="rp-legend">
           <i><b class="mk b">买</b>买入或加仓</i>
+          <i><b class="mk h">持</b>继续持有</i>
           <i><b class="mk s">卖</b>卖出或减仓</i>
           <span class="kinfo" id="rpKinfo"></span>
         </div>
@@ -1135,7 +1137,7 @@ function rpRender(){
     el.className = 'rp-item' + (i===rpIdx?' on':'');
     const cls = rpCat==='fly' ? 'dn' : (s.amount>0?'up':'dn');
     el.innerHTML = `<span class="no">${String(i+1).padStart(2,'0')}</span>
-      <div class="mid"><b>${s.name}</b><span>${s.code.split('.')[1]} · ${s.n_disclose} 笔操作</span></div>
+      <div class="mid"><b>${s.name}</b><span>${s.code.split('.')[1]} · ${s.n_disclose} 期披露</span></div>
       <span class="amt ${cls}">${RP_CATS[rpCat].amt(s)}</span>`;
     el.onclick = ()=>{ rpIdx = i; rpRender(); };
     list.appendChild(el);
@@ -1150,7 +1152,7 @@ function rpDetail(s, rank){
   const amtEl = document.getElementById('rpAmt');
   if(rpCat==='fly'){ amtEl.textContent = '卖后又涨 ' + s.sellfly_pct + '%'; amtEl.className = 'rp-amt dn'; }
   else { amtEl.textContent = fmtY(s.amount); amtEl.className = 'rp-amt ' + (s.amount>0?'up':'dn'); }
-  document.getElementById('rpKinfo').textContent = '周K · 未复权 · ' + s.kline.length + ' 根 · ' + s.points.length + ' 个买卖点';
+  document.getElementById('rpKinfo').textContent = '周K · 未复权 · ' + s.kline.length + ' 根 · ' + s.points.length + ' 个披露点';
   document.getElementById('rpVerdict').innerHTML = '<b>复盘</b> · ' + s.verdict;
   document.getElementById('rpGrades').innerHTML = s.rating.split('·').map(r=>'<span>'+r.trim()+'</span>').join('');
   rpChartDraw(s);
@@ -1183,16 +1185,28 @@ function rpChartDraw(s){
     if(win.length > 30) candles = win;
   }
   series.setData(candles.map(c=>({time:c[0],open:c[1],high:c[2],low:c[3],close:c[4]})));
-  document.getElementById('rpKinfo').textContent = '周K · 未复权 · ' + candles.length + ' 根 · ' + s.points.length + ' 个买卖点';
+  document.getElementById('rpKinfo').textContent = '周K · 未复权 · ' + candles.length + ' 根 · ' + s.points.length + ' 个披露点';
   const times = new Set(candles.map(c=>c[0]));
   const snap = d => { if(times.has(d)) return d;
     let prev = null; for(const c of candles){ if(c[0] > d) break; prev = c[0]; } return prev; };
   const mk = [];
+  const seen = new Set();
+  let lastAnchor = null;  // 相邻锚点标签错位,避免文字重叠
   s.points.forEach(p=>{
-    const t = snap(p.date); if(!t) return;
+    const t = snap(p.date); if(!t || seen.has(t + p.act)) return;
+    seen.add(t + p.act);
+    if(p.act==='hold'){
+      mk.push({time:t, position:'belowBar', color:'#fbbf24', shape:'circle', text:'', size:0.5});
+      return;
+    }
     const isSell = p.act==='sell';
-    mk.push({time:t, position:isSell?'aboveBar':'belowBar',
-      color:isSell?'#e0483e':'#1e9e6e', shape:'circle',
+    let pos = isSell ? 'aboveBar' : 'belowBar';
+    if(lastAnchor && (new Date(t) - new Date(lastAnchor.t)) < 420*86400000 && pos === lastAnchor.pos){
+      pos = pos === 'belowBar' ? 'aboveBar' : 'belowBar';
+    }
+    lastAnchor = {t, pos};
+    mk.push({time:t, position:pos,
+      color:isSell?'#e0483e':'#1e9e6e', shape:'circle', size:1.4,
       text:(p.label.length<=3?p.label:(isSell?'卖':'买')) + ' ' + p.q});
   });
   mk.sort((a,b)=>a.time<b.time?-1:1);

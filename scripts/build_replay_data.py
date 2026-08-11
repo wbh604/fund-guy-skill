@@ -46,6 +46,39 @@ def quarter(d):
     return f"{y[2:]}Q{(int(mo) - 1) // 3 + 1}"
 
 
+FULL_EXIT = ("全清", "卖出", "割肉", "止损", "清仓")
+
+
+def synth_holds(anchors, kline):
+    """锚点之间按季度末合成「持」披露点;未清仓则延续到K线末尾(每半年一个)。"""
+    from datetime import date as D
+    first = anchors[0]["date"]
+    last = anchors[-1]["date"]
+    fully_exited = anchors[-1]["act"] == "sell" and any(w in anchors[-1]["label"] for w in FULL_EXIT)
+    end = last if fully_exited else kline[-1]["t"]
+
+    qends = []
+    y0, y1 = int(first[:4]), int(end[:4])
+    for y in range(y0, y1 + 1):
+        for md in ("03-31", "06-30", "09-30", "12-31"):
+            d = f"{y}-{md}"
+            if first < d < end:
+                qends.append(d)
+
+    # 锚点之后仍持有的时段降频为半年(中报/年报),避免标记过密
+    holds = []
+    for d in qends:
+        if d > last and int(d[5:7]) not in (6, 12):
+            continue
+        near_anchor = any(abs((D(*map(int, d.split("-"))) - D(*map(int, a["date"].split("-")))).days) < 45
+                          for a in anchors)
+        if near_anchor:
+            continue
+        snap_c, snap_d = close_on(kline, d)
+        holds.append({"date": snap_d, "act": "hold", "label": "持", "q": quarter(snap_d)})
+    return holds
+
+
 stocks = []
 for s in data["stocks"]:
     kline = s["kline"]
@@ -80,13 +113,16 @@ for s in data["stocks"]:
     ret = (realized + unreal) / invested if invested else 0
     amount = round(s["weight"] / 100 * FUND_AUM * ret, 2)
 
+    # 合成季度「持」披露点,按时间与锚点合并
+    pts = sorted(pts + synth_holds(pts, kline), key=lambda p: p["date"])
+
     stocks.append({
         "name": s["name"], "code": s["code"], "industry": s["industry"],
         "weight": s["weight"], "skill": s["skill"], "skill_key": s["skill_key"],
         "verdict": s["verdict"], "rating": s["rating"],
         "amount": amount, "ret_pct": round(ret * 100, 1),
         "sellfly_pct": round(sellfly * 100, 1),
-        "n_disclose": len(s["points"]),
+        "n_disclose": len(pts),
         "points": pts,
         "kline": [[w["t"], round(w["o"], 2), round(w["h"], 2), round(w["l"], 2), round(w["c"], 2)] for w in weekly],
     })
