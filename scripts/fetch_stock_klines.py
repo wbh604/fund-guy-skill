@@ -39,6 +39,15 @@ for code, qmap in by_stock.items():
         cands.append((peak * len(qmap), code, peak, len(qmap)))
 cands.sort(reverse=True)
 picks = cands[:16]
+
+# 最新一期前十大必须全覆盖(当前持仓实况)
+latest_q = max(q for qmap in by_stock.values() for q in qmap)
+cur = sorted(((by_stock[c][latest_q], c) for c in by_stock if latest_q in by_stock[c]),
+             reverse=True)[:10]
+have = {c for _, c, _, _ in picks}
+for w, c in cur:
+    if c not in have:
+        picks.append((0, c, w, len(by_stock[c])))
 print(f"选中 {len(picks)} 只:")
 for score, code, peak, n in picks:
     print(f"  {names[code]:<10}{code:<8}峰值{peak:.1f}% × {n}期")

@@ -417,6 +417,7 @@ html = f'''<!DOCTYPE html>
         <span class="rp-tab on" data-cat="win">赚最多</span>
         <span class="rp-tab" data-cat="lose">亏最多</span>
         <span class="rp-tab" data-cat="fly">卖飞现场</span>
+        <span class="rp-tab" data-cat="now">当前持仓</span>
       </div>
     </div>
     <div class="rp-body">

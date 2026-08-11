@@ -649,6 +649,7 @@ td.v{font-weight:900;font-size:15px;white-space:nowrap;text-align:right}
         <span class="rp-tab on" data-cat="win">赚最多</span>
         <span class="rp-tab" data-cat="lose">亏最多</span>
         <span class="rp-tab" data-cat="fly">卖飞现场</span>
+        <span class="rp-tab" data-cat="now">当前持仓</span>
       </div>
     </div>
     <div class="rp-body">
@@ -1173,7 +1174,9 @@ const RPDATA = {"aum":12.5,"stocks":[{"name":"宁德时代","code":"sz.300750","
 const RP_CATS = {
   win : {label:'赚最多',   pick:s=>s.amount>0,        sort:(a,b)=>b.amount-a.amount,       amt:s=>fmtY(s.amount)},
   lose: {label:'亏最多',   pick:s=>s.amount<0,        sort:(a,b)=>a.amount-b.amount,       amt:s=>fmtY(s.amount)},
-  fly : {label:'卖飞现场', pick:s=>s.sellfly_pct>=5,  sort:(a,b)=>b.sellfly_pct-a.sellfly_pct, amt:s=>'卖后 +'+s.sellfly_pct+'%'}
+  fly : {label:'卖飞现场', pick:s=>s.sellfly_pct>=5,  sort:(a,b)=>b.sellfly_pct-a.sellfly_pct, amt:s=>'卖后 +'+s.sellfly_pct+'%'},
+  now : {label:'当前持仓', pick:s=>s.cur_w,           sort:(a,b)=>b.cur_w-a.cur_w,
+         amt:s=>s.cur_pnl==null?'—':((s.cur_pnl>=0?'+':'')+s.cur_pnl+'%')}
 };
 function fmtY(v){ return (v>0?'+':'') + v.toFixed(2) + ' 亿'; }
 
@@ -1186,9 +1189,11 @@ function rpRender(){
   stocks.forEach((s,i)=>{
     const el = document.createElement('div');
     el.className = 'rp-item' + (i===rpIdx?' on':'');
-    const cls = rpCat==='fly' ? 'dn' : (s.amount>0?'up':'dn');
+    const cls = rpCat==='fly' ? 'dn' : (rpCat==='now' ? (s.cur_pnl>=0?'up':'dn') : (s.amount>0?'up':'dn'));
+    const sub = rpCat==='now' ? `${s.code.split('.')[1]||s.code} · 仓位 ${s.cur_w}%`
+                              : `${s.code.split('.')[1]||s.code} · ${s.n_disclose} 期披露`;
     el.innerHTML = `<span class="no">${String(i+1).padStart(2,'0')}</span>
-      <div class="mid"><b>${s.name}</b><span>${s.code.split('.')[1]} · ${s.n_disclose} 期披露</span></div>
+      <div class="mid"><b>${s.name}</b><span>${sub}</span></div>
       <span class="amt ${cls}">${RP_CATS[rpCat].amt(s)}</span>`;
     el.onclick = ()=>{ rpIdx = i; rpRender(); };
     list.appendChild(el);
@@ -1202,8 +1207,19 @@ function rpDetail(s, rank){
   document.getElementById('rpCode').textContent = s.code.split('.')[1] + ' · ' + s.industry + ' · 仓位 ' + s.weight + '%';
   const amtEl = document.getElementById('rpAmt');
   if(rpCat==='fly'){ amtEl.textContent = '卖后又涨 ' + s.sellfly_pct + '%'; amtEl.className = 'rp-amt dn'; }
+  else if(rpCat==='now'){ amtEl.textContent = '浮盈 ' + (s.cur_pnl>=0?'+':'') + s.cur_pnl + '%';
+    amtEl.className = 'rp-amt ' + (s.cur_pnl>=0?'up':'dn'); }
   else { amtEl.textContent = fmtY(s.amount); amtEl.className = 'rp-amt ' + (s.amount>0?'up':'dn'); }
-  document.getElementById('rpVerdict').innerHTML = '<b>复盘</b> · ' + s.verdict;
+  if(rpCat==='now' && s.cur_w){
+    const last = s.kline[s.kline.length-1][4];
+    const peers = s.peer_total ? `同门 <b>${s.peer_n}/${s.peer_total}</b> 只也持有` : '';
+    const mkt = s.mkt_funds ? ` · 全市场 <b>${s.mkt_funds}</b> 只基金持有(A股口径)` : ' · 全市场覆盖 —(港股无此口径)';
+    document.getElementById('rpVerdict').innerHTML =
+      `<b>当前持仓</b> · 仓位 ${s.cur_w}% · 现价 ${last} vs 成本 ${s.cost}` +
+      (s.peer_n===0 && s.peer_total ? ` · <b style="color:#a78bfa">${peers} —— 他独一份</b>` : ` · ${peers}`) + mkt;
+  } else {
+    document.getElementById('rpVerdict').innerHTML = '<b>复盘</b> · ' + s.verdict;
+  }
   document.getElementById('rpGrades').innerHTML = s.rating.split('·').map(r=>'<span>'+r.trim()+'</span>').join('');
   rpChartDraw(s);
 }

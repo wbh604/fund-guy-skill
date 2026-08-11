@@ -176,6 +176,41 @@ for code in klines:
 
 stocks_out.sort(key=lambda s: -s["amount"])
 
+# ---------- 当前持仓实况:最新权重 + 现价对成本浮盈 + 同门/全市场覆盖 ----------
+latest_q_all = max(q for c in shares for q in shares[c])
+HOUSE_DIR = os.path.join(DIR, "house")
+
+peer_holds = defaultdict(int)   # code -> 同门持有基金数(最新期前十大口径)
+peer_total = 0
+if os.path.isdir(HOUSE_DIR):
+    year = "20" + latest_q_all[2:4] if len(latest_q_all) == 6 else latest_q_all[:4]
+    for f in os.listdir(HOUSE_DIR):
+        if not f.startswith("hold_") or not f.endswith(f"_{latest_q_all[:4]}.json"):
+            continue
+        rows = json.load(open(os.path.join(HOUSE_DIR, f)))
+        codes_q = {r["股票代码"] for r in rows if qkey(r["季度"]) == latest_q_all}
+        if codes_q:
+            peer_total += 1
+            for c in codes_q:
+                peer_holds[c] += 1
+
+mkt_funds = {}
+mkts = sorted(f for f in (os.listdir(HOUSE_DIR) if os.path.isdir(HOUSE_DIR) else [])
+              if f.startswith("market_"))
+if mkts:
+    for r in json.load(open(os.path.join(HOUSE_DIR, mkts[-1]))):
+        mkt_funds[r["股票代码"]] = r["基金覆盖家数"]
+
+for st in stocks_out:
+    c = st["code"]
+    if latest_q_all in weights[c] and (weights[c][latest_q_all] or 0) > 0:
+        last_px = st["kline"][-1][4]
+        st["cur_w"] = weights[c][latest_q_all]
+        st["cur_pnl"] = round((last_px / st["cost"] - 1) * 100, 1) if st["cost"] else None
+        st["peer_n"] = peer_holds.get(c, 0)
+        st["peer_total"] = peer_total
+        st["mkt_funds"] = mkt_funds.get(c)
+
 # ---------- 基金层面 ----------
 cumnav = load("cumnav")
 key_v = [k for k in cumnav[0] if "净值" in k and "日期" not in k][0]
