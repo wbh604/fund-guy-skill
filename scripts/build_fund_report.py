@@ -15,6 +15,7 @@ css = re.search(r"<style>(.*?)</style>", TPL, re.S).group(1)
 main_js = re.search(r"<script>/\*__LWCHARTS__\*/</script>\n<script>(.*?)</script>\n</body>", TPL, re.S).group(1)
 
 m = A["nav_metrics"]
+pro = A["pro"]
 years = A["years"]
 regimes = A["managers"]          # 新→旧
 scale = A["scale"]
@@ -94,7 +95,7 @@ html = f'''<!DOCTYPE html>
   <span class="tab" data-sec="s2"><span class="n">02</span>这个人</span>
   <span class="tab" data-sec="s3"><span class="n">03</span>买卖复盘</span>
   <span class="tab" data-sec="s4"><span class="n">04</span>你会怎么亏</span>
-  <span class="tab" data-sec="s5"><span class="n">05</span>规模与费率</span>
+  <span class="tab" data-sec="s5"><span class="n">05</span>机构视角</span>
   <span class="tab" data-sec="s6"><span class="n">06</span>怎么用</span>
 </nav>
 
@@ -250,6 +251,8 @@ html = f'''<!DOCTYPE html>
         <div class="rp-legend">
           <i><b class="mk b">买</b>买入或加仓</i>
           <i><b class="mk s">卖</b>减仓或清仓</i>
+          <i><span style="display:inline-block;width:16px;border-top:2px solid #34d399"></span>成本线</i>
+          <i><span style="display:inline-block;width:16px;border-top:2px dashed #f87171"></span>卖出线</i>
           <span class="kinfo" id="rpKinfo"></span>
         </div>
         <div class="rp-chart" id="rpChart"></div>
@@ -292,14 +295,68 @@ html = f'''<!DOCTYPE html>
   </div>
 </section>
 
-<!-- ============ 05 规模与费率 ============ -->
+<!-- ============ 05 机构视角 ============ -->
 <section id="s5" class="sec">
   <div class="sec-head">
-    <span class="sec-num">05</span><span class="sec-ti">规模与费率</span>
-    <span class="sec-sub">规模按持仓市值/占比反推 · 估算</span><span class="sec-line"></span>
+    <span class="sec-num">05</span><span class="sec-ti">机构视角</span>
+    <span class="sec-sub">专业口径 · 全部由日净值与季报计算</span><span class="sec-line"></span>
   </div>
 
-  <div class="grid g2">
+  <div class="grid g4">
+    <div class="stat"><span class="lbl">夏普比率</span><span class="v">{pro["sharpe"]}</span><span class="sub">每冒 1 份风险赚多少 · 全期含深熊</span></div>
+    <div class="stat"><span class="lbl">卡玛比率</span><span class="v">{pro["calmar"]}</span><span class="sub">年化收益 ÷ 最大回撤</span></div>
+    <div class="stat hl"><span class="lbl">信息比率</span><span class="v ok">{pro["ir"]}</span><span class="sub">超额的稳定性 · &gt;0.5 属优秀</span></div>
+    <div class="stat"><span class="lbl">月度胜率</span><span class="v">{pro["mwin"]}%</span><span class="sub">{pro["n_months"]} 个月 vs 沪深300</span></div>
+  </div>
+
+  <div class="card" style="margin-top:var(--gap)">
+    <span class="lbl">上行 / 下行捕获 · 机构最看重的一组数</span>
+    <div class="duo">
+      <div class="side" style="border-color:var(--ok)"><div class="k">大盘涨的时候 · 他吃到</div><div class="n ok">{pro["up_cap"]}%</div></div>
+      <div class="vs2">VS</div>
+      <div class="side"><div class="k">大盘跌的时候 · 他挨</div><div class="n">{pro["dn_cap"]}%</div></div>
+    </div>
+    <div class="chips" style="margin-top:14px">
+      <span class="chip ok">涨时多吃 {pro["up_cap"]-100} 个点 · 跌时少挨 {100-pro["dn_cap"]} 个点</span>
+      <span class="chip">同时大于/小于 100 = 真本事的形状</span>
+    </div>
+  </div>
+
+  <div class="grid g4" style="margin-top:var(--gap)">
+    <div class="stat"><span class="lbl">年化 Alpha</span><span class="v ok">+{pro["alpha"]}%</span><span class="sub">CAPM · vs 沪深300</span></div>
+    <div class="stat"><span class="lbl">Beta</span><span class="v">{pro["beta"]}</span><span class="sub">跟大盘同涨跌的程度</span></div>
+    <div class="stat"><span class="lbl">跟踪误差</span><span class="v">{pro["te"]}%</span><span class="sub">敢偏离指数 · 主动味十足</span></div>
+    <div class="stat"><span class="lbl">R²</span><span class="v">{pro["r2"]}</span><span class="sub">收益只有七成能用大盘解释</span></div>
+  </div>
+
+  <div class="grid g2" style="margin-top:var(--gap)">
+    <div class="card">
+      <span class="lbl">持仓特征(季报口径)</span>
+      <div class="grid g2" style="margin-top:14px;gap:10px">
+        <div class="stat" style="padding:14px"><span class="lbl">前十大集中度 · 均值</span><span class="v" style="font-size:24px">{pro["top10_avg"]}%</span></div>
+        <div class="stat" style="padding:14px;border-color:var(--warn)"><span class="lbl">最新一期</span><span class="v warn" style="font-size:24px">{pro["top10_latest"]}%</span><span class="sub">集中度在抬升</span></div>
+        <div class="stat" style="padding:14px"><span class="lbl">持股数量</span><span class="v" style="font-size:24px">{pro["n_stocks"]} 只</span><span class="sub">{pro["n_stocks_period"]} 年报全持仓</span></div>
+        <div class="stat" style="padding:14px"><span class="lbl">年化波动</span><span class="v" style="font-size:24px">{pro["vol"]}%</span></div>
+      </div>
+    </div>
+    <div class="card">
+      <span class="lbl">风格箱(晨星口径 · 按持仓估)</span>
+      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:2px;background:var(--line);border:2px solid var(--line);border-radius:8px;overflow:hidden;margin-top:14px;max-width:340px">
+        <div style="background:var(--surface);padding:14px;text-align:center;font-size:11px;color:var(--ghost)">大盘价值</div>
+        <div style="background:var(--surface);padding:14px;text-align:center;font-size:11px;color:var(--ghost)">大盘均衡</div>
+        <div style="background:var(--accent-tint);padding:14px;text-align:center;font-size:12px;font-weight:900;color:var(--accent);outline:2px solid var(--accent);outline-offset:-2px">大盘成长 ●</div>
+        <div style="background:var(--surface);padding:14px;text-align:center;font-size:11px;color:var(--ghost)">中盘价值</div>
+        <div style="background:var(--surface);padding:14px;text-align:center;font-size:11px;color:var(--ghost)">中盘均衡</div>
+        <div style="background:var(--surface);padding:14px;text-align:center;font-size:11px;color:var(--ghost)">中盘成长</div>
+        <div style="background:var(--surface);padding:14px;text-align:center;font-size:11px;color:var(--ghost)">小盘价值</div>
+        <div style="background:var(--surface);padding:14px;text-align:center;font-size:11px;color:var(--ghost)">小盘均衡</div>
+        <div style="background:var(--surface);padding:14px;text-align:center;font-size:11px;color:var(--ghost)">小盘成长</div>
+      </div>
+      <div class="chips" style="margin-top:12px"><span class="chip purple">A+H 双市场 · 质量成长风格</span></div>
+    </div>
+  </div>
+
+  <div class="grid g2" style="margin-top:var(--gap)">
     <div class="card">
       <span class="lbl">规模变化(估算 · 亿元)</span>
       <div style="margin-top:14px">{scale_bars}</div>

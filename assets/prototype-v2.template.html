@@ -1207,6 +1207,11 @@ function rpChartDraw(s){
   });
   mk.sort((a,b)=>a.time<b.time?-1:1);
   series.setMarkers(mk);
+  // 成本线(全部买入加权均价)与卖出线(清仓价)
+  if(s.cost) series.createPriceLine({price:s.cost,color:'#34d399',lineWidth:1,lineStyle:0,
+    axisLabelVisible:true,title:'成本 '+s.cost});
+  (s.exits||[]).forEach((p,i)=>series.createPriceLine({price:p,color:'#f87171',lineWidth:1,lineStyle:2,
+    axisLabelVisible:true,title:'卖出 '+p}));
   rpChart.timeScale().fitContent();
 }
 

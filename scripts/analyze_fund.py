@@ -64,13 +64,15 @@ def px(code, date):
         prev = row
     return prev[4] if prev else None
 
-# ---------- 每只股票:事件 + 盈亏 ----------
+# ---------- 每只股票:事件 + 盈亏 + 成本/卖出线 ----------
 stocks_out = []
 for code in klines:
     ks = klines[code]
     events, pnl, sellfly = [], 0.0, 0.0
     pos = None       # 当前持股(万股)
     last_q = None    # 上一个计价季度
+    cost_sh, cost_amt = 0.0, 0.0   # 累计买入股数/金额(全部买入动作加权)
+    exits = []                      # 清仓价(卖出线)
     for q in ALL_Q:
         d = qend(q)
         if q in shares[code]:
@@ -78,6 +80,9 @@ for code in klines:
             p_now = px(code, d)
             if pos is None:
                 events.append({"date": d, "act": "buy", "label": "买入", "q": qlabel(q)})
+                if p_now:
+                    cost_sh += sh
+                    cost_amt += sh * p_now
             else:
                 if p_now and last_q:
                     p_prev = px(code, qend(last_q))
@@ -86,6 +91,9 @@ for code in klines:
                 ratio = sh / pos if pos else 9
                 if ratio >= 1.25:
                     events.append({"date": d, "act": "buy", "label": "加仓", "q": qlabel(q)})
+                    if p_now:
+                        cost_sh += sh - pos
+                        cost_amt += (sh - pos) * p_now
                 elif ratio <= 0.75:
                     events.append({"date": d, "act": "sell", "label": "减仓", "q": qlabel(q)})
                 else:
@@ -97,6 +105,8 @@ for code in klines:
                 if p_now and p_prev:
                     pnl += pos * (p_now - p_prev)
                 events.append({"date": d, "act": "sell", "label": "清仓", "q": qlabel(q)})
+                if p_now:
+                    exits.append(round(p_now, 2))
                 # 卖飞:清仓后12个月最高收盘
                 y, mo, dd = map(int, d.split("-"))
                 end = f"{y+1}-{mo:02d}-{dd:02d}"
@@ -108,6 +118,7 @@ for code in klines:
         p_now, p_prev = ks[-1][4], px(code, qend(last_q))
         if p_now and p_prev:
             pnl += pos * (p_now - p_prev)
+    avg_cost = round(cost_amt / cost_sh, 2) if cost_sh else None
 
     peak_w = max(weights[code].values())
     n_disc = len(shares[code])
@@ -122,6 +133,8 @@ for code in klines:
         "amount": amount_yi, "ret_pct": 0.0,
         "sellfly_pct": round(sellfly * 100, 1),
         "n_disclose": n_disc,
+        "cost": avg_cost,
+        "exits": exits[:3],
         "points": events,
         "kline": ks,
     })
@@ -184,6 +197,91 @@ for r in sorted(annual, key=lambda x: x["周期"]):
                       "dd": r["本产品最大回撒"], "rank": r["周期收益同类排名"],
                       "win": idx_ret is not None and r["本产品区间收益"] > idx_ret})
 
+# ---------- 机构视角:风险调整指标(基于累计净值日收益 vs 沪深300) ----------
+import math
+
+csi_close = {r["date"][:10]: r["close"] for r in csi}
+nav_map = dict(navs)
+common = sorted(set(nav_map) & set(csi_close))
+rf_ann = 0.02
+
+rets_f, rets_i = [], []
+for a, b in zip(common, common[1:]):
+    if nav_map[a] and csi_close[a]:
+        rets_f.append(nav_map[b] / nav_map[a] - 1)
+        rets_i.append(csi_close[b] / csi_close[a] - 1)
+
+n = len(rets_f)
+mean = lambda xs: sum(xs) / len(xs)
+def std(xs):
+    m = mean(xs)
+    return math.sqrt(sum((x - m) ** 2 for x in xs) / (len(xs) - 1))
+
+from datetime import date as _D
+cal_days = (_D(*map(int, common[-1].split("-"))) - _D(*map(int, common[0].split("-")))).days
+ann_f = (nav_map[common[-1]] / nav_map[common[0]]) ** (365.25 / cal_days) - 1
+ann_i = (csi_close[common[-1]] / csi_close[common[0]]) ** (365.25 / cal_days) - 1
+vol_f = std(rets_f) * math.sqrt(250)
+downside = [r for r in rets_f if r < 0]
+dvol = std(downside) * math.sqrt(250) if len(downside) > 2 else vol_f
+sharpe = (ann_f - rf_ann) / vol_f
+sortino = (ann_f - rf_ann) / dvol
+calmar = ann_f / (dd_max) if dd_max else 0
+
+mf, mi = mean(rets_f), mean(rets_i)
+cov = sum((a - mf) * (b - mi) for a, b in zip(rets_f, rets_i)) / (n - 1)
+var_i = std(rets_i) ** 2
+beta = cov / var_i
+alpha_ann = ann_f - (rf_ann + beta * (ann_i - rf_ann))
+diff = [a - b for a, b in zip(rets_f, rets_i)]
+te = std(diff) * math.sqrt(250)
+ir = (ann_f - ann_i) / te if te else 0
+corr = cov / (std(rets_f) * std(rets_i))
+r2 = corr ** 2
+
+# 月度胜率 + 上/下行捕获
+month_last = {}
+for d in common:
+    month_last[d[:7]] = d
+months = sorted(month_last.values())
+mret_f, mret_i = [], []
+for a, b in zip(months, months[1:]):
+    mret_f.append(nav_map[b] / nav_map[a] - 1)
+    mret_i.append(csi_close[b] / csi_close[a] - 1)
+mwin = sum(1 for a, b in zip(mret_f, mret_i) if a > b) / len(mret_f)
+up_i = [(a, b) for a, b in zip(mret_f, mret_i) if b > 0]
+dn_i = [(a, b) for a, b in zip(mret_f, mret_i) if b < 0]
+up_cap = mean([a for a, _ in up_i]) / mean([b for _, b in up_i]) * 100
+dn_cap = mean([a for a, _ in dn_i]) / mean([b for _, b in dn_i]) * 100
+
+# 持仓集中度:每季度前十大权重合计
+conc = []
+for q in ALL_Q:
+    ws = sorted((weights[c][q] for c in weights if q in weights[c] and weights[c][q]), reverse=True)
+    if ws:
+        conc.append({"q": qlabel(q), "top10": round(sum(ws[:10]), 1)})
+# 最近一期真正的全持仓(中报/年报,持股数>=30 才算已发布)
+latest_full, n_stocks_latest = None, None
+for q in reversed(ALL_Q):
+    if q in FULL:
+        cnt = sum(1 for c in shares if q in shares[c])
+        if cnt >= 30:
+            latest_full, n_stocks_latest = q, cnt
+            break
+
+pro = {
+    "ann_ret": round(ann_f * 100, 1), "ann_idx": round(ann_i * 100, 1),
+    "vol": round(vol_f * 100, 1),
+    "sharpe": round(sharpe, 2), "sortino": round(sortino, 2), "calmar": round(calmar, 2),
+    "beta": round(beta, 2), "alpha": round(alpha_ann * 100, 1),
+    "te": round(te * 100, 1), "ir": round(ir, 2), "r2": round(r2, 2),
+    "mwin": round(mwin * 100), "n_months": len(mret_f),
+    "up_cap": round(up_cap), "dn_cap": round(dn_cap),
+    "top10_avg": round(mean([c["top10"] for c in conc]), 1),
+    "top10_latest": conc[-1]["top10"] if conc else None,
+    "n_stocks": n_stocks_latest, "n_stocks_period": qlabel(latest_full) if latest_full else "",
+}
+
 managers = load("managers")
 basic = {r["item"]: r["value"] for r in load("basic")}
 
@@ -198,6 +296,7 @@ out = {
         "underwater_days": uw_longest, "uw_from": uw_span[0], "uw_to": uw_span[1],
     },
     "scale": scale,
+    "pro": pro,
     "replay": {"aum": None, "stocks": stocks_out},
 }
 json.dump(out, open(os.path.join(DIR, "analysis.json"), "w"), ensure_ascii=False)
