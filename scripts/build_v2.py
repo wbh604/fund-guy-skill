@@ -17,6 +17,7 @@ html = open(tpl_path).read()
 assert "/*__LWCHARTS__*/" in html and "/*__RPDATA__*/" in html, "placeholders missing"
 html = html.replace("/*__LWCHARTS__*/", lib.replace("</script>", "<\\/script>"))
 html = html.replace("/*__RPDATA__*/{}", replay)
+html = html.replace("/*__RPEVENTS__*/[]", "[]")
 open(out_path, "w").write(html)
 
 n = len(json.loads(replay)["stocks"])

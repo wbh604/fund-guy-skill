@@ -27,6 +27,9 @@ meta = A["meta"]
 main_js = main_js.replace("s.code.split('.')[1]", "s.code.split('.').pop()")
 main_js = main_js.replace("w * 0.674", f"w * {1 - m['max_dd']/100:.3f}")
 main_js = main_js.replace("/*__RPDATA__*/{}", json.dumps(A["replay"], ensure_ascii=False, separators=(",", ":")))
+events_path = os.path.join(ROOT, ".cache", f"fund_{CODE}", "events.json")
+events = open(events_path).read() if os.path.exists(events_path) else "[]"
+main_js = main_js.replace("/*__RPEVENTS__*/[]", events)
 
 # ---- 计算显示量 ----
 wins = sum(1 for y in years if y["win"])
@@ -269,6 +272,13 @@ html = f'''<!DOCTYPE html>
           <i><span style="display:inline-block;width:16px;border-top:2px solid #34d399"></span>成本线</i>
           <i><span style="display:inline-block;width:16px;border-top:2px dashed #f87171"></span>卖出线</i>
           <span class="kinfo" id="rpKinfo"></span>
+        </div>
+        <div class="rp-controls">
+          <button class="rp-play" id="rpPlay">▶ 战役回放</button>
+          <div class="rp-news" id="rpNews">
+            <span class="nd" id="rpNd">—</span>
+            <span class="ni ghost" id="rpNi">按「战役回放」重演当年:新闻在上,他的操作在下</span>
+          </div>
         </div>
         <div class="rp-chart" id="rpChart"></div>
         <div class="rp-verdict" id="rpVerdict"></div>
