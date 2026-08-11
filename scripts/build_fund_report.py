@@ -22,6 +22,10 @@ hs = None
 _hp = os.path.join(ROOT, ".cache", f"fund_{CODE}", "house_analysis.json")
 if os.path.exists(_hp):
     hs = json.load(open(_hp))
+msim = None
+_mp = os.path.join(ROOT, ".cache", f"fund_{CODE}", "market_similar.json")
+if os.path.exists(_mp):
+    msim = json.load(open(_mp))
 years = A["years"]
 regimes = A["managers"]          # 新→旧
 scale = A["scale"]
@@ -149,6 +153,20 @@ if hs:
           <span class="v indep" style="text-align:right">{x['overlap']:.0f}%</span>
         </div>"""
 
+    # 全市场撞车榜
+    mkt_sim_rows = ""
+    if msim and msim.get("funds"):
+        _nmax = msim["n_stocks_checked"]
+        for x in msim["funds"][:8]:
+            chips = "".join(f'<span class="rgrade" style="padding:2px 8px;font-size:10.5px">{n}</span>' for n in x["stocks"][:4])
+            mkt_sim_rows += f"""<div style="display:grid;grid-template-columns:minmax(130px,1.2fr) 64px 1fr;gap:10px;align-items:center;padding:8px 0;border-bottom:1px dashed var(--line);font-size:12.5px">
+              <b>{x['fund']}</b>
+              <span class="v cyan" style="font-size:13px">{x['n']}/{_nmax} 只</span>
+              <div style="display:flex;gap:4px;flex-wrap:wrap">{chips}</div>
+            </div>"""
+    else:
+        mkt_sim_rows = '<p style="font-size:12px;color:var(--muted)">全市场反查未运行</p>'
+
     # 第二把尺子:全市场
     mk = hs.get("market")
     if mk and mk.get("latest"):
@@ -263,14 +281,21 @@ if hs:
     <p style="text-align:center;font-size:16px;font-weight:900;margin-top:14px">低换手打法 · <span class="ok">季报仍有参考价值</span>(超额保留 {round(ab["copy_follow"]/ab["copy_mgr"]*100) if ab["copy_mgr"] else 0}%)</p>
   </div>
 
-  <!-- 持仓最像的同门基金 -->
-  <div class="card" style="margin-top:var(--gap)">
-    <span class="lbl">买不到他?这些基金现在的持仓跟他最像(同门 · 最新一期)</span>
-    <div style="margin-top:12px">{sim_rows}</div>
-    <div class="alert info" style="margin-top:14px;display:flex;gap:10px;padding:14px 16px;border-radius:8px;background:var(--indep-tint);border:1px solid var(--indep);font-size:13px">
-      <span>💬</span><span><b>想深挖哪只?直接说「分析 兴全品质甄选」</b>,同一套流程(买卖复盘/择时控制/独立战争)再跑一遍。
-      重合度高 ≠ 一样好 —— 抄作业的人未必有他的买点。</span>
+  <!-- 持仓最像的基金:同门 + 全市场 -->
+  <div class="grid g2" style="margin-top:var(--gap)">
+    <div class="card">
+      <span class="lbl">同门里跟他最像(持仓重合度)</span>
+      <div style="margin-top:12px">{sim_rows}</div>
     </div>
+    <div class="card">
+      <span class="lbl">全市场撞车榜 · 也同时持有他多只重仓的主动基金</span>
+      <p style="font-size:11px;color:var(--ghost);margin-top:4px">反查他 {msim["n_stocks_checked"] if msim else 7} 只 A 股重仓的基金持有人 · 已剔除指数/ETF与兴全系 · {msim["period"] if msim else ""}</p>
+      <div style="margin-top:10px">{mkt_sim_rows}</div>
+    </div>
+  </div>
+  <div class="alert info" style="margin-top:14px;display:flex;gap:10px;padding:14px 16px;border-radius:8px;background:var(--indep-tint);border:1px solid var(--indep);font-size:13px">
+    <span>💬</span><span><b>想深挖哪只?直接说「分析 睿远成长价值」或任何一只</b>,同一套流程(买卖复盘/择时控制/独立战争)再跑一遍。
+    重合度高 ≠ 一样好 —— 抄作业的人未必有他的买点。</span>
   </div>"""
 else:
     house_block = """
