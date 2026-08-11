@@ -68,12 +68,21 @@ for q in QS:
             if t:
                 pair.append(d / t * 100)
     peer_avg = round(sum(pair) / len(pair), 1) if pair else None
-    # 公司共识重仓(他持有/不持有)
+    # 公司共识重仓(他持有/不持有,含他的权重)
     top_house = sorted(house.items(), key=lambda kv: -kv[1])[:5]
+    # 他"独"在哪:权重差最大的两侧
+    diffs = {c: tw.get(c, 0) - house.get(c, 0) for c in stocks_union}
+    only_his = sorted(((c, d) for c, d in diffs.items() if d > 0.5), key=lambda kv: -kv[1])[:4]
+    not_his = sorted(((c, d) for c, d in diffs.items() if d < -0.3), key=lambda kv: kv[1])[:4]
     series.append({
         "q": q[2:], "n_funds": nf, "divergence": div_pct, "peer_avg_div": peer_avg,
         "house_top": [{"name": names.get(c, c), "w": round(w, 2),
-                       "he_holds": c in tw} for c, w in top_house],
+                       "his_w": round(tw.get(c, 0), 2), "he_holds": c in tw}
+                      for c, w in top_house],
+        "only_his": [{"name": names.get(c, c), "his_w": round(tgt[q].get(c, 0), 2),
+                      "house_w": round(tgt[q].get(c, 0) - d, 2)} for c, d in only_his],
+        "not_his": [{"name": names.get(c, c), "house_w": round(-d + tgt[q].get(c, 0), 2),
+                     "his_w": round(tgt[q].get(c, 0), 2)} for c, d in not_his],
     })
 
 # 逆共识验证:高/低分歧季度之后 6 个月的基金超额(vs 沪深300)

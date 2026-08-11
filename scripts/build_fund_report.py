@@ -98,45 +98,85 @@ scale_bars = "".join(
 # ---- 独立战争 block ----
 if hs:
     lt = hs["latest"]
+    ct = hs["contrarian"]
+    is_lone = lt["divergence"] > lt["peer_avg_div"]
+
+    # 22 季度分歧时序
+    ts_bars = ""
+    _dmax = max(x["divergence"] for x in hs["series"])
+    for x in hs["series"]:
+        ts_bars += f"""<div class="bar-row" style="grid-template-columns:44px 1fr 46px;padding:2px 0">
+          <span class="k" style="font-size:10.5px">{x['q']}</span>
+          <div class="bar-track" style="height:7px"><div class="bar-fill" data-w="{x['divergence']/_dmax*100:.0f}" style="background:var(--indep)"></div></div>
+          <span class="v" style="font-size:11px">{x['divergence']:.0f}%</span></div>"""
+
+    # 他独在哪:双权重对比行
+    def wrow(name, w_his, w_house):
+        m = max(w_his, w_house, 0.1)
+        return f"""<div style="display:grid;grid-template-columns:76px 1fr 110px;gap:10px;align-items:center;padding:7px 0;border-bottom:1px dashed var(--line);font-size:12.5px">
+          <b style="white-space:nowrap">{name}</b>
+          <div><div class="bar-track" style="height:8px;margin-bottom:3px"><div class="bar-fill" data-w="{w_his/m*100:.0f}" style="background:var(--indep)"></div></div>
+          <div class="bar-track" style="height:8px"><div class="bar-fill" data-w="{w_house/m*100:.0f}" style="background:var(--ghost)"></div></div></div>
+          <span style="text-align:right;font-variant-numeric:tabular-nums"><b class="indep">{w_his:.1f}%</b> <span style="color:var(--ghost)">vs {w_house:.2f}%</span></span>
+        </div>"""
+    only_rows = "".join(wrow(x["name"], x["his_w"], x["house_w"]) for x in lt["only_his"])
+    not_rows = "".join(wrow(x["name"], x["his_w"], x["house_w"]) for x in lt["not_his"])
+
     top_chips = ""
     for t in lt["house_top"]:
         cls = "ok" if t["he_holds"] else "no"
-        lab = "他也持有" if t["he_holds"] else "他不碰"
-        top_chips += f'<span class="chip {cls}">{t["name"]} {t["w"]:.1f}% · {lab}</span>'
-    ct = hs["contrarian"]
+        lab = f"他 {t['his_w']:.1f}%" if t["he_holds"] else "他不碰"
+        top_chips += f'<span class="chip {cls}">{t["name"]} · 公司 {t["w"]:.1f}% · {lab}</span>'
+
     house_block = f"""
   <div class="card" style="border-color:var(--indep);background:var(--indep-tint)">
-    <span class="lbl" style="color:var(--indep)">持仓分歧度 · 他 vs 同门平均</span>
-    <div style="margin-top:16px">
-      <div class="bar-row" style="grid-template-columns:170px 1fr 64px">
-        <span class="k">他 vs 公司组合</span>
-        <div class="bar-track"><div class="bar-fill" data-w="{lt['divergence']}" style="background:var(--indep)"></div></div>
-        <span class="v indep">{lt['divergence']}%</span></div>
-      <div class="bar-row" style="grid-template-columns:170px 1fr 64px">
-        <span class="k">同门互相之间(平均)</span>
-        <div class="bar-track"><div class="bar-fill" data-w="{lt['peer_avg_div']}" style="background:var(--ghost)"></div></div>
-        <span class="v">{lt['peer_avg_div']}%</span></div>
+    <span class="lbl" style="color:var(--indep)">这块回答一个问题:他跟公司其他 {lt["n_funds"]} 个基金有多不一样?不一样时赚钱吗?</span>
+    <p style="font-size:12.5px;color:var(--muted);margin-top:8px">
+      分歧度 = 他的持仓与「公司平均组合」的差异,<b>0% = 完全照抄公司</b>,<b>100% = 一只都不重合</b>。
+      对照组:兴证全球 {lt["n_funds"]} 只权益基金(已剔除他自己管的 3 只)。</p>
+    <div class="rangebar" style="margin:30px 12px 34px">
+      <div class="pin" style="left:{lt["divergence"]}%;background:var(--indep)"></div>
+      <div class="pin" style="left:{lt["peer_avg_div"]}%;background:var(--ghost)"></div>
+      <span class="rl" style="left:2%">0 · 抄公司作业</span>
+      <span class="rl" style="left:{lt["divergence"]}%;color:var(--indep);font-weight:900;top:-26px">他 {lt["divergence"]}%</span>
+      <span class="rl" style="left:{lt["peer_avg_div"]}%;font-weight:800">同事间均值 {lt["peer_avg_div"]}%</span>
+      <span class="rl" style="left:97%;top:-26px">100 · 完全不重合</span>
     </div>
-    <p style="text-align:center;font-size:19px;font-weight:900;margin-top:14px">
-      {'<span class="indep">比同事之间更独</span> · 不抱公司的团' if lt['divergence']>lt['peer_avg_div'] else '与同门分化度相当 · 独立性一般'}</p>
-    <div style="font-size:11px;color:var(--muted);text-align:center;margin-top:4px">近 {len(hs['series'])} 个季度平均分歧 {hs['avg_divergence']}% · 经理等权口径 · 分歧=主动份额式差异</div>
+    <p style="text-align:center;font-size:19px;font-weight:900">
+      {"<span class='indep'>比同事之间还独 —— 真孤狼</span>" if is_lone else "同事们本来就各管各的,他反而<span class='indep'>略偏向公司平均</span> —— 不是孤狼"}</p>
   </div>
 
   <div class="grid g2" style="margin-top:var(--gap)">
     <div class="card">
-      <span class="lbl">公司共识重仓 TOP5({lt['q']}) · 他跟不跟</span>
-      <div class="chips" style="margin-top:14px">{top_chips}</div>
+      <span class="lbl" style="color:var(--indep)">他独有的重注 · 公司几乎没人买({lt["q"]})</span>
+      <p style="font-size:11px;color:var(--ghost);margin-top:4px">紫条 = 他的仓位 · 灰条 = 公司平均</p>
+      <div style="margin-top:10px">{only_rows}</div>
     </div>
     <div class="card">
-      <span class="lbl">逆共识赚不赚钱 · 分歧高低各半对比</span>
-      <div class="duo" style="margin-top:10px">
-        <div class="side" style="border-color:var(--indep)"><div class="k">分歧最高的季度 · 随后6个月超额</div><div class="n indep">{'%+.1f%%' % ct['high_div_fwd6']}</div></div>
+      <span class="lbl">公司在买 · 他不碰({lt["q"]})</span>
+      <p style="font-size:11px;color:var(--ghost);margin-top:4px">这是他「不做什么」的部分 —— 同样是独立性</p>
+      <div style="margin-top:10px">{not_rows}</div>
+      <div class="chips" style="margin-top:12px">{top_chips}</div>
+    </div>
+  </div>
+
+  <div class="grid g2" style="margin-top:var(--gap)">
+    <div class="card">
+      <span class="lbl">分歧度走势 · {len(hs["series"])} 个季度</span>
+      <p style="font-size:11px;color:var(--ghost);margin-top:4px">长期稳定在 76-90%:独立结构是常态,不是某一次赌博</p>
+      <div style="margin-top:10px">{ts_bars}</div>
+    </div>
+    <div class="card">
+      <span class="lbl">关键检验:不一样的时候,赚钱了吗?</span>
+      <div class="duo" style="margin-top:12px">
+        <div class="side" style="border-color:var(--indep)"><div class="k">分歧最高的季度 · 随后6个月超额</div><div class="n indep">{"%+.1f%%" % ct["high_div_fwd6"]}</div></div>
         <div class="vs2">VS</div>
-        <div class="side"><div class="k">分歧最低的季度</div><div class="n">{'%+.1f%%' % ct['low_div_fwd6']}</div></div>
+        <div class="side" style="border-color:var(--ok)"><div class="k">分歧最低的季度</div><div class="n ok">{"%+.1f%%" % ct["low_div_fwd6"]}</div></div>
       </div>
-      <div class="chips" style="margin-top:12px">
-        <span class="chip purple">{'越不一样越赚钱' if ct['high_div_fwd6']>ct['low_div_fwd6'] else '分歧未带来超额'} · 样本 {ct['n']} 个季度</span>
+      <div class="punchline" style="margin-top:16px;font-size:16px;padding:16px 20px;border-left-width:8px">
+        {"他的超额恰恰来自最独的时候 —— 独立判断值钱。" if ct["high_div_fwd6"]>ct["low_div_fwd6"] else "分歧没带来超额 —— 他的 Alpha 来自<span class='em'>选股深度</span>,不是跟公司唱反调。买他 ≠ 买一个逆行者。"}
       </div>
+      <p style="font-size:11px;color:var(--ghost);margin-top:10px">口径:{ct["n"]} 个季度按分歧度分半,对比随后 6 个月相对沪深300 超额</p>
     </div>
   </div>
 
@@ -144,13 +184,13 @@ if hs:
   <div class="card" style="margin-top:var(--gap)">
     <span class="lbl">抄作业指数 · 他建仓 vs 你等季报</span>
     <div class="copy3">
-      <div class="cc mgr"><div class="who">他 · 季末建仓时点</div><div class="num">+{ab['copy_mgr']}%</div>
-        <div class="sub">买点后 12 个月超额(n={ab['copy_n']})</div></div>
-      <div class="copy-arrow"><div class="dn">⇩</div><div class="pct">-{round((1-ab['copy_follow']/ab['copy_mgr'])*100) if ab['copy_mgr'] else 0}%</div></div>
-      <div class="cc ret"><div class="who">你 · 等披露后再跟</div><div class="num">+{ab['copy_follow']}%</div>
+      <div class="cc mgr"><div class="who">他 · 季末建仓时点</div><div class="num">+{ab["copy_mgr"]}%</div>
+        <div class="sub">买点后 12 个月超额(n={ab["copy_n"]})</div></div>
+      <div class="copy-arrow"><div class="dn">⇩</div><div class="pct">-{round((1-ab["copy_follow"]/ab["copy_mgr"])*100) if ab["copy_mgr"] else 0}%</div></div>
+      <div class="cc ret"><div class="who">你 · 等披露后再跟</div><div class="num">+{ab["copy_follow"]}%</div>
         <div class="sub">季报+30天 / 中年报+60天</div></div>
     </div>
-    <p style="text-align:center;font-size:16px;font-weight:900;margin-top:14px">低换手打法 · <span class="ok">季报仍有参考价值</span>(超额保留 {round(ab['copy_follow']/ab['copy_mgr']*100) if ab['copy_mgr'] else 0}%)</p>
+    <p style="text-align:center;font-size:16px;font-weight:900;margin-top:14px">低换手打法 · <span class="ok">季报仍有参考价值</span>(超额保留 {round(ab["copy_follow"]/ab["copy_mgr"]*100) if ab["copy_mgr"] else 0}%)</p>
   </div>"""
 else:
     house_block = """

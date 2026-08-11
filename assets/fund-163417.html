@@ -780,37 +780,159 @@ td.v{font-weight:900;font-size:15px;white-space:nowrap;text-align:right}
   </div>
   
   <div class="card" style="border-color:var(--indep);background:var(--indep-tint)">
-    <span class="lbl" style="color:var(--indep)">持仓分歧度 · 他 vs 同门平均</span>
-    <div style="margin-top:16px">
-      <div class="bar-row" style="grid-template-columns:170px 1fr 64px">
-        <span class="k">他 vs 公司组合</span>
-        <div class="bar-track"><div class="bar-fill" data-w="83.1" style="background:var(--indep)"></div></div>
-        <span class="v indep">83.1%</span></div>
-      <div class="bar-row" style="grid-template-columns:170px 1fr 64px">
-        <span class="k">同门互相之间(平均)</span>
-        <div class="bar-track"><div class="bar-fill" data-w="90.3" style="background:var(--ghost)"></div></div>
-        <span class="v">90.3%</span></div>
+    <span class="lbl" style="color:var(--indep)">这块回答一个问题:他跟公司其他 47 个基金有多不一样?不一样时赚钱吗?</span>
+    <p style="font-size:12.5px;color:var(--muted);margin-top:8px">
+      分歧度 = 他的持仓与「公司平均组合」的差异,<b>0% = 完全照抄公司</b>,<b>100% = 一只都不重合</b>。
+      对照组:兴证全球 47 只权益基金(已剔除他自己管的 3 只)。</p>
+    <div class="rangebar" style="margin:30px 12px 34px">
+      <div class="pin" style="left:83.1%;background:var(--indep)"></div>
+      <div class="pin" style="left:90.3%;background:var(--ghost)"></div>
+      <span class="rl" style="left:2%">0 · 抄公司作业</span>
+      <span class="rl" style="left:83.1%;color:var(--indep);font-weight:900;top:-26px">他 83.1%</span>
+      <span class="rl" style="left:90.3%;font-weight:800">同事间均值 90.3%</span>
+      <span class="rl" style="left:97%;top:-26px">100 · 完全不重合</span>
     </div>
-    <p style="text-align:center;font-size:19px;font-weight:900;margin-top:14px">
-      与同门分化度相当 · 独立性一般</p>
-    <div style="font-size:11px;color:var(--muted);text-align:center;margin-top:4px">近 22 个季度平均分歧 82.4% · 经理等权口径 · 分歧=主动份额式差异</div>
+    <p style="text-align:center;font-size:19px;font-weight:900">
+      同事们本来就各管各的,他反而<span class='indep'>略偏向公司平均</span> —— 不是孤狼</p>
   </div>
 
   <div class="grid g2" style="margin-top:var(--gap)">
     <div class="card">
-      <span class="lbl">公司共识重仓 TOP5(26Q2) · 他跟不跟</span>
-      <div class="chips" style="margin-top:14px"><span class="chip ok">中际旭创 2.3% · 他也持有</span><span class="chip ok">宁德时代 2.1% · 他也持有</span><span class="chip ok">立讯精密 1.8% · 他也持有</span><span class="chip no">海光信息 1.2% · 他不碰</span><span class="chip no">贵州茅台 0.9% · 他不碰</span></div>
+      <span class="lbl" style="color:var(--indep)">他独有的重注 · 公司几乎没人买(26Q2)</span>
+      <p style="font-size:11px;color:var(--ghost);margin-top:4px">紫条 = 他的仓位 · 灰条 = 公司平均</p>
+      <div style="margin-top:10px"><div style="display:grid;grid-template-columns:76px 1fr 110px;gap:10px;align-items:center;padding:7px 0;border-bottom:1px dashed var(--line);font-size:12.5px">
+          <b style="white-space:nowrap">中芯国际</b>
+          <div><div class="bar-track" style="height:8px;margin-bottom:3px"><div class="bar-fill" data-w="100" style="background:var(--indep)"></div></div>
+          <div class="bar-track" style="height:8px"><div class="bar-fill" data-w="7" style="background:var(--ghost)"></div></div></div>
+          <span style="text-align:right;font-variant-numeric:tabular-nums"><b class="indep">8.4%</b> <span style="color:var(--ghost)">vs 0.61%</span></span>
+        </div><div style="display:grid;grid-template-columns:76px 1fr 110px;gap:10px;align-items:center;padding:7px 0;border-bottom:1px dashed var(--line);font-size:12.5px">
+          <b style="white-space:nowrap">巨化股份</b>
+          <div><div class="bar-track" style="height:8px;margin-bottom:3px"><div class="bar-fill" data-w="100" style="background:var(--indep)"></div></div>
+          <div class="bar-track" style="height:8px"><div class="bar-fill" data-w="0" style="background:var(--ghost)"></div></div></div>
+          <span style="text-align:right;font-variant-numeric:tabular-nums"><b class="indep">7.0%</b> <span style="color:var(--ghost)">vs 0.00%</span></span>
+        </div><div style="display:grid;grid-template-columns:76px 1fr 110px;gap:10px;align-items:center;padding:7px 0;border-bottom:1px dashed var(--line);font-size:12.5px">
+          <b style="white-space:nowrap">信达生物</b>
+          <div><div class="bar-track" style="height:8px;margin-bottom:3px"><div class="bar-fill" data-w="100" style="background:var(--indep)"></div></div>
+          <div class="bar-track" style="height:8px"><div class="bar-fill" data-w="9" style="background:var(--ghost)"></div></div></div>
+          <span style="text-align:right;font-variant-numeric:tabular-nums"><b class="indep">6.1%</b> <span style="color:var(--ghost)">vs 0.57%</span></span>
+        </div><div style="display:grid;grid-template-columns:76px 1fr 110px;gap:10px;align-items:center;padding:7px 0;border-bottom:1px dashed var(--line);font-size:12.5px">
+          <b style="white-space:nowrap">贝壳-W</b>
+          <div><div class="bar-track" style="height:8px;margin-bottom:3px"><div class="bar-fill" data-w="100" style="background:var(--indep)"></div></div>
+          <div class="bar-track" style="height:8px"><div class="bar-fill" data-w="1" style="background:var(--ghost)"></div></div></div>
+          <span style="text-align:right;font-variant-numeric:tabular-nums"><b class="indep">5.3%</b> <span style="color:var(--ghost)">vs 0.05%</span></span>
+        </div></div>
     </div>
     <div class="card">
-      <span class="lbl">逆共识赚不赚钱 · 分歧高低各半对比</span>
-      <div class="duo" style="margin-top:10px">
+      <span class="lbl">公司在买 · 他不碰(26Q2)</span>
+      <p style="font-size:11px;color:var(--ghost);margin-top:4px">这是他「不做什么」的部分 —— 同样是独立性</p>
+      <div style="margin-top:10px"><div style="display:grid;grid-template-columns:76px 1fr 110px;gap:10px;align-items:center;padding:7px 0;border-bottom:1px dashed var(--line);font-size:12.5px">
+          <b style="white-space:nowrap">海光信息</b>
+          <div><div class="bar-track" style="height:8px;margin-bottom:3px"><div class="bar-fill" data-w="0" style="background:var(--indep)"></div></div>
+          <div class="bar-track" style="height:8px"><div class="bar-fill" data-w="100" style="background:var(--ghost)"></div></div></div>
+          <span style="text-align:right;font-variant-numeric:tabular-nums"><b class="indep">0.0%</b> <span style="color:var(--ghost)">vs 1.16%</span></span>
+        </div><div style="display:grid;grid-template-columns:76px 1fr 110px;gap:10px;align-items:center;padding:7px 0;border-bottom:1px dashed var(--line);font-size:12.5px">
+          <b style="white-space:nowrap">贵州茅台</b>
+          <div><div class="bar-track" style="height:8px;margin-bottom:3px"><div class="bar-fill" data-w="0" style="background:var(--indep)"></div></div>
+          <div class="bar-track" style="height:8px"><div class="bar-fill" data-w="100" style="background:var(--ghost)"></div></div></div>
+          <span style="text-align:right;font-variant-numeric:tabular-nums"><b class="indep">0.0%</b> <span style="color:var(--ghost)">vs 0.91%</span></span>
+        </div><div style="display:grid;grid-template-columns:76px 1fr 110px;gap:10px;align-items:center;padding:7px 0;border-bottom:1px dashed var(--line);font-size:12.5px">
+          <b style="white-space:nowrap">新易盛</b>
+          <div><div class="bar-track" style="height:8px;margin-bottom:3px"><div class="bar-fill" data-w="0" style="background:var(--indep)"></div></div>
+          <div class="bar-track" style="height:8px"><div class="bar-fill" data-w="100" style="background:var(--ghost)"></div></div></div>
+          <span style="text-align:right;font-variant-numeric:tabular-nums"><b class="indep">0.0%</b> <span style="color:var(--ghost)">vs 0.86%</span></span>
+        </div><div style="display:grid;grid-template-columns:76px 1fr 110px;gap:10px;align-items:center;padding:7px 0;border-bottom:1px dashed var(--line);font-size:12.5px">
+          <b style="white-space:nowrap">海星股份</b>
+          <div><div class="bar-track" style="height:8px;margin-bottom:3px"><div class="bar-fill" data-w="0" style="background:var(--indep)"></div></div>
+          <div class="bar-track" style="height:8px"><div class="bar-fill" data-w="100" style="background:var(--ghost)"></div></div></div>
+          <span style="text-align:right;font-variant-numeric:tabular-nums"><b class="indep">0.0%</b> <span style="color:var(--ghost)">vs 0.81%</span></span>
+        </div></div>
+      <div class="chips" style="margin-top:12px"><span class="chip ok">中际旭创 · 公司 2.3% · 他 7.4%</span><span class="chip ok">宁德时代 · 公司 2.1% · 他 3.0%</span><span class="chip ok">立讯精密 · 公司 1.8% · 他 5.1%</span><span class="chip no">海光信息 · 公司 1.2% · 他不碰</span><span class="chip no">贵州茅台 · 公司 0.9% · 他不碰</span></div>
+    </div>
+  </div>
+
+  <div class="grid g2" style="margin-top:var(--gap)">
+    <div class="card">
+      <span class="lbl">分歧度走势 · 22 个季度</span>
+      <p style="font-size:11px;color:var(--ghost);margin-top:4px">长期稳定在 76-90%:独立结构是常态,不是某一次赌博</p>
+      <div style="margin-top:10px"><div class="bar-row" style="grid-template-columns:44px 1fr 46px;padding:2px 0">
+          <span class="k" style="font-size:10.5px">21Q1</span>
+          <div class="bar-track" style="height:7px"><div class="bar-fill" data-w="82" style="background:var(--indep)"></div></div>
+          <span class="v" style="font-size:11px">76%</span></div><div class="bar-row" style="grid-template-columns:44px 1fr 46px;padding:2px 0">
+          <span class="k" style="font-size:10.5px">21Q2</span>
+          <div class="bar-track" style="height:7px"><div class="bar-fill" data-w="81" style="background:var(--indep)"></div></div>
+          <span class="v" style="font-size:11px">76%</span></div><div class="bar-row" style="grid-template-columns:44px 1fr 46px;padding:2px 0">
+          <span class="k" style="font-size:10.5px">21Q3</span>
+          <div class="bar-track" style="height:7px"><div class="bar-fill" data-w="90" style="background:var(--indep)"></div></div>
+          <span class="v" style="font-size:11px">84%</span></div><div class="bar-row" style="grid-template-columns:44px 1fr 46px;padding:2px 0">
+          <span class="k" style="font-size:10.5px">21Q4</span>
+          <div class="bar-track" style="height:7px"><div class="bar-fill" data-w="83" style="background:var(--indep)"></div></div>
+          <span class="v" style="font-size:11px">77%</span></div><div class="bar-row" style="grid-template-columns:44px 1fr 46px;padding:2px 0">
+          <span class="k" style="font-size:10.5px">22Q1</span>
+          <div class="bar-track" style="height:7px"><div class="bar-fill" data-w="96" style="background:var(--indep)"></div></div>
+          <span class="v" style="font-size:11px">89%</span></div><div class="bar-row" style="grid-template-columns:44px 1fr 46px;padding:2px 0">
+          <span class="k" style="font-size:10.5px">22Q2</span>
+          <div class="bar-track" style="height:7px"><div class="bar-fill" data-w="88" style="background:var(--indep)"></div></div>
+          <span class="v" style="font-size:11px">82%</span></div><div class="bar-row" style="grid-template-columns:44px 1fr 46px;padding:2px 0">
+          <span class="k" style="font-size:10.5px">22Q3</span>
+          <div class="bar-track" style="height:7px"><div class="bar-fill" data-w="100" style="background:var(--indep)"></div></div>
+          <span class="v" style="font-size:11px">93%</span></div><div class="bar-row" style="grid-template-columns:44px 1fr 46px;padding:2px 0">
+          <span class="k" style="font-size:10.5px">22Q4</span>
+          <div class="bar-track" style="height:7px"><div class="bar-fill" data-w="90" style="background:var(--indep)"></div></div>
+          <span class="v" style="font-size:11px">83%</span></div><div class="bar-row" style="grid-template-columns:44px 1fr 46px;padding:2px 0">
+          <span class="k" style="font-size:10.5px">23Q1</span>
+          <div class="bar-track" style="height:7px"><div class="bar-fill" data-w="95" style="background:var(--indep)"></div></div>
+          <span class="v" style="font-size:11px">89%</span></div><div class="bar-row" style="grid-template-columns:44px 1fr 46px;padding:2px 0">
+          <span class="k" style="font-size:10.5px">23Q2</span>
+          <div class="bar-track" style="height:7px"><div class="bar-fill" data-w="84" style="background:var(--indep)"></div></div>
+          <span class="v" style="font-size:11px">78%</span></div><div class="bar-row" style="grid-template-columns:44px 1fr 46px;padding:2px 0">
+          <span class="k" style="font-size:10.5px">23Q3</span>
+          <div class="bar-track" style="height:7px"><div class="bar-fill" data-w="98" style="background:var(--indep)"></div></div>
+          <span class="v" style="font-size:11px">92%</span></div><div class="bar-row" style="grid-template-columns:44px 1fr 46px;padding:2px 0">
+          <span class="k" style="font-size:10.5px">23Q4</span>
+          <div class="bar-track" style="height:7px"><div class="bar-fill" data-w="85" style="background:var(--indep)"></div></div>
+          <span class="v" style="font-size:11px">79%</span></div><div class="bar-row" style="grid-template-columns:44px 1fr 46px;padding:2px 0">
+          <span class="k" style="font-size:10.5px">24Q1</span>
+          <div class="bar-track" style="height:7px"><div class="bar-fill" data-w="97" style="background:var(--indep)"></div></div>
+          <span class="v" style="font-size:11px">90%</span></div><div class="bar-row" style="grid-template-columns:44px 1fr 46px;padding:2px 0">
+          <span class="k" style="font-size:10.5px">24Q2</span>
+          <div class="bar-track" style="height:7px"><div class="bar-fill" data-w="81" style="background:var(--indep)"></div></div>
+          <span class="v" style="font-size:11px">75%</span></div><div class="bar-row" style="grid-template-columns:44px 1fr 46px;padding:2px 0">
+          <span class="k" style="font-size:10.5px">24Q3</span>
+          <div class="bar-track" style="height:7px"><div class="bar-fill" data-w="87" style="background:var(--indep)"></div></div>
+          <span class="v" style="font-size:11px">81%</span></div><div class="bar-row" style="grid-template-columns:44px 1fr 46px;padding:2px 0">
+          <span class="k" style="font-size:10.5px">24Q4</span>
+          <div class="bar-track" style="height:7px"><div class="bar-fill" data-w="85" style="background:var(--indep)"></div></div>
+          <span class="v" style="font-size:11px">79%</span></div><div class="bar-row" style="grid-template-columns:44px 1fr 46px;padding:2px 0">
+          <span class="k" style="font-size:10.5px">25Q1</span>
+          <div class="bar-track" style="height:7px"><div class="bar-fill" data-w="89" style="background:var(--indep)"></div></div>
+          <span class="v" style="font-size:11px">83%</span></div><div class="bar-row" style="grid-template-columns:44px 1fr 46px;padding:2px 0">
+          <span class="k" style="font-size:10.5px">25Q2</span>
+          <div class="bar-track" style="height:7px"><div class="bar-fill" data-w="84" style="background:var(--indep)"></div></div>
+          <span class="v" style="font-size:11px">78%</span></div><div class="bar-row" style="grid-template-columns:44px 1fr 46px;padding:2px 0">
+          <span class="k" style="font-size:10.5px">25Q3</span>
+          <div class="bar-track" style="height:7px"><div class="bar-fill" data-w="90" style="background:var(--indep)"></div></div>
+          <span class="v" style="font-size:11px">84%</span></div><div class="bar-row" style="grid-template-columns:44px 1fr 46px;padding:2px 0">
+          <span class="k" style="font-size:10.5px">25Q4</span>
+          <div class="bar-track" style="height:7px"><div class="bar-fill" data-w="85" style="background:var(--indep)"></div></div>
+          <span class="v" style="font-size:11px">79%</span></div><div class="bar-row" style="grid-template-columns:44px 1fr 46px;padding:2px 0">
+          <span class="k" style="font-size:10.5px">26Q1</span>
+          <div class="bar-track" style="height:7px"><div class="bar-fill" data-w="91" style="background:var(--indep)"></div></div>
+          <span class="v" style="font-size:11px">84%</span></div><div class="bar-row" style="grid-template-columns:44px 1fr 46px;padding:2px 0">
+          <span class="k" style="font-size:10.5px">26Q2</span>
+          <div class="bar-track" style="height:7px"><div class="bar-fill" data-w="89" style="background:var(--indep)"></div></div>
+          <span class="v" style="font-size:11px">83%</span></div></div>
+    </div>
+    <div class="card">
+      <span class="lbl">关键检验:不一样的时候,赚钱了吗?</span>
+      <div class="duo" style="margin-top:12px">
         <div class="side" style="border-color:var(--indep)"><div class="k">分歧最高的季度 · 随后6个月超额</div><div class="n indep">+0.5%</div></div>
         <div class="vs2">VS</div>
-        <div class="side"><div class="k">分歧最低的季度</div><div class="n">+2.7%</div></div>
+        <div class="side" style="border-color:var(--ok)"><div class="k">分歧最低的季度</div><div class="n ok">+2.7%</div></div>
       </div>
-      <div class="chips" style="margin-top:12px">
-        <span class="chip purple">分歧未带来超额 · 样本 20 个季度</span>
+      <div class="punchline" style="margin-top:16px;font-size:16px;padding:16px 20px;border-left-width:8px">
+        分歧没带来超额 —— 他的 Alpha 来自<span class='em'>选股深度</span>,不是跟公司唱反调。买他 ≠ 买一个逆行者。
       </div>
+      <p style="font-size:11px;color:var(--ghost);margin-top:10px">口径:20 个季度按分歧度分半,对比随后 6 个月相对沪深300 超额</p>
     </div>
   </div>
 
