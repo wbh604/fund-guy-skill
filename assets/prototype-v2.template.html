@@ -632,7 +632,6 @@ td.v{font-weight:900;font-size:15px;white-space:nowrap;text-align:right}
         </div>
         <div class="rp-legend">
           <i><b class="mk b">买</b>买入或加仓</i>
-          <i><b class="mk h">持</b>继续持有</i>
           <i><b class="mk s">卖</b>卖出或减仓</i>
           <span class="kinfo" id="rpKinfo"></span>
         </div>
@@ -1152,7 +1151,6 @@ function rpDetail(s, rank){
   const amtEl = document.getElementById('rpAmt');
   if(rpCat==='fly'){ amtEl.textContent = '卖后又涨 ' + s.sellfly_pct + '%'; amtEl.className = 'rp-amt dn'; }
   else { amtEl.textContent = fmtY(s.amount); amtEl.className = 'rp-amt ' + (s.amount>0?'up':'dn'); }
-  document.getElementById('rpKinfo').textContent = '周K · 未复权 · ' + s.kline.length + ' 根 · ' + s.points.length + ' 个披露点';
   document.getElementById('rpVerdict').innerHTML = '<b>复盘</b> · ' + s.verdict;
   document.getElementById('rpGrades').innerHTML = s.rating.split('·').map(r=>'<span>'+r.trim()+'</span>').join('');
   rpChartDraw(s);
@@ -1185,7 +1183,8 @@ function rpChartDraw(s){
     if(win.length > 30) candles = win;
   }
   series.setData(candles.map(c=>({time:c[0],open:c[1],high:c[2],low:c[3],close:c[4]})));
-  document.getElementById('rpKinfo').textContent = '周K · 未复权 · ' + candles.length + ' 根 · ' + s.points.length + ' 个披露点';
+  const anchors = s.points.filter(p=>p.act!=='hold').length;
+  document.getElementById('rpKinfo').textContent = '周K · 未复权 · ' + s.points.length + ' 期披露 · ' + anchors + ' 个买卖点';
   const times = new Set(candles.map(c=>c[0]));
   const snap = d => { if(times.has(d)) return d;
     let prev = null; for(const c of candles){ if(c[0] > d) break; prev = c[0]; } return prev; };
@@ -1195,10 +1194,7 @@ function rpChartDraw(s){
   s.points.forEach(p=>{
     const t = snap(p.date); if(!t || seen.has(t + p.act)) return;
     seen.add(t + p.act);
-    if(p.act==='hold'){
-      mk.push({time:t, position:'belowBar', color:'#fbbf24', shape:'circle', text:'', size:0.5});
-      return;
-    }
+    if(p.act==='hold') return;  // 季度披露仅计入期数,图上只画买卖点
     const isSell = p.act==='sell';
     let pos = isSell ? 'aboveBar' : 'belowBar';
     if(lastAnchor && (new Date(t) - new Date(lastAnchor.t)) < 420*86400000 && pos === lastAnchor.pos){

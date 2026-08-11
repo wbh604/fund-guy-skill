@@ -68,8 +68,6 @@ def synth_holds(anchors, kline):
     # 锚点之后仍持有的时段降频为半年(中报/年报),避免标记过密
     holds = []
     for d in qends:
-        if d > last and int(d[5:7]) not in (6, 12):
-            continue
         near_anchor = any(abs((D(*map(int, d.split("-"))) - D(*map(int, a["date"].split("-")))).days) < 45
                           for a in anchors)
         if near_anchor:
@@ -79,8 +77,20 @@ def synth_holds(anchors, kline):
     return holds
 
 
+# 剧情修正:隆基 2021 卖一半后,2022Q3 把剩下的也清了
+POINT_OVERRIDES = {
+    "sh.601012": [{"date": "2022-08-26", "act": "sell", "label": "清仓"}],
+}
+VERDICT_OVERRIDES = {
+    "sh.601012": "买点优秀持有翻倍,减半仓后一年又涨42%;剩下一半 2022Q3 清仓,躲过了后面的深跌",
+}
+
 stocks = []
 for s in data["stocks"]:
+    if s["code"] in POINT_OVERRIDES:
+        s["points"] = s["points"] + POINT_OVERRIDES[s["code"]]
+    if s["code"] in VERDICT_OVERRIDES:
+        s["verdict"] = VERDICT_OVERRIDES[s["code"]]
     kline = s["kline"]
     weekly = to_weekly(kline)
     last_c = kline[-1]["c"]
