@@ -441,6 +441,8 @@ td.v{font-weight:900;font-size:15px;white-space:nowrap;text-align:right}
 .rp-news .nk.macro{background:rgba(248,113,113,.16);color:#f87171}
 .rp-news .nk.market{background:rgba(251,191,36,.16);color:#fbbf24}
 .rp-news .nk.fund{background:rgba(167,139,250,.16);color:#a78bfa}
+.rp-news .nk.industry{background:rgba(77,216,255,.14);color:#4dd8ff}
+.rp-news .nk.company{background:rgba(96,165,250,.16);color:#60a5fa}
 .rp-news .nk.act-b{background:rgba(30,158,110,.2);color:#34d399}
 .rp-news .nk.act-s{background:rgba(224,72,62,.2);color:#f87171}
 @keyframes newsin{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
@@ -1140,29 +1142,317 @@ function rpDetail(s, rank){
 }
 
 const RPEVENTS = [
-{"date":"2018-01-23","title":"兴全合宜一日售罄 327 亿,现象级爆款刷屏","kind":"fund","source_hint":"发行公告/财经媒体"},
-{"date":"2018-03-23","title":"特朗普签署对华关税备忘录,贸易战开打","kind":"macro","source_hint":"白宫备忘录/新闻"},
-{"date":"2018-10-19","title":"上证探至 2449,高层罕见集体喊话救市","kind":"market","source_hint":"新闻/行情"},
-{"date":"2019-02-25","title":"两市成交破万亿,券商集体涨停,牛市呼声再起","kind":"market","source_hint":"行情/新闻"},
-{"date":"2020-01-23","title":"武汉封城,新冠疫情全面爆发","kind":"macro","source_hint":"新闻"},
-{"date":"2020-03-09","title":"美股十天四次熔断,全球流动性危机","kind":"macro","source_hint":"新闻/行情"},
-{"date":"2020-07-06","title":"两市成交 1.5 万亿,快牛启动,基金上热搜","kind":"market","source_hint":"行情/微博热搜"},
-{"date":"2020-12-09","title":"本基金公告:增聘杨世进共同管理","kind":"fund","source_hint":"基金经理变更公告"},
-{"date":"2021-02-18","title":"春节后开盘核心资产集体跳水,抱团瓦解","kind":"market","source_hint":"行情/新闻"},
-{"date":"2021-07-26","title":"双减政策落地,港股中概重挫","kind":"macro","source_hint":"政策文件/行情"},
-{"date":"2021-12-27","title":"本基金公告:杨世进离任,谢治宇独管","kind":"fund","source_hint":"基金经理变更公告"},
-{"date":"2022-02-24","title":"俄乌战争爆发,全球市场避险","kind":"macro","source_hint":"新闻"},
-{"date":"2022-04-25","title":"上海疫情封控发酵,上证失守 2900","kind":"macro","source_hint":"新闻/行情"},
-{"date":"2022-11-11","title":"防疫二十条 + 地产十六条,港股史诗级反弹","kind":"macro","source_hint":"政策文件/行情"},
-{"date":"2023-01-30","title":"本基金公告:增聘程剑共同管理","kind":"fund","source_hint":"基金经理变更公告"},
-{"date":"2023-03-27","title":"ChatGPT 引爆 AI 行情,TMT 成交占比破四成","kind":"market","source_hint":"行情/新闻"},
-{"date":"2024-01-22","title":"微盘股流动性危机,雪球产品集中敲入","kind":"market","source_hint":"新闻/行情"},
-{"date":"2024-02-05","title":"上证 2635 见底,国家队扫货 ETF","kind":"market","source_hint":"新闻/行情"},
-{"date":"2024-09-24","title":"央行一揽子政策,A 股史诗级逼空行情","kind":"macro","source_hint":"发布会/行情"},
-{"date":"2025-03-07","title":"本基金公告:增聘薛怡然共同管理","kind":"fund","source_hint":"基金经理变更公告"},
-{"date":"2025-04-07","title":"对等关税冲击,全球股市单日暴跌","kind":"macro","source_hint":"新闻/行情"}
-]
-;
+{
+"date": "2018-01-23",
+"title": "兴全合宜一日售罄 327 亿,现象级爆款刷屏",
+"kind": "fund",
+"source_hint": "发行公告/财经媒体"
+},
+{
+"date": "2018-03-23",
+"title": "特朗普签署对华关税备忘录,贸易战开打",
+"kind": "macro",
+"source_hint": "白宫备忘录/新闻"
+},
+{
+"date": "2018-05-31",
+"title": "光伏「531新政」补贴急刹车,全行业入冬",
+"kind": "industry",
+"codes": [
+"601012"
+],
+"source_hint": "发改委文件/新闻"
+},
+{
+"date": "2018-10-19",
+"title": "上证探至 2449,高层罕见集体喊话救市",
+"kind": "market",
+"source_hint": "新闻/行情"
+},
+{
+"date": "2018-12-06",
+"title": "「4+7」带量采购落地,仿制药单日崩盘",
+"kind": "industry",
+"codes": [
+"603707"
+],
+"source_hint": "医保局/新闻"
+},
+{
+"date": "2019-02-25",
+"title": "两市成交破万亿,券商集体涨停,牛市呼声再起",
+"kind": "market",
+"source_hint": "行情/新闻"
+},
+{
+"date": "2019-05-16",
+"title": "华为被列实体清单,半导体国产替代启动",
+"kind": "industry",
+"codes": [
+"00981",
+"688008",
+"688099",
+"600703"
+],
+"source_hint": "BIS公告/新闻"
+},
+{
+"date": "2019-06-26",
+"title": "新能源车补贴大退坡执行,产业链承压",
+"kind": "industry",
+"codes": [
+"300750"
+],
+"source_hint": "四部委通知"
+},
+{
+"date": "2020-01-23",
+"title": "武汉封城,新冠疫情全面爆发",
+"kind": "macro",
+"source_hint": "新闻"
+},
+{
+"date": "2020-03-09",
+"title": "美股十天四次熔断,全球流动性危机",
+"kind": "macro",
+"source_hint": "新闻/行情"
+},
+{
+"date": "2020-07-06",
+"title": "两市成交 1.5 万亿,快牛启动,基金上热搜",
+"kind": "market",
+"source_hint": "行情/微博热搜"
+},
+{
+"date": "2020-07-16",
+"title": "中芯国际科创板上市,募资 532 亿",
+"kind": "company",
+"codes": [
+"00981"
+],
+"source_hint": "上市公告"
+},
+{
+"date": "2020-09-22",
+"title": "「双碳」目标首次提出,新能源长牛点火",
+"kind": "industry",
+"codes": [
+"601012",
+"300750"
+],
+"source_hint": "联大讲话/新闻"
+},
+{
+"date": "2020-11-03",
+"title": "蚂蚁上市暂缓,平台监管时代开启",
+"kind": "industry",
+"codes": [
+"00700",
+"01024"
+],
+"source_hint": "交易所公告"
+},
+{
+"date": "2020-12-09",
+"title": "本基金公告:增聘杨世进共同管理",
+"kind": "fund",
+"source_hint": "基金经理变更公告"
+},
+{
+"date": "2020-12-18",
+"title": "中芯国际被列入美国实体清单",
+"kind": "company",
+"codes": [
+"00981"
+],
+"source_hint": "BIS公告"
+},
+{
+"date": "2021-02-05",
+"title": "快手上市首日大涨 161%,港股冻资王",
+"kind": "company",
+"codes": [
+"01024"
+],
+"source_hint": "上市公告/行情"
+},
+{
+"date": "2021-02-18",
+"title": "春节后开盘核心资产集体跳水,抱团瓦解",
+"kind": "market",
+"source_hint": "行情/新闻"
+},
+{
+"date": "2021-04-10",
+"title": "阿里收到 182 亿反垄断罚单",
+"kind": "industry",
+"codes": [
+"00700",
+"01024"
+],
+"source_hint": "市监总局公告"
+},
+{
+"date": "2021-07-02",
+"title": "CDE 新规打击「伪创新」,创新药估值重构",
+"kind": "industry",
+"codes": [
+"01801",
+"603259",
+"603707"
+],
+"source_hint": "CDE文件/新闻"
+},
+{
+"date": "2021-07-26",
+"title": "双减政策落地,港股中概重挫",
+"kind": "macro",
+"source_hint": "政策文件/行情"
+},
+{
+"date": "2021-08-03",
+"title": "游戏被批「精神鸦片」,腾讯单日重挫",
+"kind": "company",
+"codes": [
+"00700"
+],
+"source_hint": "新华社旗下媒体文章"
+},
+{
+"date": "2021-10-15",
+"title": "硅料价格年内翻倍,组件利润被挤压",
+"kind": "industry",
+"codes": [
+"601012"
+],
+"source_hint": "硅业分会价格数据"
+},
+{
+"date": "2021-12-27",
+"title": "本基金公告:杨世进离任,谢治宇独管",
+"kind": "fund",
+"source_hint": "基金经理变更公告"
+},
+{
+"date": "2022-02-08",
+"title": "药明系遭美「未经核实清单」冲击跌停",
+"kind": "company",
+"codes": [
+"603259"
+],
+"source_hint": "BIS公告/行情"
+},
+{
+"date": "2022-02-24",
+"title": "俄乌战争爆发,全球市场避险",
+"kind": "macro",
+"source_hint": "新闻"
+},
+{
+"date": "2022-04-25",
+"title": "上海疫情封控发酵,上证失守 2900",
+"kind": "macro",
+"source_hint": "新闻/行情"
+},
+{
+"date": "2022-06-23",
+"title": "宁德时代发布麒麟电池",
+"kind": "company",
+"codes": [
+"300750"
+],
+"source_hint": "公司发布会"
+},
+{
+"date": "2022-10-08",
+"title": "美对华半导体出口管制全面升级",
+"kind": "industry",
+"codes": [
+"00981",
+"688008",
+"688099"
+],
+"source_hint": "BIS新规"
+},
+{
+"date": "2022-11-11",
+"title": "防疫二十条 + 地产十六条,港股史诗级反弹",
+"kind": "macro",
+"source_hint": "政策文件/行情"
+},
+{
+"date": "2023-01-30",
+"title": "本基金公告:增聘程剑共同管理",
+"kind": "fund",
+"source_hint": "基金经理变更公告"
+},
+{
+"date": "2023-02-10",
+"title": "碳酸锂价格崩盘,半年腰斩",
+"kind": "industry",
+"codes": [
+"300750"
+],
+"source_hint": "期货/现货价格"
+},
+{
+"date": "2023-03-27",
+"title": "ChatGPT 引爆 AI 行情,TMT 成交占比破四成",
+"kind": "market",
+"source_hint": "行情/新闻"
+},
+{
+"date": "2024-01-22",
+"title": "微盘股流动性危机,雪球产品集中敲入",
+"kind": "market",
+"source_hint": "新闻/行情"
+},
+{
+"date": "2024-02-05",
+"title": "上证 2635 见底,国家队扫货 ETF",
+"kind": "market",
+"source_hint": "新闻/行情"
+},
+{
+"date": "2024-09-24",
+"title": "央行一揽子政策,A 股史诗级逼空行情",
+"kind": "macro",
+"source_hint": "发布会/行情"
+},
+{
+"date": "2024-10-14",
+"title": "光伏行业协会「反内卷」座谈,呼吁防止恶性竞争",
+"kind": "industry",
+"codes": [
+"601012"
+],
+"source_hint": "行业协会公告"
+},
+{
+"date": "2025-01-20",
+"title": "DeepSeek R1 发布,中国科技资产重估",
+"kind": "industry",
+"codes": [
+"00700",
+"01024",
+"00981",
+"688008"
+],
+"source_hint": "发布公告/新闻"
+},
+{
+"date": "2025-03-07",
+"title": "本基金公告:增聘薛怡然共同管理",
+"kind": "fund",
+"source_hint": "基金经理变更公告"
+},
+{
+"date": "2025-04-07",
+"title": "对等关税冲击,全球股市单日暴跌",
+"kind": "macro",
+"source_hint": "新闻/行情"
+}
+];
 let rpCur = null, rpWin = [], rpMk = [], rpTimer = null;
 
 function mkRpChart(){
@@ -1283,8 +1573,9 @@ function rpReplay(){
   series.setData(frame(2));
   // 逻辑范围锁定:不依赖空白数据,时间轴恒定覆盖整个窗口
   rpChart.timeScale().setVisibleLogicalRange({from: -3, to: candles.length + 3});
-  const evs = RPEVENTS.filter(e=>e.date>=candles[0][0] && e.date<=candles[candles.length-1][0]);
-  const KIND_TAG = {macro:'宏观', market:'市场', fund:'本基金'};
+  const evs = RPEVENTS.filter(e=>e.date>=candles[0][0] && e.date<=candles[candles.length-1][0]
+    && (!e.codes || e.codes.includes(s.code)));
+  const KIND_TAG = {macro:'宏观', market:'市场', fund:'本基金', industry:'行业', company:'公司'};
   const BARS_PER_SEC = 9;          // 1x 基准速度
   const EVENT_HOLD_MS = 2200;      // 新闻停留
   const ACT_HOLD_MS = 1800;        // 买卖动作停留

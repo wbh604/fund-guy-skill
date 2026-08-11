@@ -441,6 +441,8 @@ td.v{font-weight:900;font-size:15px;white-space:nowrap;text-align:right}
 .rp-news .nk.macro{background:rgba(248,113,113,.16);color:#f87171}
 .rp-news .nk.market{background:rgba(251,191,36,.16);color:#fbbf24}
 .rp-news .nk.fund{background:rgba(167,139,250,.16);color:#a78bfa}
+.rp-news .nk.industry{background:rgba(77,216,255,.14);color:#4dd8ff}
+.rp-news .nk.company{background:rgba(96,165,250,.16);color:#60a5fa}
 .rp-news .nk.act-b{background:rgba(30,158,110,.2);color:#34d399}
 .rp-news .nk.act-s{background:rgba(224,72,62,.2);color:#f87171}
 @keyframes newsin{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
@@ -1319,8 +1321,9 @@ function rpReplay(){
   series.setData(frame(2));
   // 逻辑范围锁定:不依赖空白数据,时间轴恒定覆盖整个窗口
   rpChart.timeScale().setVisibleLogicalRange({from: -3, to: candles.length + 3});
-  const evs = RPEVENTS.filter(e=>e.date>=candles[0][0] && e.date<=candles[candles.length-1][0]);
-  const KIND_TAG = {macro:'宏观', market:'市场', fund:'本基金'};
+  const evs = RPEVENTS.filter(e=>e.date>=candles[0][0] && e.date<=candles[candles.length-1][0]
+    && (!e.codes || e.codes.includes(s.code)));
+  const KIND_TAG = {macro:'宏观', market:'市场', fund:'本基金', industry:'行业', company:'公司'};
   const BARS_PER_SEC = 9;          // 1x 基准速度
   const EVENT_HOLD_MS = 2200;      // 新闻停留
   const ACT_HOLD_MS = 1800;        // 买卖动作停留
