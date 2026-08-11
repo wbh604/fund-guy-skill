@@ -377,45 +377,58 @@ td.v{font-weight:900;font-size:15px;white-space:nowrap;text-align:right}
 .mock-tag{position:fixed;right:-40px;bottom:40px;top:auto;transform:rotate(-45deg);background:var(--warn);
   color:#fff;font-size:11px;font-weight:900;padding:5px 46px;letter-spacing:.25em;z-index:99}
 
-/* ===== 买卖复盘 ===== */
-.rt{display:flex;flex-direction:column;gap:14px;margin-top:14px}
-.rstock{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);padding:20px 22px}
-.rstock-head{display:flex;align-items:baseline;gap:12px;flex-wrap:wrap;margin-bottom:4px}
-.rstock-name{font-size:17px;font-weight:900}
-.rstock-code{font-size:12px;color:var(--ghost)}
-.rstock-skill{margin-left:auto;font-size:11px;font-weight:800;padding:4px 10px;border-radius:20px}
-.rstock-skill.a{background:var(--ok-tint);color:var(--ok);border:1px solid var(--ok)}
-.rstock-skill.c{background:var(--warn-tint);color:var(--warn);border:1px solid var(--warn)}
-.rstock-skill.f{background:var(--danger-tint);color:var(--danger);border:1px solid var(--danger)}
-.rstock-line{font-size:13px;color:var(--muted);margin-bottom:10px}
-.rstock-line b{color:var(--ink)}
-.rk-chart{height:250px;border-radius:8px;overflow:hidden;border:1px solid var(--line);margin-bottom:10px}
-.rk-legend{display:flex;gap:16px;font-size:11px;color:var(--ghost);margin-bottom:12px;flex-wrap:wrap}
-.rk-legend i{display:inline-flex;align-items:center;gap:5px;font-style:normal}
-.rk-legend .mk{width:14px;height:14px;border-radius:50%;color:#fff;font-size:9px;font-weight:900;
+/* ===== 买卖复盘 · 榜单+大图 ===== */
+.replay{padding:0;overflow:hidden}
+.rp-head{display:flex;align-items:flex-end;justify-content:space-between;gap:14px;flex-wrap:wrap;
+  padding:22px 24px 16px;border-bottom:1px solid var(--line)}
+.rp-head h3{font-size:20px;font-weight:900;letter-spacing:-.01em;margin-top:6px}
+.rp-tabs{display:flex;gap:0;border:1px solid var(--line-hard);border-radius:8px;overflow:hidden}
+.rp-tab{padding:9px 18px;font-size:13px;font-weight:800;cursor:pointer;color:var(--muted);
+  background:var(--surface);transition:.15s;border-right:1px solid var(--line)}
+.rp-tab:last-child{border-right:0}
+.rp-tab:hover{color:var(--ink)}
+.rp-tab.on{background:var(--accent);color:var(--accent-ink)}
+.rp-body{display:grid;grid-template-columns:250px 1fr;align-items:stretch}
+.rp-list{border-right:1px solid var(--line);max-height:560px;overflow-y:auto}
+.rp-item{display:flex;align-items:center;gap:11px;padding:13px 16px;cursor:pointer;
+  border-bottom:1px solid var(--line);transition:background .15s}
+.rp-item:hover{background:var(--raised)}
+.rp-item .no{font-size:12px;font-weight:900;color:var(--ghost);width:20px}
+.rp-item .mid{flex:1;min-width:0}
+.rp-item .mid b{font-size:14.5px;font-weight:900;display:block;white-space:nowrap}
+.rp-item .mid span{font-size:10.5px;color:var(--ghost);display:block;margin-top:1px}
+.rp-item .amt{font-size:13.5px;font-weight:900;white-space:nowrap}
+.rp-item .amt.up{color:var(--ok)} .rp-item .amt.dn{color:var(--danger)}
+.rp-item.on{background:var(--line-hard)}
+.rp-item.on .mid b,.rp-item.on .no{color:var(--bg)}
+.rp-item.on .mid span{color:var(--bg);opacity:.6}
+[data-theme="light"] .rp-item.on .mid b,[data-theme="light"] .rp-item.on .no{color:#fff}
+[data-theme="light"] .rp-item.on .mid span{color:#fff;opacity:.65}
+/* 详情面板永远深色(参考分享卡) */
+.rp-panel{background:#0c1016;color:#f2f5f8;padding:22px 26px;min-width:0}
+.rp-meta{display:flex;align-items:flex-start;justify-content:space-between;gap:14px;flex-wrap:wrap}
+.rp-rank{font-size:11px;font-weight:800;letter-spacing:.2em;color:#8b95a3}
+.rp-panel h2{font-size:30px;font-weight:900;letter-spacing:-.02em;margin-top:4px;color:#f2f5f8}
+.rp-code{font-size:11.5px;color:#5a6472;display:block;margin-top:4px}
+.rp-amt{font-size:34px;font-weight:900;letter-spacing:-.03em;white-space:nowrap}
+.rp-amt.up{color:#34d399} .rp-amt.dn{color:#f87171}
+.rp-legend{display:flex;align-items:center;gap:16px;font-size:11px;color:#8b95a3;margin:14px 0 10px;flex-wrap:wrap}
+.rp-legend i{display:inline-flex;align-items:center;gap:6px;font-style:normal}
+.rp-legend .mk{width:16px;height:16px;border-radius:50%;color:#fff;font-size:9.5px;font-weight:900;
   display:inline-flex;align-items:center;justify-content:center}
-.trades{display:flex;flex-direction:column}
-.td-row{display:grid;grid-template-columns:56px 90px 1fr 86px;gap:12px;align-items:center;
-  padding:9px 0;border-bottom:1px dashed var(--line);font-size:13px}
-.td-row:last-child{border:0}
-.td-date{font-weight:800;font-size:12px}
-.td-date.hold{color:var(--ghost)}
-.td-act{font-weight:800;text-align:center;padding:3px 0;border-radius:4px;font-size:12px}
-.td-act.buy{background:var(--ok-tint);color:var(--ok)}
-.td-act.sell{background:var(--danger-tint);color:var(--danger)}
-.td-act.add{background:var(--indep-tint);color:var(--indep)}
-.td-act.hold2{background:var(--raised);color:var(--ghost)}
-.td-note{color:var(--muted)}
-.td-px{text-align:right;font-weight:900;font-size:13px}
-.td-px.good{color:var(--ok)} .td-px.bad{color:var(--danger)}
-.rstock-foot{display:flex;align-items:center;gap:8px;margin-top:12px;padding-top:12px;
-  border-top:1px solid var(--line);flex-wrap:wrap}
-.rgrade{font-size:11px;font-weight:800;padding:4px 11px;border-radius:4px;border:1px solid var(--line);color:var(--muted)}
-.rgrade.good{border-color:var(--ok);color:var(--ok);background:var(--ok-tint)}
-.rgrade.bad{border-color:var(--danger);color:var(--danger);background:var(--danger-tint)}
-.rgrade.warn2{border-color:var(--warn);color:var(--warn);background:var(--warn-tint)}
-@media(max-width:560px){.td-row{grid-template-columns:52px 70px 1fr;gap:8px}
-  .td-px{grid-column:1/-1;text-align:left;padding-left:0}}
+.rp-legend .mk.b{background:#1e9e6e} .rp-legend .mk.s{background:#e0483e}
+.rp-legend .kinfo{margin-left:auto;color:#5a6472}
+.rp-chart{height:320px;border-radius:8px;overflow:hidden}
+.rp-verdict{font-size:13px;color:#8b95a3;line-height:1.6;margin-top:12px}
+.rp-verdict b{color:#f2f5f8}
+.rp-grades{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
+.rp-grades span{font-size:11px;font-weight:800;padding:4px 11px;border-radius:4px;border:1px solid #2c343f;color:#8b95a3}
+.rp-foot{font-size:10.5px;color:#5a6472;margin-top:14px;padding-top:12px;border-top:1px solid #1e242d}
+@media(max-width:760px){
+  .rp-body{grid-template-columns:1fr}
+  .rp-list{max-height:260px;border-right:0;border-bottom:1px solid var(--line)}
+  .rp-chart{height:260px}
+}
 </style>
 </head>
 <body>
@@ -592,115 +605,40 @@ td.v{font-weight:900;font-size:15px;white-space:nowrap;text-align:right}
     </div>
   </div>
 
-  <!-- 买卖复盘 · 真实K线 -->
-  <div class="card" style="margin-top:var(--gap)">
-    <span class="lbl">买卖复盘 · 真实周K + 买卖点</span>
-    <div class="rk-legend" style="margin-top:10px">
-      <i><span class="mk" style="background:#e0483e">B</span>买入/加仓</i>
-      <i><span class="mk" style="background:#1e9e6e">S</span>卖出</i>
-      <i><span style="display:inline-block;width:16px;border-top:2px dashed var(--danger)"></span>卖价参考线</i>
-      <i style="margin-left:auto">红涨绿跌 · 周K</i>
-    </div>
-
-    <div class="rt">
-      <div class="rstock">
-        <div class="rstock-head">
-          <span class="rstock-name">隆基绿能</span>
-          <span class="rstock-code">601012</span>
-          <span class="rstock-skill c">买对 · 卖飞了</span>
-        </div>
-        <div class="rstock-line">翻倍后减半仓,卖后一年又涨 <b class="danger">+42%</b></div>
-        <div class="rk-chart" data-code="sh.601012"></div>
-        <div class="trades">
-          <div class="td-row"><span class="td-date">2019-07</span><span class="td-act buy">买入</span>
-            <span class="td-note">光伏景气底部建仓</span><span class="td-px">+0%</span></div>
-          <div class="td-row"><span class="td-date">2020-04</span><span class="td-act add">加仓</span>
-            <span class="td-note">加到第二大持仓</span><span class="td-px good">+61%</span></div>
-          <div class="td-row"><span class="td-date">2021-06</span><span class="td-act sell">卖出 50%</span>
-            <span class="td-note">兑现一半</span><span class="td-px good">+112%</span></div>
-          <div class="td-row"><span class="td-date">2022-03</span><span class="td-act hold2">持有</span>
-            <span class="td-note">剩下一半继续持有</span><span class="td-px">+154%</span></div>
-        </div>
-        <div class="rstock-foot">
-          <span class="rgrade good">买入 A</span>
-          <span class="rgrade good">持有 A-</span>
-          <span class="rgrade bad">卖出 C · 卖后 +42%</span>
-        </div>
+  <!-- 买卖复盘 · 榜单 + 大图 -->
+  <div class="card replay" style="margin-top:var(--gap)">
+    <div class="rp-head">
+      <div>
+        <span class="lbl">完整买卖复盘 · 真实周K</span>
+        <h3>他每一笔买卖,到底对不对</h3>
       </div>
-
-      <div class="rstock">
-        <div class="rstock-head">
-          <span class="rstock-name">中环股份</span>
-          <span class="rstock-code">002129</span>
-          <span class="rstock-skill c">判断对 · 买贵了</span>
-        </div>
-        <div class="rstock-line">方向看对,追在历史高位,套牢 <b class="danger">-22%</b> 靠拿住回本</div>
-        <div class="rk-chart" data-code="sz.002129"></div>
-        <div class="trades">
-          <div class="td-row"><span class="td-date">2021-01</span><span class="td-act buy">买入</span>
-            <span class="td-note">估值历史高位追入</span><span class="td-px bad">-22%</span></div>
-          <div class="td-row"><span class="td-date">2021-05</span><span class="td-act hold2">持有</span>
-            <span class="td-note">回调没割</span><span class="td-px">-8%</span></div>
-          <div class="td-row"><span class="td-date">2022-02</span><span class="td-act sell">卖出</span>
-            <span class="td-note">产能过剩,逻辑走完</span><span class="td-px good">+5%</span></div>
-        </div>
-        <div class="rstock-foot">
-          <span class="rgrade warn2">买入 C+ · 追高</span>
-          <span class="rgrade good">持有 A · 拿住了</span>
-          <span class="rgrade good">判断 A- · 方向对</span>
-        </div>
-      </div>
-
-      <div class="rstock">
-        <div class="rstock-head">
-          <span class="rstock-name">宁德时代</span>
-          <span class="rstock-code">300750</span>
-          <span class="rstock-skill f">最大短板 · 卖飞</span>
-        </div>
-        <div class="rstock-line">翻倍后全清,此后一年又涨 <b class="danger">+78%</b> —— 最狠的一次卖飞</div>
-        <div class="rk-chart" data-code="sz.300750"></div>
-        <div class="trades">
-          <div class="td-row"><span class="td-date">2020-08</span><span class="td-act buy">买入</span>
-            <span class="td-note">底部区域建仓</span><span class="td-px">+0%</span></div>
-          <div class="td-row"><span class="td-date">2021-01</span><span class="td-act add">加仓</span>
-            <span class="td-note">加至重仓</span><span class="td-px good">+65%</span></div>
-          <div class="td-row"><span class="td-date">2021-08</span><span class="td-act sell">全部卖出</span>
-            <span class="td-note">涨一倍,够本</span><span class="td-px good">+112%</span></div>
-          <div class="td-row"><span class="td-date">2022-08</span><span class="td-act hold2">事后</span>
-            <span class="td-note">卖完一年,又涨 78%</span><span class="td-px bad">+190%</span></div>
-        </div>
-        <div class="rstock-foot">
-          <span class="rgrade good">买入 A</span>
-          <span class="rgrade bad">卖出 D · 清仓后翻倍</span>
-        </div>
-      </div>
-
-      <div class="rstock">
-        <div class="rstock-head">
-          <span class="rstock-name">分众传媒</span>
-          <span class="rstock-code">002027</span>
-          <span class="rstock-skill a">买错 · 割得干脆</span>
-        </div>
-        <div class="rstock-line">看错广告周期,两个季度内止损 <b>-12%</b>,没死扛</div>
-        <div class="rk-chart" data-code="sz.002027"></div>
-        <div class="trades">
-          <div class="td-row"><span class="td-date">2021-04</span><span class="td-act buy">买入</span>
-            <span class="td-note">赌广告周期回升</span><span class="td-px">+0%</span></div>
-          <div class="td-row"><span class="td-date">2021-09</span><span class="td-act sell">止损</span>
-            <span class="td-note">逻辑破坏,果断割</span><span class="td-px bad">-12%</span></div>
-        </div>
-        <div class="rstock-foot">
-          <span class="rgrade bad">买入 C · 看错</span>
-          <span class="rgrade good">止损 A+ · 没死扛</span>
-        </div>
+      <div class="rp-tabs" id="rpTabs">
+        <span class="rp-tab on" data-cat="win">赚最多</span>
+        <span class="rp-tab" data-cat="lose">亏最多</span>
+        <span class="rp-tab" data-cat="fly">卖飞现场</span>
       </div>
     </div>
-
-    <div class="chips" style="margin-top:18px">
-      <span class="chip ok">买对 <b>3/4</b></span>
-      <span class="chip no">卖飞 <b>2 次</b></span>
-      <span class="chip no">卖飞少赚 <b>≈120 点</b></span>
-      <span class="chip purple">认错平均 <b>6 个月</b></span>
+    <div class="rp-body">
+      <div class="rp-list" id="rpList"></div>
+      <div class="rp-panel">
+        <div class="rp-meta">
+          <div>
+            <span class="rp-rank" id="rpRank">第 1 名</span>
+            <h2 id="rpName">—</h2>
+            <span class="rp-code" id="rpCode"></span>
+          </div>
+          <div class="rp-amt up" id="rpAmt"></div>
+        </div>
+        <div class="rp-legend">
+          <i><b class="mk b">买</b>买入或加仓</i>
+          <i><b class="mk s">卖</b>卖出或减仓</i>
+          <span class="kinfo" id="rpKinfo"></span>
+        </div>
+        <div class="rp-chart" id="rpChart"></div>
+        <div class="rp-verdict" id="rpVerdict"></div>
+        <div class="rp-grades" id="rpGrades"></div>
+        <div class="rp-foot">持仓与买卖点为模拟演示数据 · 盈亏为持仓区间估算 · K线为真实公开行情(周K·未复权)</div>
+      </div>
     </div>
   </div>
 </section>
@@ -1107,7 +1045,6 @@ td.v{font-weight:900;font-size:15px;white-space:nowrap;text-align:right}
   btn.onclick = ()=>{
     const next = root.dataset.theme==='dark' ? 'light' : 'dark';
     paint(next); localStorage.setItem('fmTheme', next);
-    renderRK();
   };
 })();
 
@@ -1177,53 +1114,98 @@ td.v{font-weight:900;font-size:15px;white-space:nowrap;text-align:right}
   };
 })();
 
-// ===== 真实K线 · B/S 买卖点 =====
-const KDATA = /*__KDATA__*/{};
+// ===== 买卖复盘:榜单 + 大图 =====
+const RPDATA = /*__RPDATA__*/{};
 
-const RK_COLORS = {
-  dark:{bg:'#11151b',text:'#8b95a3',grid:'#1e242d',border:'#2c343f'},
-  light:{bg:'#ffffff',text:'#4a5568',grid:'#eef1f5',border:'#dfe5ec'}
+const RP_CATS = {
+  win : {label:'赚最多',   pick:s=>s.amount>0,        sort:(a,b)=>b.amount-a.amount,       amt:s=>fmtY(s.amount)},
+  lose: {label:'亏最多',   pick:s=>s.amount<0,        sort:(a,b)=>a.amount-b.amount,       amt:s=>fmtY(s.amount)},
+  fly : {label:'卖飞现场', pick:s=>s.sellfly_pct>=5,  sort:(a,b)=>b.sellfly_pct-a.sellfly_pct, amt:s=>'卖后 +'+s.sellfly_pct+'%'}
 };
-let rkInstances = [];
-function renderRK(){
-  if(!window.LightweightCharts || !KDATA) return;
-  rkInstances.forEach(c=>c.remove()); rkInstances = [];
-  const T = document.documentElement.dataset.theme==='light' ? RK_COLORS.light : RK_COLORS.dark;
-  document.querySelectorAll('.rk-chart').forEach(el=>{
-    const d = KDATA[el.dataset.code]; if(!d || !d.candles.length) return;
-    el.innerHTML = '';
-    const chart = LightweightCharts.createChart(el, {
-      height:250, autoSize:true,
-      layout:{background:{type:'solid',color:T.bg},textColor:T.text,fontSize:11},
-      grid:{vertLines:{color:T.grid},horzLines:{color:T.grid}},
-      timeScale:{borderColor:T.border,rightOffset:5,barSpacing:6},
-      rightPriceScale:{borderColor:T.border},
-      crosshair:{mode:0}, localization:{locale:'zh-CN'}
-    });
-    const s = chart.addCandlestickSeries({
-      upColor:'#e0483e',downColor:'#1e9e6e',borderUpColor:'#e0483e',
-      borderDownColor:'#1e9e6e',wickUpColor:'#e0483e',wickDownColor:'#1e9e6e'
-    });
-    s.setData(d.candles.map(c=>({time:c[0],open:c[1],high:c[2],low:c[3],close:c[4]})));
-    const times = new Set(d.candles.map(c=>c[0]));
-    const mk = d.points.filter(p=>times.has(p.date)).map(p=>({
-      time:p.date,
-      position:p.act==='sell'?'aboveBar':'belowBar',
-      color:p.act==='sell'?'#1e9e6e':'#e0483e',
-      shape:'circle',
-      text:p.act==='sell'?'S':'B'
-    }));
-    s.setMarkers(mk);
-    d.points.filter(p=>p.act==='sell' && times.has(p.date)).forEach(p=>{
-      const cd = d.candles.find(c=>c[0]===p.date);
-      if(cd) s.addPriceLine({price:cd[4],color:'#f87171',lineWidth:1,lineStyle:2,
-        axisLabelVisible:true,title:'S'});
-    });
-    chart.timeScale().fitContent();
-    rkInstances.push(chart);
+function fmtY(v){ return (v>0?'+':'') + v.toFixed(2) + ' 亿'; }
+
+let rpChart = null, rpCat = 'win', rpIdx = 0;
+
+function rpRender(){
+  const stocks = (RPDATA.stocks||[]).filter(RP_CATS[rpCat].pick).sort(RP_CATS[rpCat].sort);
+  const list = document.getElementById('rpList');
+  list.innerHTML = '';
+  stocks.forEach((s,i)=>{
+    const el = document.createElement('div');
+    el.className = 'rp-item' + (i===rpIdx?' on':'');
+    const cls = rpCat==='fly' ? 'dn' : (s.amount>0?'up':'dn');
+    el.innerHTML = `<span class="no">${String(i+1).padStart(2,'0')}</span>
+      <div class="mid"><b>${s.name}</b><span>${s.code.split('.')[1]} · ${s.n_disclose} 笔操作</span></div>
+      <span class="amt ${cls}">${RP_CATS[rpCat].amt(s)}</span>`;
+    el.onclick = ()=>{ rpIdx = i; rpRender(); };
+    list.appendChild(el);
   });
+  if(stocks[rpIdx]) rpDetail(stocks[rpIdx], rpIdx);
 }
-renderRK();
+
+function rpDetail(s, rank){
+  document.getElementById('rpRank').textContent = '第 ' + (rank+1) + ' 名';
+  document.getElementById('rpName').textContent = s.name;
+  document.getElementById('rpCode').textContent = s.code.split('.')[1] + ' · ' + s.industry + ' · 仓位 ' + s.weight + '%';
+  const amtEl = document.getElementById('rpAmt');
+  if(rpCat==='fly'){ amtEl.textContent = '卖后又涨 ' + s.sellfly_pct + '%'; amtEl.className = 'rp-amt dn'; }
+  else { amtEl.textContent = fmtY(s.amount); amtEl.className = 'rp-amt ' + (s.amount>0?'up':'dn'); }
+  document.getElementById('rpKinfo').textContent = '周K · 未复权 · ' + s.kline.length + ' 根 · ' + s.points.length + ' 个买卖点';
+  document.getElementById('rpVerdict').innerHTML = '<b>复盘</b> · ' + s.verdict;
+  document.getElementById('rpGrades').innerHTML = s.rating.split('·').map(r=>'<span>'+r.trim()+'</span>').join('');
+  rpChartDraw(s);
+}
+
+function rpChartDraw(s){
+  if(!window.LightweightCharts) return;
+  if(rpChart){ rpChart.remove(); rpChart = null; }
+  const el = document.getElementById('rpChart');
+  el.innerHTML = '';
+  rpChart = LightweightCharts.createChart(el, {
+    height: 320, autoSize: true,
+    layout:{background:{type:'solid',color:'#0c1016'},textColor:'#5a6472',fontSize:11},
+    grid:{vertLines:{color:'#151b23'},horzLines:{color:'#151b23'}},
+    timeScale:{borderColor:'#2c343f',rightOffset:4,barSpacing:3},
+    rightPriceScale:{borderColor:'#2c343f'},
+    crosshair:{mode:0}, localization:{locale:'zh-CN'}
+  });
+  const series = rpChart.addCandlestickSeries({
+    upColor:'#e0483e',downColor:'#1e9e6e',borderUpColor:'#e0483e',
+    borderDownColor:'#1e9e6e',wickUpColor:'#e0483e',wickDownColor:'#1e9e6e'
+  });
+  // 聚焦交易窗口:首笔前约半年 → 末笔后约一年半,而不是整段历史
+  let candles = s.kline;
+  if(s.points.length){
+    const ds = s.points.map(p=>p.date).sort();
+    const shift = (d,days)=>{const t=new Date(d);t.setDate(t.getDate()+days);return t.toISOString().slice(0,10)};
+    const lo = shift(ds[0],-183), hi = shift(ds[ds.length-1],548);
+    const win = s.kline.filter(c=>c[0]>=lo && c[0]<=hi);
+    if(win.length > 30) candles = win;
+  }
+  series.setData(candles.map(c=>({time:c[0],open:c[1],high:c[2],low:c[3],close:c[4]})));
+  document.getElementById('rpKinfo').textContent = '周K · 未复权 · ' + candles.length + ' 根 · ' + s.points.length + ' 个买卖点';
+  const times = new Set(candles.map(c=>c[0]));
+  const snap = d => { if(times.has(d)) return d;
+    let prev = null; for(const c of candles){ if(c[0] > d) break; prev = c[0]; } return prev; };
+  const mk = [];
+  s.points.forEach(p=>{
+    const t = snap(p.date); if(!t) return;
+    const isSell = p.act==='sell';
+    mk.push({time:t, position:isSell?'aboveBar':'belowBar',
+      color:isSell?'#e0483e':'#1e9e6e', shape:'circle',
+      text:(p.label.length<=3?p.label:(isSell?'卖':'买')) + ' ' + p.q});
+  });
+  mk.sort((a,b)=>a.time<b.time?-1:1);
+  series.setMarkers(mk);
+  rpChart.timeScale().fitContent();
+}
+
+document.getElementById('rpTabs').addEventListener('click', e=>{
+  const t = e.target.closest('.rp-tab'); if(!t) return;
+  document.querySelectorAll('.rp-tab').forEach(x=>x.classList.toggle('on', x===t));
+  rpCat = t.dataset.cat; rpIdx = 0; rpRender();
+});
+rpRender();
 </script>
 </body>
 </html>
