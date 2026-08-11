@@ -61,6 +61,13 @@ for r in reversed(regimes):  # 旧→新
       <td style="font-size:11.5px;color:var(--muted);white-space:nowrap">{r["days"].replace("又","")}</td>
       <td class="v {cls}">{r["ret"]}</td></tr>'''
 
+inst_latest = (ab.get("inst_series") or [{"inst":0}])[-1]
+try:
+    import json as _j
+    _h2 = _j.load(open(os.path.join(ROOT, ".cache", f"fund_{CODE}", "holders2.json")))
+    inst_latest["internal"] = _h2[0]["internal"]
+except Exception:
+    pass
 inst_bars = ""
 _inst = ab.get("inst_series") or []
 _im = max((x["inst"] for x in _inst), default=1)
@@ -178,8 +185,9 @@ if hs:
   <div class="card" style="border-color:var(--indep);background:var(--indep-tint)">
     <span class="lbl" style="color:var(--indep)">这块回答一个问题:他跟公司其他 {lt["n_funds"]} 个基金有多不一样?不一样时赚钱吗?</span>
     <p style="font-size:12.5px;color:var(--muted);margin-top:8px">
-      分歧度 = 他的持仓与「公司平均组合」的差异,<b>0% = 完全照抄公司</b>,<b>100% = 一只都不重合</b>。
-      对照组:兴证全球 {lt["n_funds"]} 只权益基金(已剔除他自己管的 3 只)。</p>
+      分歧度 = 他的持仓与「公司平均组合」有多不一样,<b>0 分 = 完全照抄公司</b>,<b>100 分 = 一只都不重合</b>。
+      对照组:兴证全球 {lt.get("n_active", lt["n_funds"])} 只真·权益基金(剔除了他自管的 3 只和几只债性太重的),
+      每只都先折算成同样的满仓口径再比,不然比不公平。</p>
     <div class="rangebar" style="margin:30px 12px 34px">
       <div class="pin" style="left:{lt["divergence"]}%;background:var(--indep)"></div>
       <div class="pin" style="left:{lt["peer_avg_div"]}%;background:var(--ghost)"></div>
@@ -332,8 +340,8 @@ html = f'''<!DOCTYPE html>
     <div class="card" style="display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px">
       <div class="stamp" style="border-color:var(--warn);color:var(--warn);background:var(--warn-tint)">
         <span class="big">再等等</span><span class="sm">刚回本 · 别追高</span></div>
-      <div style="font-size:13px;color:var(--muted);margin-top:12px">Conviction</div>
-      <div style="font-size:17px;font-weight:900">中</div>
+      <div style="font-size:13px;color:var(--muted);margin-top:12px">这个判断我们敢押多少</div>
+      <div style="font-size:17px;font-weight:900">中等 · 证据还差 2 块</div>
     </div>
   </div>
 
@@ -355,14 +363,14 @@ html = f'''<!DOCTYPE html>
   </div>
 
   <div class="grid g4" style="margin-top:var(--gap)">
-    <div class="stat hl"><span class="lbl">人</span>
-      <span class="v ok">通过</span><span class="sub">8 年半从未离开 · 履历可查</span></div>
-    <div class="stat"><span class="lbl">产品</span>
-      <span class="v" style="color:var(--warn)">有限通过</span><span class="sub">131 亿大船 · 调头慢</span></div>
-    <div class="stat"><span class="lbl">当前</span>
-      <span class="v" style="color:var(--warn)">刚回本</span><span class="sub">2026-05 才收复 2021 高点</span></div>
-    <div class="stat"><span class="lbl">你</span>
-      <span class="v cyan">看持有期</span><span class="sub">扛得住 5 年水下再来</span></div>
+    <div class="stat hl"><span class="lbl">这个人行不行</span>
+      <span class="v ok">行</span><span class="sub">8 年半没跑路 · 简历真实</span></div>
+    <div class="stat"><span class="lbl">这只基金行不行</span>
+      <span class="v" style="color:var(--warn)">凑合</span><span class="sub">131 亿大船 · 掉头慢</span></div>
+    <div class="stat"><span class="lbl">现在买合适吗</span>
+      <span class="v" style="color:var(--warn)">别追</span><span class="sub">刚爬出 5 年的坑 · 别在山顶重演 2021</span></div>
+    <div class="stat"><span class="lbl">适不适合你</span>
+      <span class="v long cyan">能扔 5 年不看,再来</span><span class="sub">中途可能腰斩 · 拿不住别碰</span></div>
   </div>
 </section>
 
@@ -660,8 +668,14 @@ html = f'''<!DOCTYPE html>
       <p style="font-size:11px;color:var(--ghost);margin-top:10px">成长暴露显著为正,大盘为主 —— 风格箱「大盘成长」由回归证实,Alpha 不是风格红利。</p>
     </div>
     <div class="card">
-      <span class="lbl">机构资金画像(真实持有人结构) + 基民到手</span>
-      <div style="margin-top:12px">{inst_bars}</div>
+      <span class="lbl">谁在持有这只基金(真实持有人结构)</span>
+      <div class="grid g3" style="margin-top:12px;gap:8px">
+        <div class="stat" style="padding:12px"><span class="lbl">机构的钱</span><span class="v" style="font-size:22px;color:var(--cyan)">{inst_latest["inst"]:.1f}%</span><span class="sub">两年翻倍 · 在进场</span></div>
+        <div class="stat" style="padding:12px"><span class="lbl">散户的钱</span><span class="v" style="font-size:22px">{100-inst_latest["inst"]:.1f}%</span></div>
+        <div class="stat" style="padding:12px;border-color:var(--ok)"><span class="lbl">自家员工</span><span class="v ok" style="font-size:22px">{inst_latest.get("internal","—")}</span><span class="sub">敢吃自己做的饭</span></div>
+      </div>
+      <div style="margin-top:10px">{inst_bars}</div>
+      <p style="font-size:11px;color:var(--ghost);margin-top:8px">国家队/险资等大额单一持有人只在年报 PDF 披露,本次未获取 · 按硬规则记「未查证」</p>
       <div class="duo" style="margin-top:14px">
         <div class="side"><div class="k">基金年化(时间加权)</div><div class="n ok" style="font-size:30px">{ab["twr"]}%</div></div>
         <div class="vs2">VS</div>

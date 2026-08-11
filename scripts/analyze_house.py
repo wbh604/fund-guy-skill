@@ -44,33 +44,38 @@ for f in os.listdir(HDIR):
 
 QS = sorted(q for q in tgt if q >= "2021Q1" and q in peers_hold and len(peers_hold[q]) >= 8)
 
+def norm100(port):
+    tot = sum(port.values())
+    return {c: w / tot * 100 for c, w in port.items()} if tot else {}
+
 series = []
 for q in QS:
+    # 权益仓位过滤:披露权重合计 <8%(前十大期)视为偏债/迷你仓,剔出对照组
+    active_funds = {fc: hp for fc, hp in peers_hold[q].items() if sum(hp.values()) >= 8}
+    nf = len(active_funds)
+    if nf < 8:
+        continue
+    # 每只基金先归一化到100,再等权平均 → 消除仓位水平差异
     house = defaultdict(float)
-    nf = len(peers_hold[q])
-    for fc, hp in peers_hold[q].items():
-        for c, w in hp.items():
+    for fc, hp in active_funds.items():
+        for c, w in norm100(hp).items():
             house[c] += w / nf
-    tw = tgt[q]
+    tw = norm100(tgt[q])
     stocks_union = set(tw) | set(house)
-    div = 0.5 * sum(abs(tw.get(c, 0) - house.get(c, 0)) for c in stocks_union)
-    tot = 0.5 * (sum(tw.values()) + sum(house.values()))
-    div_pct = round(div / tot * 100, 1) if tot else None
-    # 同门平均两两分歧(他是不是最独的)
-    fcs = list(peers_hold[q])[:20]
+    div_pct = round(0.5 * sum(abs(tw.get(c, 0) - house.get(c, 0)) for c in stocks_union), 1)
+    # 同门平均两两分歧(同样归一化口径)
+    fcs = list(active_funds)[:20]
     pair = []
     for i in range(len(fcs)):
-        for j in range(i + 1, min(i + 4, len(fcs))):  # 采样,够用
-            a, b = peers_hold[q][fcs[i]], peers_hold[q][fcs[j]]
+        for j in range(i + 1, min(i + 4, len(fcs))):
+            a, b = norm100(active_funds[fcs[i]]), norm100(active_funds[fcs[j]])
             u = set(a) | set(b)
-            d = 0.5 * sum(abs(a.get(c, 0) - b.get(c, 0)) for c in u)
-            t = 0.5 * (sum(a.values()) + sum(b.values()))
-            if t:
-                pair.append(d / t * 100)
+            pair.append(0.5 * sum(abs(a.get(c, 0) - b.get(c, 0)) for c in u))
     peer_avg = round(sum(pair) / len(pair), 1) if pair else None
-    # 公司共识重仓(他持有/不持有,含他的权重)
+    tw_raw_ref = tgt[q]
+    # 公司共识重仓(他持有/不持有,含他的权重;归一化口径)
     top_house = sorted(house.items(), key=lambda kv: -kv[1])[:5]
-    # 他"独"在哪:权重差最大的两侧
+    # 他"独"在哪:权重差最大的两侧(归一化口径)
     diffs = {c: tw.get(c, 0) - house.get(c, 0) for c in stocks_union}
     only_his = sorted(((c, d) for c, d in diffs.items() if d > 0.5), key=lambda kv: -kv[1])[:4]
     not_his = sorted(((c, d) for c, d in diffs.items() if d < -0.3), key=lambda kv: kv[1])[:4]
@@ -79,10 +84,11 @@ for q in QS:
         "house_top": [{"name": names.get(c, c), "w": round(w, 2),
                        "his_w": round(tw.get(c, 0), 2), "he_holds": c in tw}
                       for c, w in top_house],
-        "only_his": [{"name": names.get(c, c), "his_w": round(tgt[q].get(c, 0), 2),
-                      "house_w": round(tgt[q].get(c, 0) - d, 2)} for c, d in only_his],
-        "not_his": [{"name": names.get(c, c), "house_w": round(-d + tgt[q].get(c, 0), 2),
-                     "his_w": round(tgt[q].get(c, 0), 2)} for c, d in not_his],
+        "n_active": nf,
+        "only_his": [{"name": names.get(c, c), "his_w": round(tw.get(c, 0), 2),
+                      "house_w": round(tw.get(c, 0) - d, 2)} for c, d in only_his],
+        "not_his": [{"name": names.get(c, c), "house_w": round(-d + tw.get(c, 0), 2),
+                     "his_w": round(tw.get(c, 0), 2)} for c, d in not_his],
     })
 
 # 逆共识验证:高/低分歧季度之后 6 个月的基金超额(vs 沪深300)
