@@ -139,6 +139,30 @@ if hs:
         lab = f"他 {t['his_w']:.1f}%" if t["he_holds"] else "他不碰"
         top_chips += f'<span class="chip {cls}">{t["name"]} · 公司 {t["w"]:.1f}% · {lab}</span>'
 
+    # 抄作业判词:保留率分档解读
+    _retain = round(ab["copy_follow"] / ab["copy_mgr"] * 100) if ab["copy_mgr"] else 0
+    _lead = round(ab["copy_mgr"] - ab["copy_follow"], 1)
+    if _retain >= 70:
+        _cv_head = f"""作业可抄 —— 他的本事在<span class="em">选什么</span>,不在什么时候买"""
+        _cv_body = f"""等季报再抄,超额还能拿 <b>{_retain}%</b> —— 买点先手一年只值 <b>{_lead} 个点</b>。
+          这与他的择时分 <b>{ab["timing_score"]}(弱项)</b>互相印证:选股是真本事,择时做T不是。
+          理论上你照季报自己抄,还省下每年 1.5% 管理费。"""
+    elif _retain >= 40:
+        _cv_head = "作业半可抄 —— 先手有价值,但不致命"
+        _cv_body = f"""等季报再抄保留 <b>{_retain}%</b> 超额,先手价值 {_lead} 个点/年。抄不抄看你嫌不嫌麻烦。"""
+    else:
+        _cv_head = "他有先手,抄不到 —— 择时是他 Alpha 的一部分"
+        _cv_body = f"""披露滞后吃掉 <b>{100-_retain}%</b> 超额,想要他的收益只能买基金。"""
+    copy_verdict = f"""
+    <div class="punchline" style="margin-top:16px;font-size:17px;padding:16px 22px;border-left-width:8px">{_cv_head}</div>
+    <p style="font-size:13.5px;color:var(--muted);margin-top:12px;line-height:1.7">{_cv_body}</p>
+    <div class="chips" style="margin-top:10px">
+      <span class="chip ok">超额保留率 {_retain}%</span>
+      <span class="chip">买点先手 {_lead} 个点/年</span>
+      <span class="chip purple">与择时分 {ab["timing_score"]} 互证</span>
+    </div>
+    <p style="font-size:11px;color:var(--ghost);margin-top:10px">诚实提醒:抄作业抄得到买单,抄不到卖点和调仓 —— 他的卖出(躲跌率 {ti["dodge_rate"]}%)恰好也是弱项,这条损失不大;但新进小票你看到季报时他已建完仓。</p>"""
+
     # 持仓最像的同门基金
     sim_rows = ""
     _sim = hs.get("similar_funds") or []
@@ -278,7 +302,7 @@ if hs:
       <div class="cc ret"><div class="who">你 · 等披露后再跟</div><div class="num">+{ab["copy_follow"]}%</div>
         <div class="sub">季报+30天 / 中年报+60天</div></div>
     </div>
-    <p style="text-align:center;font-size:16px;font-weight:900;margin-top:14px">低换手打法 · <span class="ok">季报仍有参考价值</span>(超额保留 {round(ab["copy_follow"]/ab["copy_mgr"]*100) if ab["copy_mgr"] else 0}%)</p>
+    {copy_verdict}
   </div>
 
   <!-- 持仓最像的基金:同门 + 全市场 -->
