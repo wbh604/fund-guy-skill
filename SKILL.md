@@ -73,6 +73,8 @@ Non-Consensus  +  Correct  +  Repeatable  =  独立决策 Alpha
 12. **证据不足标 U(未鉴定),不直接降为差经理。** 把"查不清"当成"能力差"是误伤。
 13. **稀有度不得改变投资评级。** SSR 只是传播标签,不能反过来提升投资判断。机构/国家队/保险资金只做事实徽章,不做能力背书。
 14. **"未发现负面"不得加分**;低置信度报告不得使用"可以买"这种绝对印章,应使用"可纳入候选/待验证"。
+15. **卖飞/躲跌只认主动清仓**。部分减仓大头还在,后面的涨跌他都有份,给他记"卖飞 +286%"是冤枉;被动减仓(触 10% 线 / 遭赎回)不是决策,同样剔除。卖点验尸样本 = 主动清仓事件,仅此一种。
+16. **每一个裸数字都必须有主语和口径**。"20 vs 12"看不懂,"手里的股票跌破成本后,32 次动作里 20 次砍掉、12 次越跌越买"才是人话。回归系数(γ/t/R²/n)只能进小字括号,正文必须先给白话结论。直观是最高理念。
 
 ## 证据窗与置信度
 
@@ -641,6 +643,17 @@ Alpha When Consensus  +1.3%
 - 公司是行业风格的引领者还是跟随者
 
 用途:区分"**经理独立**"与"**整个公司都在裸奔**"。经理相对公司独立、但公司相对市场高度抱团,那他的"独立"可能只是在一条拥挤赛道里换了个车道。
+
+### 5.10.1 今年热榜同步度(必做)
+
+拉全市场今年收益 TOP10 主动基金(东财开放式排行按"今年来",剔除指数/联接/QDII,A/C 份额去重),
+逐只对比其最新前十大与目标经理前十大的同名只数(同步度 = n/10),配进度条渲染。
+
+这条尺子回答的问题和 House/全市场偏离不同:**他的收益是不是蹭今年热点榜来的?**
+- 平均同步度 < 4/10 → "收益不是追热点追来的,想蹭排行榜热度的人别买他"
+- 平均同步度 ≥ 4/10 → "他就压在今年的主升浪上,涨得快,退潮时也一起挨打"
+
+参考实现 `scripts/fetch_top_funds.py`,产物 `.cache/fund_<code>/top_funds.json`。
 
 详见 `references/step5-independent-alpha.md`。
 
@@ -1348,6 +1361,29 @@ Playwright 截图隐藏 DOM 节点,`device_scale_factor=2`,先 `page.evaluate("d
 
 每层都要**留证**:数据落 `.cache/` 并记录来源(接口名+参数 / 页面 URL+抓取时间)。查不到出处的数字不许进报告。
 
+**经理照片**:天天基金经理档案页(`fund.eastmoney.com/manager/<id>.html`,id 从 `fundf10.eastmoney.com/jjjl_<code>.html` 反查)的 `#photo` 即官方照,存 `.cache/fund_<code>/manager_photo.png`,渲染时 base64 内嵌保持单文件可分享;拿不到就回退姓氏首字占位,不许用网络图片外链。
+
+### 一击必中接口:pingzhongdata(优先于零散接口)
+
+`https://fund.eastmoney.com/pingzhongdata/<code>.js`(带 UA+Referer,utf-8-sig 解码)一次返回十几个 `var`,
+能替代大半个第一层的零散请求。重点变量:
+
+| 变量 | 内容 | 我们用在哪 |
+|---|---|---|
+| `Data_netWorthTrend` / `Data_ACWorthTrend` | 全历史单位/累计净值(含每日涨幅) | 净值指标 |
+| `Data_buySedemption` | **每期申购/赎回/总份额** | 被动减仓判定的赎回证据,不用再从持有人数据倒推 |
+| `Data_fundSharesPositions` | 近期估算股票仓位序列 | 当前仓位快照(注意是估算值,标 derived) |
+| `Data_holderStructure` | 机构/个人/内部持有比例时序 | 持有人画像 |
+| `Data_fluctuationScale` | 每期规模+环比 | 规模曲线 |
+| `Data_currentFundManager` | 经理任期/总管理规模/星级/**照片URL**/东财五维能力分 | 经理卡 + 平台分对比 |
+| `Data_performanceEvaluation` | 天天基金五维评价(选证/收益/抗风险/稳定性/择时) | **"平台给他 X 分,我们只给 Y 分"对照** |
+| `Data_rateInSimilarType` | 同类排名走势 | 排名时序图 |
+
+平台五维分只做对照展示,不得计入我们的行为评分(别人的尺子,只能挂墙上看)。
+
+**基民情绪(可选娱乐位)**:基金吧列表页 `guba.eastmoney.com/list,<code>,2_1.html` 可读持有人帖子标题,
+做"此刻基民在骂还是在吹"的氛围卡;只做展示,不入评分。
+
 ### 第一层:公开 API —— 优先 akshare,判断仍归 agent
 
 **akshare 覆盖度够,是你的地基。** 但关键判断(历史产品回补、公告标题解析)仍要 agent 做。
@@ -1474,7 +1510,7 @@ akshare 的东财接口有限频,issues 里反复出现"连接频率多少就被
 
 | 脚本 | 定位 |
 |---|---|
-| `fetch_fund.py` / `fetch_stock_klines.py` / `fetch_house.py` | 取数参考:展示接口用法与缓存结构。接口失效时**你自己按三层模型取数**,不要修脚本修到天荒地老 |
+| `fetch_fund.py` / `fetch_stock_klines.py` / `fetch_house.py` / `fetch_pingzhong.py` / `fetch_top_funds.py` | 取数参考:展示接口用法与缓存结构。接口失效时**你自己按三层模型取数**,不要修脚本修到天荒地老 |
 | `analyze_fund.py` / `analyze_house.py` / `build_replay_data.py` | 纯计算参考:事件推断/被动减仓判定/验尸/House分歧的算法定义,输入齐了就是确定性计算,可直接复用 |
 | `build_fund_report.py` / `build_v2.py` | 渲染参考:设计系统与模块组装 |
 | `export_cards.py` | 分享卡截图 |

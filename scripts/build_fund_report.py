@@ -26,10 +26,39 @@ msim = None
 _mp = os.path.join(ROOT, ".cache", f"fund_{CODE}", "market_similar.json")
 if os.path.exists(_mp):
     msim = json.load(open(_mp))
+
+topf = None
+_tp = os.path.join(ROOT, ".cache", f"fund_{CODE}", "top_funds.json")
+if os.path.exists(_tp):
+    topf = json.load(open(_tp))
+
+# 经理照片:有就内嵌 base64(单文件可分享),没有回退首字占位
+_pp = os.path.join(ROOT, ".cache", f"fund_{CODE}", "manager_photo.png")
+if os.path.exists(_pp):
+    import base64
+    _b64 = base64.b64encode(open(_pp, "rb").read()).decode()
+    photo_html = (f'<img src="data:image/png;base64,{_b64}" alt="谢治宇" '
+                  'style="width:88px;height:110px;border-radius:10px;object-fit:cover;object-position:top;'
+                  'border:1px solid var(--line);flex-shrink:0;background:#fff">')
+else:
+    photo_html = ('<div style="width:88px;height:110px;border-radius:10px;background:linear-gradient(150deg,#252d39,#13181f);'
+                  'border:1px solid var(--line);display:flex;align-items:center;justify-content:center;'
+                  'font-size:34px;font-weight:900;color:var(--ghost);flex-shrink:0">谢</div>')
 years = A["years"]
 regimes = A["managers"]          # 新→旧
 scale = A["scale"]
 meta = A["meta"]
+
+# ---- 行业标注(agent 判断,数据源无此字段) ----
+INDUSTRY = {
+    "601012": "光伏", "300308": "AI 光模块", "600160": "氟化工", "00981": "芯片代工",
+    "600309": "化工", "688008": "内存接口芯片", "300750": "动力电池", "688120": "半导体设备",
+    "601318": "保险", "688099": "芯片设计", "002475": "消费电子", "600887": "乳制品",
+    "300413": "传媒", "02423": "房产交易平台", "600690": "家电", "09969": "创新药",
+    "00700": "互联网", "01801": "创新药", "603707": "医药", "01024": "互联网", "600703": "LED芯片",
+}
+for _s in A["replay"]["stocks"]:
+    _s["industry"] = INDUSTRY.get(_s["code"], _s.get("industry") or "")
 
 # ---- 前端 JS 适配:真实代码无 sh./sz. 前缀;灾难片系数用真实回撤 ----
 main_js = main_js.replace("s.code.split('.')[1]", "s.code.split('.').pop()")
@@ -38,6 +67,36 @@ main_js = main_js.replace("/*__RPDATA__*/{}", json.dumps(A["replay"], ensure_asc
 events_path = os.path.join(ROOT, ".cache", f"fund_{CODE}", "events.json")
 events = open(events_path).read() if os.path.exists(events_path) else "[]"
 main_js = main_js.replace("/*__RPEVENTS__*/[]", events)
+
+# ---- 平台评分对照(东财五维,仅展示不计分) ----
+platform_card = ""
+_pf = (ab.get("platform") or {}).get("mgr_power")
+if _pf and _pf.get("data"):
+    _pf_avr = float(_pf["avr"])
+    _pf_chips = ""
+    for _c, _v in zip(_pf["categories"], _pf["data"]):
+        if _c == "择时能力":
+            _pf_chips += f'<span class="chip warn">{_c} {_v:.0f} · <b>我们只给 {ab["timing_score"]}</b></span>'
+        else:
+            _pf_chips += f'<span class="chip">{_c} {_v:.0f}</span>'
+    platform_card = f"""
+  <div class="card" style="margin-top:var(--gap)">
+    <span class="lbl">别人家的评分 · 天天基金怎么打</span>
+    <div style="display:grid;grid-template-columns:1fr auto 1fr;gap:18px;align-items:center;margin-top:12px">
+      <div style="text-align:center">
+        <div style="font-size:40px;font-weight:900;color:var(--muted)">{_pf_avr:.0f}</div>
+        <div style="font-size:12px;color:var(--ghost)">平台评分 · 看净值曲线和从业年头</div>
+      </div>
+      <div style="font-size:14px;font-weight:900;color:var(--ghost)">VS</div>
+      <div style="text-align:center">
+        <div style="font-size:40px;font-weight:900;color:var(--acc,var(--indep))">{ab["total_score"]}</div>
+        <div style="font-size:12px;color:var(--ghost)">我们的行为评分 · 逐笔验他的买卖</div>
+      </div>
+    </div>
+    <div class="chips" style="margin-top:12px;justify-content:center;display:flex;flex-wrap:wrap">{_pf_chips}</div>
+    <p style="text-align:center;font-size:15px;font-weight:800;margin-top:12px">
+      差的这 {_pf_avr - ab["total_score"]:.0f} 分,主要差在一件事:<span class="danger">平台没看他"什么时候卖"</span> —— 我们看了,{ti["n_sell"]} 次清仓只有 {ti["dodge_rate"]}% 卖对。</p>
+  </div>"""
 
 # ---- 计算显示量 ----
 wins = sum(1 for y in years if y["win"])
@@ -163,6 +222,69 @@ if hs:
     </div>
     <p style="font-size:11px;color:var(--ghost);margin-top:10px">诚实提醒:抄作业抄得到买单,抄不到卖点和调仓 —— 他的卖出(躲跌率 {ti["dodge_rate"]}%)恰好也是弱项,这条损失不大;但新进小票你看到季报时他已建完仓。</p>"""
 
+    # 现在的牌面:前十大按行业归堆(行业标注为 agent 判断)
+    THEME = {"芯片代工": "芯片 & AI 算力", "AI 光模块": "芯片 & AI 算力", "芯片设计": "芯片 & AI 算力",
+             "半导体设备": "芯片 & AI 算力", "内存接口芯片": "芯片 & AI 算力", "LED芯片": "芯片 & AI 算力",
+             "创新药": "创新药", "医药": "创新药", "氟化工": "化工", "化工": "化工"}
+    _cur = [s for s in A["replay"]["stocks"] if s.get("cur_w")]
+    _themes = {}
+    for s in _cur:
+        t = THEME.get(s["industry"], s["industry"])
+        _themes.setdefault(t, {"w": 0.0, "names": []})
+        _themes[t]["w"] += s["cur_w"]
+        _themes[t]["names"].append(s["name"])
+    _themes = sorted(_themes.items(), key=lambda kv: -kv[1]["w"])
+    _top10_w = sum(s["cur_w"] for s in _cur)
+    _tmax = _themes[0][1]["w"]
+    theme_rows = ""
+    for tname, tv in _themes:
+        chips = "".join(f'<span class="rgrade" style="padding:2px 8px;font-size:10.5px">{n}</span>' for n in tv["names"])
+        theme_rows += f"""<div style="display:grid;grid-template-columns:minmax(120px,.9fr) 1.1fr 1fr 58px;gap:12px;align-items:center;padding:9px 0;border-bottom:1px dashed var(--line);font-size:13px">
+          <b>{tname}</b>
+          <div style="display:flex;gap:4px;flex-wrap:wrap">{chips}</div>
+          <div class="bar-track" style="height:12px"><div class="bar-fill" data-w="{tv['w']/_tmax*100:.0f}" style="background:var(--indep)"></div></div>
+          <span class="v indep" style="text-align:right">{tv['w']:.1f}%</span>
+        </div>"""
+    _tech_w = sum(v["w"] for k, v in _themes if k in ("芯片 & AI 算力", "消费电子"))
+    theme_card = f"""
+  <div class="card" style="margin-top:var(--gap)">
+    <span class="lbl">他现在的牌面 · 前十大重仓按行业归堆</span>
+    <div style="margin-top:12px">{theme_rows}</div>
+    <p style="text-align:center;font-size:17px;font-weight:900;margin-top:14px">
+      押注很明确:<span class="indep">科技硬件(芯片算力+消费电子)占了 {_tech_w:.0f}%</span>,创新药 {dict(_themes).get("创新药", {"w": 0})["w"]:.0f}% 是第二主线 —— 典型科技成长打法,涨跌会跟半导体周期共振</p>
+    <p style="font-size:11px;color:var(--ghost);margin-top:6px">前十大合计 {_top10_w:.1f}%,其余仓位季报不披露 · 行业归类为分析判断,非官方口径</p>
+  </div>"""
+
+    # 今年最猛 TOP10 vs 他:持仓同步度
+    top_card = ""
+    if topf and topf.get("funds"):
+        _tf = topf["funds"]
+        _avg = sum(x["n_shared"] for x in _tf) / len(_tf)
+        top_rows = ""
+        for i, x in enumerate(_tf):
+            chips = "".join(f'<span class="rgrade" style="padding:2px 8px;font-size:10.5px">{n}</span>' for n in x["shared"]) or '<span style="color:var(--ghost);font-size:11px">零重合</span>'
+            top_rows += f"""<div style="display:grid;grid-template-columns:24px minmax(170px,1.3fr) 86px 1fr .9fr 52px;gap:10px;align-items:center;padding:8px 0;border-bottom:1px dashed var(--line);font-size:12.5px">
+              <span style="color:var(--ghost);font-weight:900">{i+1:02d}</span>
+              <div><b>{x['name']}</b><br><span style="color:var(--ghost);font-size:11px">{x['code']}</span></div>
+              <span class="v warn" style="font-size:13px">+{x['ytd']:.0f}%</span>
+              <div style="display:flex;gap:4px;flex-wrap:wrap">{chips}</div>
+              <div class="bar-track" style="height:10px"><div class="bar-fill" data-w="{x['n_shared']*10}" style="background:var(--warn)"></div></div>
+              <span class="v warn" style="text-align:right">{x['n_shared']}/10</span>
+            </div>"""
+        if _avg >= 4:
+            top_verdict = (f"今年最猛的 10 只基金,平均跟他撞 {_avg:.1f}/10 只重仓 —— "
+                           "<span class='warn'>他就压在今年的主升浪上</span>,涨得快,退潮时也一起挨打")
+        else:
+            top_verdict = (f"今年最猛的 10 只基金,平均只跟他撞 {_avg:.1f}/10 只重仓 —— "
+                           "<span class='warn'>他的收益不是追今年热点榜追来的</span>,想蹭排行榜热度的人别买他")
+        top_card = f"""
+  <div class="card" style="margin-top:var(--gap);border-color:var(--warn)">
+    <span class="lbl" style="color:var(--warn)">今年全市场最猛的 10 只 · 跟他的持仓同步度</span>
+    <p style="font-size:11px;color:var(--ghost);margin-top:4px">开放式基金今年收益榜(截至 {topf["asof"]}) · 已剔除指数/联接/QDII与重复份额 · 同步度 = 对方最新前十大与他前十大同名只数</p>
+    <div style="margin-top:10px">{top_rows}</div>
+    <p style="text-align:center;font-size:16px;font-weight:900;margin-top:14px">{top_verdict}</p>
+  </div>"""
+
     # 持仓最像的同门基金
     sim_rows = ""
     _sim = hs.get("similar_funds") or []
@@ -177,16 +299,18 @@ if hs:
           <span class="v indep" style="text-align:right">{x['overlap']:.0f}%</span>
         </div>"""
 
-    # 全市场撞车榜
+    # 全市场撞车榜(与同门榜同款:进度条 + 重复率)
     mkt_sim_rows = ""
     if msim and msim.get("funds"):
         _nmax = msim["n_stocks_checked"]
         for x in msim["funds"][:8]:
+            rate = x["n"] / _nmax * 100
             chips = "".join(f'<span class="rgrade" style="padding:2px 8px;font-size:10.5px">{n}</span>' for n in x["stocks"][:4])
-            mkt_sim_rows += f"""<div style="display:grid;grid-template-columns:minmax(130px,1.2fr) 64px 1fr;gap:10px;align-items:center;padding:8px 0;border-bottom:1px dashed var(--line);font-size:12.5px">
-              <b>{x['fund']}</b>
-              <span class="v cyan" style="font-size:13px">{x['n']}/{_nmax} 只</span>
+            mkt_sim_rows += f"""<div style="display:grid;grid-template-columns:minmax(130px,1.2fr) 90px 1fr 58px;gap:10px;align-items:center;padding:8px 0;border-bottom:1px dashed var(--line);font-size:12.5px">
+              <div><b>{x['fund']}</b><br><span style="color:var(--ghost);font-size:11px">撞了 {x['n']}/{_nmax} 只重仓</span></div>
               <div style="display:flex;gap:4px;flex-wrap:wrap">{chips}</div>
+              <div class="bar-track" style="height:10px"><div class="bar-fill" data-w="{rate:.0f}" style="background:var(--cyan)"></div></div>
+              <span class="v cyan" style="text-align:right">{rate:.0f}%</span>
             </div>"""
     else:
         mkt_sim_rows = '<p style="font-size:12px;color:var(--muted)">全市场反查未运行</p>'
@@ -281,14 +405,14 @@ if hs:
     <div class="card">
       <span class="lbl">关键检验:不一样的时候,赚钱了吗?</span>
       <div class="duo" style="margin-top:12px">
-        <div class="side" style="border-color:var(--indep)"><div class="k">分歧最高的季度 · 随后6个月超额</div><div class="n indep">{"%+.1f%%" % ct["high_div_fwd6"]}</div></div>
+        <div class="side" style="border-color:var(--indep)"><div class="k">最不像公司的那些季度<br>随后 6 个月跑赢大盘</div><div class="n indep">{"%+.1f%%" % ct["high_div_fwd6"]}</div></div>
         <div class="vs2">VS</div>
-        <div class="side" style="border-color:var(--ok)"><div class="k">分歧最低的季度</div><div class="n ok">{"%+.1f%%" % ct["low_div_fwd6"]}</div></div>
+        <div class="side" style="border-color:var(--ok)"><div class="k">最像公司的那些季度<br>随后 6 个月跑赢大盘</div><div class="n ok">{"%+.1f%%" % ct["low_div_fwd6"]}</div></div>
       </div>
       <div class="punchline" style="margin-top:16px;font-size:16px;padding:16px 20px;border-left-width:8px">
         {"他的超额恰恰来自最独的时候 —— 独立判断值钱。" if ct["high_div_fwd6"]>ct["low_div_fwd6"] else "分歧没带来超额 —— 他的 Alpha 来自<span class='em'>选股深度</span>,不是跟公司唱反调。买他 ≠ 买一个逆行者。"}
       </div>
-      <p style="font-size:11px;color:var(--ghost);margin-top:10px">口径:{ct["n"]} 个季度按分歧度分半,对比随后 6 个月相对沪深300 超额</p>
+      <p style="font-size:11px;color:var(--ghost);margin-top:10px">算法:{ct["n"]} 个季度按"像不像公司"分成两半,各自看随后 6 个月跑赢沪深300 多少</p>
     </div>
   </div>
 
@@ -297,13 +421,15 @@ if hs:
     <span class="lbl">抄作业指数 · 他建仓 vs 你等季报</span>
     <div class="copy3">
       <div class="cc mgr"><div class="who">他 · 季末建仓时点</div><div class="num">+{ab["copy_mgr"]}%</div>
-        <div class="sub">买点后 12 个月超额(n={ab["copy_n"]})</div></div>
+        <div class="sub">{ab["copy_n"]} 次买入取平均 · 买后 12 个月跑赢大盘的幅度</div></div>
       <div class="copy-arrow"><div class="dn">⇩</div><div class="pct">-{round((1-ab["copy_follow"]/ab["copy_mgr"])*100) if ab["copy_mgr"] else 0}%</div></div>
       <div class="cc ret"><div class="who">你 · 等披露后再跟</div><div class="num">+{ab["copy_follow"]}%</div>
         <div class="sub">季报+30天 / 中年报+60天</div></div>
     </div>
     {copy_verdict}
   </div>
+
+  {theme_card}
 
   <!-- 持仓最像的基金:同门 + 全市场 -->
   <div class="grid g2" style="margin-top:var(--gap)">
@@ -317,6 +443,8 @@ if hs:
       <div style="margin-top:10px">{mkt_sim_rows}</div>
     </div>
   </div>
+
+  {top_card}
   <div class="alert info" style="margin-top:14px;display:flex;gap:10px;padding:14px 16px;border-radius:8px;background:var(--indep-tint);border:1px solid var(--indep);font-size:13px">
     <span>💬</span><span><b>想深挖哪只?直接说「分析 睿远成长价值」或任何一只</b>,同一套流程(买卖复盘/择时控制/独立战争)再跑一遍。
     重合度高 ≠ 一样好 —— 抄作业的人未必有他的买点。</span>
@@ -367,9 +495,7 @@ html = f'''<!DOCTYPE html>
     <div class="card">
       <span class="lbl">受检对象</span>
       <div style="display:flex;align-items:center;gap:20px;margin-top:10px">
-        <div style="width:88px;height:110px;border-radius:10px;background:linear-gradient(150deg,#252d39,#13181f);
-          border:1px solid var(--line);display:flex;align-items:center;justify-content:center;
-          font-size:34px;font-weight:900;color:var(--ghost);flex-shrink:0">谢</div>
+        {photo_html}
         <div style="flex:1;min-width:0">
           <h1 style="font-size:44px;font-weight:900;letter-spacing:-.02em">谢治宇</h1>
           <p style="font-size:14px;color:var(--muted);margin-top:4px">{meta.get("基金名称","兴全合宜混合(LOF)A")} · {CODE} · 贯穿管理 8 年半</p>
@@ -407,7 +533,7 @@ html = f'''<!DOCTYPE html>
           <div class="bar-track" style="height:9px"><div class="bar-fill" data-w="{ab["quality_score"]}"></div></div>
           <span class="v" style="font-size:12.5px">{ab["quality_score"]}</span></div>
       </div>
-      <div style="font-size:11px;color:var(--ghost);margin-top:8px">择时35% + 控制35% + 超额质量30%(信息比率) · 规则可复算</div>
+      <div style="font-size:11px;color:var(--ghost);margin-top:8px">择时35% + 控制35% + 超额质量30%(赚得稳不稳) · 每一分都有规则,可复算</div>
     </div>
 
     <div class="card" style="display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px">
@@ -417,6 +543,8 @@ html = f'''<!DOCTYPE html>
       <div style="font-size:17px;font-weight:900">中等 · 证据还差 2 块</div>
     </div>
   </div>
+
+  {platform_card}
 
   <div class="punchline" style="margin-top:24px">
     2021 年 2 月买在山顶的人,等了 <span class="em">{m["underwater_days"]} 天</span>才回本 ——
@@ -541,26 +669,26 @@ html = f'''<!DOCTYPE html>
     </div>
   </div>
 
-  <!-- 买卖点验尸:59买 + 49卖 全部拿12个月后的走势验 -->
+  <!-- 买卖点验尸:全部拿12个月后的走势验(卖出只认主动清仓) -->
   <div class="card" style="margin-top:var(--gap);border-color:var(--indep);background:var(--indep-tint)">
-    <span class="lbl" style="color:var(--indep)">买卖点验尸 · {ti["n_buy"]+ti["n_sell"]} 个动作全部拿 12 个月后的走势验</span>
+    <span class="lbl" style="color:var(--indep)">买卖点验尸 · {ti["n_buy"]} 次买入 + {ti["n_sell"]} 次清仓,全部拿 12 个月后的走势验</span>
     <div style="margin-top:16px">
-      <div class="bar-row" style="grid-template-columns:150px 1fr 56px">
-        <span class="k">买点胜率(超额口径)</span>
+      <div class="bar-row" style="grid-template-columns:170px 1fr 56px">
+        <span class="k">买点胜率 · 跑赢大盘算赢</span>
         <div class="bar-track"><div class="bar-fill ok" data-w="{ti["buy_win_rate"]}"></div></div>
         <span class="v ok">{ti["buy_win_rate"]}%</span></div>
-      <div class="bar-row" style="grid-template-columns:150px 1fr 56px">
-        <span class="k">卖点躲跌率(仅主动)</span>
+      <div class="bar-row" style="grid-template-columns:170px 1fr 56px">
+        <span class="k">清仓躲跌率 · 卖光后真跌了算对</span>
         <div class="bar-track"><div class="bar-fill warn" data-w="{ti["dodge_rate"]}"></div></div>
         <span class="v warn">{ti["dodge_rate"]}%</span></div>
     </div>
     <div class="chips" style="margin-top:12px">
+      <span class="chip">部分减仓不算卖飞(大头还在,后面涨跌他都有份)</span>
       <span class="chip">被动减仓已剔除 <b>{ab["passive_cap"]+ab["passive_redeem"]} 次</b>(触10%线 {ab["passive_cap"]} · 遭赎回 {ab["passive_redeem"]})</span>
-      <span class="chip purple">被动卖出不是决策 · 不计入择时评分</span>
     </div>
     <p style="text-align:center;font-size:19px;font-weight:900;margin-top:14px">
       会买(买后 12 个月平均超额 <span class="ok">+{ti["buy_avg_excess"]}%</span>) ·
-      <span class="danger">不会卖</span>(卖掉的 12 个月平均又涨 <span class="danger">+{ti["sell_avg_fwd"]}%</span>)</p>
+      <span class="danger">不会卖</span>(清仓的股票 12 个月平均又涨 <span class="danger">+{ti["sell_avg_fwd"]}%</span>)</p>
   </div>
 
   <div class="grid g2" style="margin-top:var(--gap)">
@@ -577,7 +705,7 @@ html = f'''<!DOCTYPE html>
       </div>
     </div>
     <div class="card">
-      <span class="lbl">最好与最差的卖点</span>
+      <span class="lbl">最好与最差的清仓 · 只看卖光离场的</span>
       <div class="grid g2" style="margin-top:14px;gap:10px">
         <div class="stat" style="border-color:var(--ok)"><span class="lbl">🏆 {ti["best_sell"]["name"]} · {ti["best_sell"]["label"]} {ti["best_sell"]["q"]}</span>
           <span class="v ok" style="font-size:26px">躲过 {ti["best_sell"]["fwd"]}%</span><span class="sub">卖后 12 个月它跌了这么多</span></div>
@@ -585,7 +713,7 @@ html = f'''<!DOCTYPE html>
           <span class="v danger" style="font-size:26px">卖飞 +{ti["worst_sell"]["fwd"]}%</span><span class="sub">卖后 12 个月它又涨了这么多</span></div>
       </div>
       <div class="chips" style="margin-top:12px">
-        <span class="chip no">卖出动作 {ti["n_sell"]} 次 · 只有 {ti["dodge_rate"]}% 躲过了下跌</span>
+        <span class="chip no">主动清仓 {ti["n_sell"]} 次 · 只有 {ti["dodge_rate"]}% 卖在了下跌前</span>
       </div>
     </div>
   </div>
@@ -603,21 +731,22 @@ html = f'''<!DOCTYPE html>
       </div>
     </div>
     <div class="card">
-      <span class="lbl">浮亏时他干什么 + 净值层择时</span>
+      <span class="lbl">股票被套的时候,他干什么</span>
+      <p style="font-size:12px;color:var(--muted);margin-top:8px">手里的股票跌破他的买入成本后,他一共做过 <b>{ab["loss_cut"] + ab["loss_add"]}</b> 次动作 ——</p>
       <div class="exits" style="margin-top:8px">
-        <div class="ex"><div class="n ok">{ab["loss_cut"]}</div><div class="k">止损砍仓</div></div>
+        <div class="ex"><div class="n ok">{ab["loss_cut"]} 次</div><div class="k">认错砍掉</div></div>
         <div style="font-size:13px;color:var(--ghost);font-weight:900">VS</div>
-        <div class="ex"><div class="n warn">{ab["loss_add"]}</div><div class="k">越跌越买</div></div>
+        <div class="ex"><div class="n warn">{ab["loss_add"]} 次</div><div class="k">越跌越买</div></div>
       </div>
       <div class="chips" style="margin-top:14px;justify-content:center;display:flex">
         <span class="chip ok">偏纪律型 · 不死扛</span>
       </div>
       <div style="margin-top:16px;padding-top:14px;border-top:1px solid var(--line)">
         <div class="chips">
-          <span class="chip purple">TM 择时回归 γ = <b>+{ab["tm_gamma"]}</b>(t={ab["tm_t"]},显著)</span>
-          <span class="chip">仓位调向 {ab["pos_moves"]} 次 · 对 {ab["pos_same_dir"]} 次</span>
+          <span class="chip purple">整只基金的加减仓时机:<b>对的</b>,统计上不是运气</span>
+          <span class="chip">大幅调整仓位 {ab["pos_moves"]} 次 · 方向踩对 {ab["pos_same_dir"]} 次</span>
         </div>
-        <p style="font-size:11px;color:var(--ghost);margin-top:10px">净值层面存在统计显著的正择时;个股层面的短板集中在"卖出"这一个动作上。</p>
+        <p style="font-size:11px;color:var(--ghost);margin-top:10px">整体仓位该多该少,他把握得不错;真正的短板是单只股票"什么时候卖"。<span style="opacity:.6">(择时回归 γ=+{ab["tm_gamma"]},t={ab["tm_t"]})</span></p>
       </div>
     </div>
   </div>
@@ -727,7 +856,7 @@ html = f'''<!DOCTYPE html>
   <!-- 多因子拆解 + 机构画像 + 到手率 -->
   <div class="grid g2" style="margin-top:var(--gap)">
     <div class="card">
-      <span class="lbl">多因子运气拆解 · 月度收益回归 4 因子(n={ab["factor"]["n"]})</span>
+      <span class="lbl">运气拆解 · 把 {ab["factor"]["n"]} 个月的收益拆给市场和风格,剩下的才是他的本事</span>
       <div class="grid g2" style="margin-top:14px;gap:10px">
         <div class="stat hl"><span class="lbl">剥掉风格后年化 Alpha</span><span class="v ok" style="font-size:26px">+{ab["factor"]["alpha_ann"]}%</span><span class="sub">市场+大小盘+成长价值都剥掉</span></div>
         <div class="stat"><span class="lbl">R²</span><span class="v" style="font-size:26px">{ab["factor"]["r2"]}</span><span class="sub">风格解释八成,两成靠选股</span></div>
@@ -738,7 +867,7 @@ html = f'''<!DOCTYPE html>
         <span class="chip">小盘暴露 <b>{ab["factor"]["b_size10"]:+.2f}</b></span>
         <span class="chip purple">成长暴露 <b>{ab["factor"]["b_growth"]:+.2f}</b></span>
       </div>
-      <p style="font-size:11px;color:var(--ghost);margin-top:10px">成长暴露显著为正,大盘为主 —— 风格箱「大盘成长」由回归证实,Alpha 不是风格红利。</p>
+      <p style="font-size:11px;color:var(--ghost);margin-top:10px">数据坐实他是「大盘成长」风格 —— 但把这个风格白送的收益全部扣掉之后,他依然每年多赚 {ab["factor"]["alpha_ann"]}%,这才是真本事。</p>
     </div>
     <div class="card">
       <span class="lbl">谁在持有这只基金(真实持有人结构)</span>
@@ -842,10 +971,28 @@ html = f'''<!DOCTYPE html>
     </div>
   </div>
 
+  <div class="card" style="margin-top:var(--gap)">
+    <span class="lbl">数据来源 · 每个数字都有出处</span>
+    <table style="margin-top:12px;font-size:12px">
+      <tr><th style="width:280px">数据</th><th>来源</th></tr>
+      <tr><td>净值 / 规模 / 申购赎回 / 持有人结构 / 经理档案与照片 / 平台五维评分</td><td>天天基金(东方财富) fund.eastmoney.com · pingzhongdata / F10 / 经理档案页</td></tr>
+      <tr><td>逐季持仓 / 基金收益排行(今年 TOP10)</td><td>东方财富,经 akshare 接口(fund_portfolio_hold_em / fund_open_fund_rank_em)</td></tr>
+      <tr><td>全市场基金持仓横截面(市场共识 / 拥挤度)</td><td>巨潮资讯,经 akshare(fund_report_stock_cninfo)</td></tr>
+      <tr><td>重仓股的基金持有人反查(全市场撞车榜)</td><td>东方财富数据中心(RPT_MAINDATA_MAIN_POSITIONDETAILS)</td></tr>
+      <tr><td>A 股周 K 线(前复权)</td><td>baostock</td></tr>
+      <tr><td>港股周 K 线</td><td>新浪财经,经 akshare(stock_hk_daily)</td></tr>
+      <tr><td>指数行情(沪深300 / 中证500 / 成长价值风格)</td><td>akshare 指数接口</td></tr>
+      <tr><td>同门基金持仓(独立战争对照组)</td><td>东方财富 F10,逐只抓取(剔除自管与债性产品)</td></tr>
+      <tr><td>K 线图表库</td><td>TradingView Lightweight Charts(Apache-2.0,已内嵌)</td></tr>
+      <tr><td>行业归类 / 事件核实 / 判词 / 造神检测</td><td>分析判断(agent),非官方口径,依据均为公开资料</td></tr>
+    </table>
+    <p style="font-size:11px;color:var(--ghost);margin-top:10px">
+      原始数据均缓存于本地 <code>.cache/</code> 留证,记录接口名+参数与抓取时间 · 买卖点为季报持股数变化推断,非实际成交记录 · 平台评分仅作对照展示,不计入行为评分</p>
+  </div>
+
   <div class="foot">
     <b style="color:var(--muted)">基金经理照妖镜 · 真实公开数据运行</b><br>
-    数据来源:天天基金/雪球/巨潮公开披露(akshare) · 行情 baostock/新浪 · 买卖点为季报持股数推断,非实际成交<br>
-    非个性化投资建议 · 基金过往业绩不预示未来表现 · 判决有效期至下一期持仓披露
+    数据截至 2026-08-10 · 非个性化投资建议 · 基金过往业绩不预示未来表现 · 判决有效期至下一期持仓披露
   </div>
 </section>
 

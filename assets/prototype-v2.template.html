@@ -1167,7 +1167,7 @@ const RPDATA = /*__RPDATA__*/{};
 const RP_CATS = {
   win : {label:'赚最多',   pick:s=>s.amount>0,        sort:(a,b)=>b.amount-a.amount,       amt:s=>fmtY(s.amount)},
   lose: {label:'亏最多',   pick:s=>s.amount<0,        sort:(a,b)=>a.amount-b.amount,       amt:s=>fmtY(s.amount)},
-  fly : {label:'卖飞现场', pick:s=>s.sellfly_pct>=5,  sort:(a,b)=>b.sellfly_pct-a.sellfly_pct, amt:s=>'卖后 +'+s.sellfly_pct+'%'},
+  fly : {label:'卖飞现场', pick:s=>s.sellfly_pct>=5,  sort:(a,b)=>b.sellfly_pct-a.sellfly_pct, amt:s=>'清仓后 +'+s.sellfly_pct+'%'},
   now : {label:'当前持仓', pick:s=>s.cur_w,           sort:(a,b)=>b.cur_w-a.cur_w,
          amt:s=>s.cur_pnl==null?'—':((s.cur_pnl>=0?'+':'')+s.cur_pnl+'%')}
 };
@@ -1199,7 +1199,7 @@ function rpDetail(s, rank){
   document.getElementById('rpName').textContent = s.name;
   document.getElementById('rpCode').textContent = s.code.split('.')[1] + ' · ' + s.industry + ' · 仓位 ' + s.weight + '%';
   const amtEl = document.getElementById('rpAmt');
-  if(rpCat==='fly'){ amtEl.textContent = '卖后又涨 ' + s.sellfly_pct + '%'; amtEl.className = 'rp-amt dn'; }
+  if(rpCat==='fly'){ amtEl.textContent = '清仓后又涨 ' + s.sellfly_pct + '%'; amtEl.className = 'rp-amt dn'; }
   else if(rpCat==='now'){ amtEl.textContent = '浮盈 ' + (s.cur_pnl>=0?'+':'') + s.cur_pnl + '%';
     amtEl.className = 'rp-amt ' + (s.cur_pnl>=0?'up':'dn'); }
   else { amtEl.textContent = fmtY(s.amount); amtEl.className = 'rp-amt ' + (s.amount>0?'up':'dn'); }

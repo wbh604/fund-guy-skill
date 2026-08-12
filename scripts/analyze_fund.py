@@ -87,6 +87,21 @@ for q in ALL_Q:
     if tot_w > 5 and u:
         fund_shares[q] = (tot_mv / tot_w * 100 / 10000) / u
 
+# pingzhongdata 有真实披露的总份额(通常只覆盖最近几期),有则覆盖估算值
+pingzhong = {}
+_pz = os.path.join(DIR, "pingzhongdata.json")
+if os.path.exists(_pz):
+    pingzhong = json.load(open(_pz))
+    bs = pingzhong.get("Data_buySedemption") or {}
+    _tot = next((s["data"] for s in bs.get("series", []) if s["name"] == "总份额"), [])
+    _d2q = {qend(q): q for q in ALL_Q}
+    n_real = 0
+    for d, v in zip(bs.get("categories", []), _tot):
+        if d in _d2q and v:
+            fund_shares[_d2q[d]] = v
+            n_real += 1
+    print(f"份额:真实披露覆盖 {n_real} 期,其余 {len(fund_shares)-n_real} 期用前十大市值估算")
+
 # ---------- 每只股票:事件 + 盈亏 + 成本/卖出线 ----------
 stocks_out = []
 for code in klines:
@@ -399,7 +414,8 @@ for st in stocks_out:
                "excess": round(excess * 100, 1) if excess is not None else None}
         if p["act"] == "buy":
             buy_calls.append(rec)
-        else:
+        elif p["label"] == "清仓":
+            # 只有清仓才是完整的卖出决策;部分减仓大头还在,涨跌他都有份,不算卖飞样本
             sell_calls.append(rec)
 
 buy_wins = [c for c in buy_calls if c["excess"] is not None and c["excess"] > 0]
@@ -631,6 +647,11 @@ ability = {
     "bear_defense": bear_defense, "worst10_excess": worst10_excess,
     "loss_add": addl, "loss_cut": cutl,
     "passive_cap": n_passive["cap"], "passive_redeem": n_passive["redeem"],
+    "redeem_series": pingzhong.get("Data_buySedemption"),
+    "platform": {
+        "mgr_power": ((pingzhong.get("Data_currentFundManager") or [{}])[0].get("power")),
+        "fund_eval": pingzhong.get("Data_performanceEvaluation"),
+    },
     "copy_mgr": copy_mgr, "copy_follow": copy_follow, "copy_n": copy_n,
     "mwr": mwr, "twr": twr,
     "inst_series": inst_series,
