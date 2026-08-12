@@ -81,11 +81,15 @@ git clone https://github.com/wbh604/fund-guy-skill.git && pip install -r fund-gu
 
 > 克隆 https://github.com/wbh604/fund-guy-skill ，运行 `pip install -r requirements.txt`，然后执行 `python run.py 163417 --no-browser` 分析兴全合宜。跑完把报告路径给我。
 
-### Cursor / Windsurf / Devin / 其他 Agent
+### Cursor
 
-丢这段话进去：
+克隆后直接用 Cursor 打开仓库目录 —— `.cursor/skills/` 里的项目技能自动被发现，然后说「分析基金 163417」即可。或者丢这段话进去：
 
 > 克隆 https://github.com/wbh604/fund-guy-skill ，装依赖 `pip install -r requirements.txt`，然后读 `skills/fund-manager-alpha/SKILL.md` 按流程分析基金 163417，参考脚本在 `scripts/` 下。
+
+### Windsurf / Devin / 其他 Agent
+
+仓库根目录带 `AGENTS.md`（通用 agent 指南）和 `.agents/skills/`（Codex 项目技能），多数 agent 打开即识别；不识别的直接丢上面那段话。
 
 ### 纯命令行
 

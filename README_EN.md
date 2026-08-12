@@ -81,11 +81,15 @@ Drop this on Codex:
 
 > Clone https://github.com/wbh604/fund-guy-skill , run `pip install -r requirements.txt`, then run `python run.py 163417 --no-browser` to analyze the fund. Give me the report path when done.
 
-### Cursor / Windsurf / Devin / other agents
+### Cursor
 
-Drop this in:
+Clone and open the repo folder in Cursor — the project skill under `.cursor/skills/` is auto-discovered; just say "analyze fund 163417". Or drop this in:
 
 > Clone https://github.com/wbh604/fund-guy-skill , install deps with `pip install -r requirements.txt`, then read `skills/fund-manager-alpha/SKILL.md` and analyze fund 163417 following its workflow. Reference scripts are under `scripts/`.
+
+### Windsurf / Devin / other agents
+
+The repo root ships `AGENTS.md` (a universal agent guide) and `.agents/skills/` (Codex project skill), which most agents pick up on open; if yours doesn't, drop in the paragraph above.
 
 ### Plain CLI
 
