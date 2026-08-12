@@ -14,6 +14,8 @@
 
 [在线示例](https://wbh604.github.io/fund-guy-skill/assets/fund-163417.html) · [这是啥](#这是啥) · [报告长什么样](#-报告长什么样) · [快速开始](#快速开始) · [方法论铁律](#方法论铁律) · [数据来源](#数据来源)
 
+**中文** | [English](README_EN.md)
+
 </div>
 
 ---
