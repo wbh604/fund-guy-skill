@@ -1,10 +1,10 @@
-# 基金经理照妖镜
+# 基佬skills
 
 > 用真实公开数据，把一个基金经理的每一笔买卖翻出来验 —— **评的是行为，不是净值。**
 
 这是一个 Agent Skill（配套参考实现管线），产出一份单文件、可直接分享的 HTML 深度报告。
 
-**在线示例**：兴全合宜（163417）· 谢治宇 → [wbh604.github.io/fund-manager-xray/assets/fund-163417.html](https://wbh604.github.io/fund-manager-xray/assets/fund-163417.html)（也可下载 [`assets/fund-163417.html`](assets/fund-163417.html) 离线打开）。
+**在线示例**：兴全合宜（163417）· 谢治宇 → [wbh604.github.io/jilao-skills/assets/fund-163417.html](https://wbh604.github.io/jilao-skills/assets/fund-163417.html)（也可下载 [`assets/fund-163417.html`](assets/fund-163417.html) 离线打开）。
 
 ![报告首页](docs/screenshots/v2-hero-dark.png)
 

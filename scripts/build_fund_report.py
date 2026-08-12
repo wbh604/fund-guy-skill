@@ -459,7 +459,7 @@ html = f'''<!DOCTYPE html>
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>基金经理照妖镜 · 谢治宇 · 兴全合宜(真实数据)</title>
+<title>基佬skills · 谢治宇 · 兴全合宜(真实数据)</title>
 <style>{css}</style>
 </head>
 <body>
@@ -470,7 +470,7 @@ html = f'''<!DOCTYPE html>
 
 <div class="topbar">
   <span class="brand-dot"></span>
-  <span class="brand-txt">基金经理照妖镜</span>
+  <span class="brand-txt">基佬skills</span>
   <span class="date">数据截至 {m["until"]} · 全部来自公开披露</span>
 </div>
 
@@ -991,7 +991,7 @@ html = f'''<!DOCTYPE html>
   </div>
 
   <div class="foot">
-    <b style="color:var(--muted)">基金经理照妖镜 · 真实公开数据运行</b><br>
+    <b style="color:var(--muted)">基佬skills · 真实公开数据运行</b><br>
     数据截至 2026-08-10 · 非个性化投资建议 · 基金过往业绩不预示未来表现 · 判决有效期至下一期持仓披露
   </div>
 </section>
