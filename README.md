@@ -1,6 +1,6 @@
 <div align="center">
 
-# 基佬skills
+# Fund Guy Skill · 基佬skill
 
 *"平台给他打 84 分，我们把他每一笔买卖翻出来验，只给 62。"*
 
@@ -12,7 +12,7 @@
 
 基金经理深度行为审计引擎 · **评的是行为，不是净值**
 
-[在线示例](https://wbh604.github.io/jilao-skills/assets/fund-163417.html) · [这是啥](#这是啥) · [报告长什么样](#-报告长什么样) · [快速开始](#快速开始) · [方法论铁律](#方法论铁律) · [数据来源](#数据来源)
+[在线示例](https://wbh604.github.io/fund-guy-skill/assets/fund-163417.html) · [这是啥](#这是啥) · [报告长什么样](#-报告长什么样) · [快速开始](#快速开始) · [方法论铁律](#方法论铁律) · [数据来源](#数据来源)
 
 </div>
 
@@ -22,7 +22,7 @@
 
 一句话：输入一个基金代码，Agent 把基金经理 8 年的每一笔买卖翻出来，拿 12 个月后的真实走势逐笔验对错，最后吐出一份 700KB 的单文件交互报告——K 线战役回放、买卖点验尸、独立性审判、造神检测，全都有。
 
-**在线示例**：兴全合宜（163417）· 谢治宇 → [点开直接看](https://wbh604.github.io/jilao-skills/assets/fund-163417.html)（自包含 HTML，下载后离线也能打开）
+**在线示例**：兴全合宜（163417）· 谢治宇 → [点开直接看](https://wbh604.github.io/fund-guy-skill/assets/fund-163417.html)（自包含 HTML，下载后离线也能打开）
 
 ## 为什么做这个
 
@@ -130,6 +130,30 @@
 甩锅跑路 / 摘桃子 / 藏尸体 / 高位圈钱，逐项核查。查不清的标"未查证"，不写成"不存在"。
 
 <img src="docs/screenshots/shot-star.png" width="760" />
+
+---
+
+## 🎨 三种报告风格
+
+主报告(上面那套)之外,还有三种完整的风格原型,同一套方法论、三种完全不同的叙事皮肤(当前为模拟数据演示,可作为渲染模板切换):
+
+### 风格 A · 侦查卷宗 —— 「绝密档案」
+
+牛皮纸+公章+批注,把基金经理当嫌疑人查:人事档案、物证、结案书。 [在线看](https://wbh604.github.io/fund-guy-skill/assets/style-a-dossier.html)
+
+<img src="docs/screenshots/style-a.png" width="760" />
+
+### 风格 B · 卡牌图鉴 —— 「你抽到了一张 SSR」
+
+游戏抽卡语言:稀有度、属性面板、对战记录、阵亡回放、强度榜。 [在线看](https://wbh604.github.io/fund-guy-skill/assets/style-b-card.html)
+
+<img src="docs/screenshots/style-b.png" width="760" />
+
+### 风格 C · 体检报告 —— 「各项机能基本健康,但天冷就犯病」
+
+体检中心语言:总检结论、检验科、既往病史、Rx 医嘱与剂量控制。 [在线看](https://wbh604.github.io/fund-guy-skill/assets/style-c-checkup.html)
+
+<img src="docs/screenshots/style-c.png" width="760" />
 
 ---
 
