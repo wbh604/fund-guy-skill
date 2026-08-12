@@ -12,7 +12,7 @@
 
 基金经理深度行为审计引擎 · **评的是行为，不是净值**
 
-[在线示例](https://wbh604.github.io/fund-guy-skill/assets/fund-163417.html) · [这是啥](#这是啥) · [报告长什么样](#-报告长什么样) · [快速开始](#快速开始) · [方法论铁律](#方法论铁律) · [数据来源](#数据来源)
+[在线示例](https://wbh604.github.io/fund-guy-skill/assets/fund-163417.html) · [这是啥](#这是啥) · [安装](#安装) · [报告长什么样](#-报告长什么样) · [快速开始](#快速开始) · [方法论铁律](#方法论铁律) · [数据来源](#数据来源)
 
 **中文** | [English](README_EN.md)
 
@@ -41,6 +41,59 @@
 - 你按季报抄他作业，到手收益可能跟他没差多少 —— 那先手优势值几个钱？
 
 这个 skill 把这些问题全部用公开数据算一遍，每个结论可复算、有出处；查不清的标"未查证"，绝不编数。
+
+---
+
+## 安装
+
+### OpenClaw / 龙虾（最简单）
+
+复制这段命令发给龙虾，它会自动装好：
+
+```bash
+git clone https://github.com/wbh604/fund-guy-skill.git ~/.openclaw/skills/fund-guy-skill && pip install -r ~/.openclaw/skills/fund-guy-skill/requirements.txt
+```
+
+装好后直接说：
+
+> 用 fund-guy-skill 里的 `skills/fund-manager-alpha/SKILL.md` 帮我分析基金 163417，参考脚本在仓库 `scripts/` 下。
+
+### Claude Code（Plugin 方式）
+
+```bash
+/plugin marketplace add wbh604/fund-guy-skill
+/plugin install fund-manager-alpha@fund-guy-skill
+```
+
+装好后有三个斜杠命令：`/analyze-fund 163417`（完整审计）、`/quick-check 163417`（5 分钟速查）、`/find-similar 163417`（持仓撞车反查）。
+
+### Claude Code（Skill 方式）
+
+```bash
+git clone https://github.com/wbh604/fund-guy-skill.git && pip install -r fund-guy-skill/requirements.txt
+```
+
+在 Claude Code 里打开 fund-guy-skill 目录，`skills/` 自动发现。
+
+### Codex
+
+直接丢这段给 Codex：
+
+> 克隆 https://github.com/wbh604/fund-guy-skill ，运行 `pip install -r requirements.txt`，然后执行 `python run.py 163417 --no-browser` 分析兴全合宜。跑完把报告路径给我。
+
+### Cursor / Windsurf / Devin / 其他 Agent
+
+丢这段话进去：
+
+> 克隆 https://github.com/wbh604/fund-guy-skill ，装依赖 `pip install -r requirements.txt`，然后读 `skills/fund-manager-alpha/SKILL.md` 按流程分析基金 163417，参考脚本在 `scripts/` 下。
+
+### 纯命令行
+
+```bash
+git clone https://github.com/wbh604/fund-guy-skill.git
+cd fund-guy-skill && pip install -r requirements.txt
+python run.py 163417
+```
 
 ---
 
@@ -185,15 +238,15 @@ python3 -m venv .venv && .venv/bin/pip install -r requirements.txt
 
 把仓库丢给 Agent，说：
 
-> 读 `SKILL.md`，按里面的流程分析基金 163417，参考脚本在 `scripts/` 下。
+> 读 `skills/fund-manager-alpha/SKILL.md`，按里面的流程分析基金 163417，参考脚本在 `scripts/` 下。
 
-脚本是**一次真实运行的参考实现**。接口会改版，换基金/换环境时以 `SKILL.md` 的三层取数模型为准，由 Agent 自行取数、自行做定性判断（公告解读、行业归类、造神检测），脚本仅作参考。
+脚本是**一次真实运行的参考实现**。接口会改版，换基金/换环境时以 `skills/fund-manager-alpha/SKILL.md` 的三层取数模型为准，由 Agent 自行取数、自行做定性判断（公告解读、行业归类、造神检测），脚本仅作参考。
 
 ---
 
 ## 方法论铁律
 
-完整 16 条见 [`SKILL.md`](SKILL.md)，最重要的几条：
+完整 16 条见 [`SKILL.md`](skills/fund-manager-alpha/SKILL.md)，最重要的几条：
 
 1. **直观是最高理念** —— 每个裸数字必须有主语和口径，回归系数只能进小字括号
 2. **必须先做任期切割** —— 前任业绩混入现任评价 = 分析作废

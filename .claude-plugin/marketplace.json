@@ -1,0 +1,13 @@
+{
+  "name": "fund-guy-skill",
+  "owner": {
+    "name": "wbh604"
+  },
+  "plugins": [
+    {
+      "name": "fund-manager-alpha",
+      "source": "./",
+      "description": "基金经理深度行为审计引擎 · 逐笔买卖验尸 × 独立决策取证 × K线战役回放 × 造神检测 · 评的是行为不是净值 · 单文件交互报告"
+    }
+  ]
+}

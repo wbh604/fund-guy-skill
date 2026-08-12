@@ -12,7 +12,7 @@
 
 A deep behavioral audit engine for fund managers · **We grade behavior, not NAV**
 
-[Live Demo](https://wbh604.github.io/fund-guy-skill/assets/fund-163417.html) · [What Is This](#what-is-this) · [Report Tour](#-what-the-report-looks-like) · [Quick Start](#quick-start) · [Hard Rules](#methodology-hard-rules) · [Data Sources](#data-sources)
+[Live Demo](https://wbh604.github.io/fund-guy-skill/assets/fund-163417.html) · [What Is This](#what-is-this) · [Install](#install) · [Report Tour](#-what-the-report-looks-like) · [Quick Start](#quick-start) · [Hard Rules](#methodology-hard-rules) · [Data Sources](#data-sources)
 
 [中文](README.md) | **English**
 
@@ -41,6 +41,59 @@ One sentence: give it a mutual fund code, and the Agent digs up every trade the 
 - If copying his quarterly disclosures gets you nearly the same return, what is his first-mover edge actually worth?
 
 This skill answers all of that with public data. Every conclusion is reproducible and sourced; anything unverifiable is labeled "unverified" — numbers are never invented.
+
+---
+
+## Install
+
+### OpenClaw (easiest)
+
+Send this to your agent and it sets itself up:
+
+```bash
+git clone https://github.com/wbh604/fund-guy-skill.git ~/.openclaw/skills/fund-guy-skill && pip install -r ~/.openclaw/skills/fund-guy-skill/requirements.txt
+```
+
+Then just say:
+
+> Use `skills/fund-manager-alpha/SKILL.md` in fund-guy-skill to analyze fund 163417. Reference scripts are under `scripts/`.
+
+### Claude Code (Plugin)
+
+```bash
+/plugin marketplace add wbh604/fund-guy-skill
+/plugin install fund-manager-alpha@fund-guy-skill
+```
+
+You get three slash commands: `/analyze-fund 163417` (full audit), `/quick-check 163417` (5-minute triage), `/find-similar 163417` (holdings collision lookup).
+
+### Claude Code (Skill)
+
+```bash
+git clone https://github.com/wbh604/fund-guy-skill.git && pip install -r fund-guy-skill/requirements.txt
+```
+
+Open the fund-guy-skill directory in Claude Code — skills under `skills/` are auto-discovered.
+
+### Codex
+
+Drop this on Codex:
+
+> Clone https://github.com/wbh604/fund-guy-skill , run `pip install -r requirements.txt`, then run `python run.py 163417 --no-browser` to analyze the fund. Give me the report path when done.
+
+### Cursor / Windsurf / Devin / other agents
+
+Drop this in:
+
+> Clone https://github.com/wbh604/fund-guy-skill , install deps with `pip install -r requirements.txt`, then read `skills/fund-manager-alpha/SKILL.md` and analyze fund 163417 following its workflow. Reference scripts are under `scripts/`.
+
+### Plain CLI
+
+```bash
+git clone https://github.com/wbh604/fund-guy-skill.git
+cd fund-guy-skill && pip install -r requirements.txt
+python run.py 163417
+```
 
 ---
 
@@ -185,15 +238,15 @@ python3 -m venv .venv && .venv/bin/pip install -r requirements.txt
 
 Drop the repo on your Agent and say:
 
-> Read `SKILL.md` and analyze fund 163417 following its workflow. Reference scripts are under `scripts/`.
+> Read `skills/fund-manager-alpha/SKILL.md` and analyze fund 163417 following its workflow. Reference scripts are under `scripts/`.
 
-The scripts are a **reference implementation from one real run**. APIs change; when analyzing another fund or another environment, follow the three-tier data acquisition model in `SKILL.md` — the Agent fetches data and makes the qualitative calls (announcement reading, industry classification, fame-machine checks) itself. Scripts are references, not the pipeline.
+The scripts are a **reference implementation from one real run**. APIs change; when analyzing another fund or another environment, follow the three-tier data acquisition model in `skills/fund-manager-alpha/SKILL.md` — the Agent fetches data and makes the qualitative calls (announcement reading, industry classification, fame-machine checks) itself. Scripts are references, not the pipeline.
 
 ---
 
 ## Methodology Hard Rules
 
-All 16 rules live in [`SKILL.md`](SKILL.md). The most important ones:
+All 16 rules live in [`SKILL.md`](skills/fund-manager-alpha/SKILL.md). The most important ones:
 
 1. **Intuition is the supreme principle** — every raw number needs a subject and a definition; regression coefficients belong in small print only
 2. **Tenure segmentation comes first** — mixing a predecessor's record into the current manager's evaluation voids the analysis
