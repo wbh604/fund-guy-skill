@@ -32,12 +32,17 @@ _tp = os.path.join(ROOT, ".cache", f"fund_{CODE}", "top_funds.json")
 if os.path.exists(_tp):
     topf = json.load(open(_tp))
 
+# 公开发布的演示版打码:经理姓名遮蔽 + 照片模糊(方法论演示不需要真人身份)
+MASK = True
+
 # 经理照片:有就内嵌 base64(单文件可分享),没有回退首字占位
-_pp = os.path.join(ROOT, ".cache", f"fund_{CODE}", "manager_photo.png")
+# 打码模式用像素化副本(manager_photo_masked.png),原图像素不进 HTML,不可还原
+_pp = os.path.join(ROOT, ".cache", f"fund_{CODE}",
+                   "manager_photo_masked.png" if MASK else "manager_photo.png")
 if os.path.exists(_pp):
     import base64
     _b64 = base64.b64encode(open(_pp, "rb").read()).decode()
-    photo_html = (f'<img src="data:image/png;base64,{_b64}" alt="谢治宇" '
+    photo_html = (f'<img src="data:image/png;base64,{_b64}" alt="基金经理" '
                   'style="width:88px;height:110px;border-radius:10px;object-fit:cover;object-position:top;'
                   'border:1px solid var(--line);flex-shrink:0;background:#fff">')
 else:
@@ -1002,6 +1007,19 @@ html = f'''<!DOCTYPE html>
 <script>{main_js}</script>
 </body>
 </html>'''
+
+if MASK:
+    # 收集全部经理姓名(主角/共管副手/同门经理),统一遮蔽为 首字+**
+    _names = set()
+    for r in regimes:
+        _names.update(r["managers"].split())
+    if hs:
+        for x in hs.get("similar_funds") or []:
+            _names.update(str(x.get("managers", "")).split())
+    _names.discard("")
+    for n in sorted(_names, key=len, reverse=True):
+        html = html.replace(n, n[0] + "*" * max(len(n) - 1, 1))
+    print(f"打码:{len(_names)} 个姓名已遮蔽 + 照片像素化")
 
 out = os.path.join(ROOT, "assets", f"fund-{CODE}.html")
 open(out, "w").write(html)
