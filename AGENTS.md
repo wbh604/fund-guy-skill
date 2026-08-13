@@ -5,7 +5,7 @@
 
 ## 核心文档(按顺序)
 
-1. `skills/fund-manager-alpha/SKILL.md` —— 完整方法论:16 条硬规则、三层取数模型、评分公式。**任何分析任务先读它**
+1. `skills/fund-manager-alpha/SKILL.md` —— 完整方法论:17 条硬规则、三层取数模型、评分公式。**任何分析任务先读它**
 2. `skills/fund-manager-alpha/references/` —— 算法细节(House Consensus/任期切割/经理尽调)
 3. `DESIGN.md` —— 设计决策记录(为什么这么做)
 
@@ -30,7 +30,7 @@ python run.py <基金代码> --no-browser  # 无 GUI 环境
 
 ```
 skills/fund-manager-alpha/   # 方法论主文档 + references
-scripts/                     # 参考实现(fetch → analyze → build 九步)
+scripts/                     # 参考实现(fetch → analyze → build)
 commands/                    # Claude Code 斜杠命令(analyze-fund/quick-check/find-similar)
 .claude-plugin/              # Claude Code 插件清单
 .cursor/skills/              # Cursor 项目技能入口

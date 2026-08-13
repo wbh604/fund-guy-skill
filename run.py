@@ -30,10 +30,12 @@ FETCH_STEPS = [
     ("fetch_house.py", "同门基金持仓(独立战争对照组)"),
     ("fetch_market_similar.py", "全市场撞车榜反查"),
     ("fetch_top_funds.py", "今年收益 TOP10 同步度"),
+    ("fetch_gates.py", "申购闸门(限购/开门/自购公告)"),
 ]
 BUILD_STEPS = [
     ("analyze_fund.py", "行为分析:验尸/评分/被动减仓判定"),
     ("analyze_house.py", "分歧度/市场共识"),
+    ("analyze_gates.py", "闸门 × 市场分位 × 12 个月验尸"),
     ("build_fund_report.py", "生成单文件报告"),
 ]
 
@@ -62,7 +64,7 @@ def main():
         for i, (script, desc) in enumerate(FETCH_STEPS):
             run_step(script, desc, code, required=(i < 2))
     for script, desc in BUILD_STEPS:
-        run_step(script, desc, code, required=(script != "analyze_house.py"))
+        run_step(script, desc, code, required=(script != "analyze_house.py" and script != "analyze_gates.py"))
 
     out = os.path.join(ROOT, "assets", f"fund-{code}.html")
     print(f"\n✅ 报告已生成: {out}")

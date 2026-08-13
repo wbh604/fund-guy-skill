@@ -12,7 +12,7 @@
 
 基金经理深度行为审计引擎 · **评的是行为，不是净值**
 
-[在线示例](https://wbh604.github.io/fund-guy-skill/assets/fund-163417.html) · [这是啥](#这是啥) · [安装](#安装) · [报告长什么样](#-报告长什么样) · [快速开始](#快速开始) · [方法论铁律](#方法论铁律) · [数据来源](#数据来源)
+[在线示例](https://wbh604.github.io/fund-guy-skill/assets/fund-163417.html) · [这是啥](#这是啥) · [安装](#安装) · [报告长什么样](#-报告长什么样) · [快速开始](#快速开始) · [方法论铁律](#方法论铁律) · [数据来源](#数据来源) · [更新日志](#更新日志)
 
 **中文** | [English](README_EN.md)
 
@@ -193,6 +193,8 @@ python run.py 163417
 
 甩锅跑路 / 摘桃子 / 藏尸体 / 高位圈钱，逐项核查。查不清的标"未查证"，不写成"不存在"。
 
+闸门时间轴把限购/开门钉在市场高低点上，拿 12 个月后涨跌验他拦没拦人高位接盘——对照卡，不进总分。
+
 <img src="docs/screenshots/shot-star.png" width="760" />
 
 ---
@@ -233,8 +235,10 @@ python3 -m venv .venv && .venv/bin/pip install -r requirements.txt
 .venv/bin/python scripts/fetch_house.py 163417          # 同门基金持仓(独立战争对照组)
 .venv/bin/python scripts/fetch_market_similar.py 163417 # 全市场撞车榜反查
 .venv/bin/python scripts/fetch_top_funds.py 163417      # 今年收益 TOP10 同步度
+.venv/bin/python scripts/fetch_gates.py 163417          # 申购闸门(限购/开门/自购公告)
 .venv/bin/python scripts/analyze_fund.py 163417         # 行为分析:验尸/评分/被动减仓判定
 .venv/bin/python scripts/analyze_house.py 163417        # 分歧度/市场共识
+.venv/bin/python scripts/analyze_gates.py 163417        # 闸门 × 市场分位 × 12 个月验尸
 .venv/bin/python scripts/build_fund_report.py 163417    # 生成单文件报告 assets/fund-<code>.html
 ```
 
@@ -250,7 +254,7 @@ python3 -m venv .venv && .venv/bin/pip install -r requirements.txt
 
 ## 方法论铁律
 
-完整 16 条见 [`SKILL.md`](skills/fund-manager-alpha/SKILL.md)，最重要的几条：
+完整 17 条见 [`SKILL.md`](skills/fund-manager-alpha/SKILL.md)，最重要的几条：
 
 1. **直观是最高理念** —— 每个裸数字必须有主语和口径，回归系数只能进小字括号
 2. **必须先做任期切割** —— 前任业绩混入现任评价 = 分析作废
@@ -273,9 +277,28 @@ python3 -m venv .venv && .venv/bin/pip install -r requirements.txt
 | 全市场持仓横截面 | 巨潮资讯，经 akshare |
 | A 股周 K（前复权） | baostock |
 | 港股周 K | 新浪财经，经 akshare |
+| 申购闸门（限购 / 开门 / 公司自购） | 东方财富基金公告 JJGG |
 | K 线图表库 | TradingView Lightweight Charts (Apache-2.0) |
 
 所有原始数据落 `.cache/` 留证（不入库），记录接口名+参数与抓取时间；查不到出处的数字不许进报告。报告末尾自带完整数据来源标注。
+
+## 更新日志
+
+按时间倒序。只记对使用者有感的变化。
+
+### 2026-08-13 · 闸门时间轴
+
+- 新模块：**闸门时间轴**。把限购 / 暂停大额 / 打开申购 / 提前结束募集钉在沪深300 **和他的风格指数** 高低点上，拿之后 12 个月涨跌验尸（和买卖点同一套窗口）。
+- 假闸门先剔除：假期双边暂停、全公司同一天限购（同门对照）、触 10% 双十线、熊市份额急缩保命。封闭期满开放申购是合同动作，不进样本。
+- **对照卡，不计入行为总分**。时间线重合是已确认事实；「他有良心」最多较强推断（硬规则第 17 条）。
+- 公司固有资金自购能拿到就叠上去；经理个人自购没有独立接口就标「未获取」。员工持有 ≠ 经理自购。
+- 演示标的兴全合宜（163417）已重跑：高位关过门，也高位开过门。在线示例同步更新。
+
+### 2026-08-12 · 公开演示
+
+- 上线 GitHub Pages 在线示例；演示版对经理姓名与照片打码。
+- 多 Agent 入口：`run.py`、斜杠命令、`.cursor/skills` / `.agents/skills`、英文 README。
+- 报告模块齐：买卖点验尸、独立战争、抄作业指数、造神检测、全市场撞车榜。
 
 ## 免责声明
 

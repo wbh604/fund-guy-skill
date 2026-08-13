@@ -459,6 +459,210 @@ else:
   <div class="card"><span class="lbl">独立战争</span>
     <p style="font-size:13px;color:var(--muted);margin-top:10px">同门持仓数据抓取中,本模块待生成。</p></div>"""
 
+# ---- 闸门时间轴(对照卡,不进总分) ----
+css += """
+.gate-svg{width:100%;height:96px;display:block}
+.gate-legend{display:flex;gap:14px;flex-wrap:wrap;font-size:11px;color:var(--ghost);margin:8px 0 2px}
+.gate-legend i{display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:5px;vertical-align:middle}
+.gate-row{display:grid;grid-template-columns:86px 86px 1fr minmax(168px,1.05fr);gap:12px;align-items:start;padding:11px 0;border-bottom:1px dashed var(--line);font-size:13px}
+.gate-row .when{font-weight:800;font-variant-numeric:tabular-nums}
+.gate-row .act{font-size:12px;font-weight:800}
+.gate-row .why{color:var(--muted);font-size:12.5px;line-height:1.55}
+.gate-row .fwd{font-size:12px;font-variant-numeric:tabular-nums;text-align:right;color:var(--muted);line-height:1.55}
+@media(max-width:720px){.gate-row{grid-template-columns:1fr;gap:4px}.gate-row .fwd{text-align:left}}
+"""
+
+def _pp(x, signed=True):
+    if x is None:
+        return "未获取"
+    return f"{x:+.1f}%" if signed else f"{x:.0f}%"
+
+def _gate_spark(csi_rows, events, buys, w=760, h=92):
+    rows = [r for r in csi_rows if r["date"][:10] >= "2018-01-01"]
+    if len(rows) < 8:
+        return ""
+    if len(rows) > 140:
+        step = max(1, len(rows) // 140)
+        rows = rows[::step]
+    xs = [r["close"] for r in rows]
+    lo, hi = min(xs), max(xs)
+    span = (hi - lo) or 1
+    n = len(rows) - 1
+    def xy(i, v):
+        return (8 + i / n * (w - 16), h - 16 - (v - lo) / span * (h - 30))
+    def x_at(d):
+        prev = 0
+        for i, r in enumerate(rows):
+            if r["date"][:10] > d:
+                return xy(prev, xs[prev])[0]
+            prev = i
+        return xy(n, xs[-1])[0]
+    def y_at(d):
+        prev = xs[0]
+        for r in csi_rows:
+            if r["date"][:10] > d:
+                break
+            prev = r["close"]
+        return h - 16 - (prev - lo) / span * (h - 30)
+    pts = " ".join(f"{xy(i, v)[0]:.1f},{xy(i, v)[1]:.1f}" for i, v in enumerate(xs))
+    kind_fill = {
+        "close_launch": "var(--warn)", "close_limit": "var(--danger)",
+        "open": "var(--danger)", "open_unlock": "var(--ghost)",
+    }
+    marks = []
+    for e in events:
+        cx, cy = x_at(e["date"]), y_at(e["date"])
+        fill = kind_fill.get(e["kind"], "var(--accent)")
+        r = 5 if e.get("in_sample") else 3.5
+        marks.append(f'<circle cx="{cx:.1f}" cy="{cy:.1f}" r="{r}" fill="{fill}" stroke="var(--bg)" stroke-width="1.5"/>')
+    for b in buys:
+        cx, cy = x_at(b["date"]), y_at(b["date"])
+        marks.append(f'<rect x="{cx-3.5:.1f}" y="{cy-3.5:.1f}" width="7" height="7" fill="var(--cyan)" stroke="var(--bg)" stroke-width="1"/>')
+    return f'''<svg class="gate-svg" viewBox="0 0 {w} {h}" role="img" aria-label="沪深300与闸门时点">
+      <polyline fill="none" stroke="var(--muted)" stroke-width="1.6" points="{pts}" opacity=".85"/>
+      {''.join(marks)}
+      <text x="8" y="{h-3}" fill="var(--ghost)" font-size="10">2018</text>
+      <text x="{w-40}" y="{h-3}" fill="var(--ghost)" font-size="10">{rows[-1]["date"][:4]}</text>
+    </svg>'''
+
+_gates = ab.get("gates")
+_csi_p = os.path.join(ROOT, ".cache", f"fund_{CODE}", "csi300.json")
+_csi_rows = json.load(open(_csi_p)) if os.path.exists(_csi_p) else []
+
+god_hype = "高位圈钱 —— 2018-01 牛市顶部一日募 327 亿,次年 -16.8%(公司行为,他是代言人)"
+gate_card = """
+  <div class="card" style="margin-top:var(--gap)">
+    <span class="lbl">闸门时间轴</span>
+    <p style="font-size:13px;color:var(--muted);margin-top:10px">申购闸门公告未获取,本对照卡暂缺。</p>
+  </div>"""
+
+if _gates:
+    _ev = _gates.get("events") or []
+    _sb = _gates.get("self_buy_company") or []
+    _ct = _gates.get("counts") or {}
+    _spark = _gate_spark(_csi_rows, _ev, _sb)
+    KIND_LAB = {
+        "close_launch": ("募满关闸", "var(--warn)"),
+        "close_limit": ("限额关门", "var(--danger)"),
+        "open": ("打开申购", "var(--danger)"),
+        "open_unlock": ("合同开放", "var(--ghost)"),
+    }
+    ZONE_LAB = {"high": "高位", "low": "低位", "mid": "中位", "mixed": "高低分裂", "unknown": "分位未获取"}
+    rows_html = ""
+    for e in _ev:
+        lab, col = KIND_LAB.get(e["kind"], (e["kind"], "var(--muted)"))
+        if e["kind"] == "close_limit" and e.get("limit_yuan"):
+            lab = f"限额≤{e['limit_yuan']//10000}万"
+        z = ZONE_LAB.get(e["zone"], e["zone"])
+        tag = "进样本" if e.get("in_sample") else ("假信号" if e.get("fake") else "不进样本")
+        tag_col = "var(--ok)" if e.get("in_sample") else "var(--ghost)"
+        lim = ""
+        if e.get("limit_yuan") and e["kind"] == "close_limit":
+            lim = f"单户{e['limit_yuan']//10000}万元以上拒收 · "
+        elif e.get("limit_yuan") and e["kind"] == "open":
+            lim = f"恢复接受{e['limit_yuan']//10000}万元以上申购 · "
+        pct = f"沪深300近3年{e['csi_pct']}%分位 · 大盘成长{e['growth_pct']}%分位"
+        fwd = (f"这天之后 12 个月<br>"
+               f"沪深300 <b>{_pp(e.get('fwd_csi'))}</b><br>"
+               f"本基金 <b>{_pp(e.get('fwd_fund'))}</b><br>"
+               f"成长指数 {_pp(e.get('fwd_growth'))}")
+        if e.get("fwd_pending"):
+            fwd = "12 个月窗口尚未到期"
+        rows_html += f"""<div class="gate-row">
+          <div class="when">{e['date']}</div>
+          <div class="act" style="color:{col}">{lab}<br>
+            <span class="tag" style="border-color:{tag_col};color:{tag_col};font-size:10px">{tag} · {z}</span></div>
+          <div class="why">{lim}{pct}<br>{e.get('note') or ''}</div>
+          <div class="fwd">{fwd}</div>
+        </div>"""
+
+    sb_chips = ""
+    for b in _sb:
+        z = ZONE_LAB.get(b.get("zone"), "")
+        sb_chips += (f'<span class="chip">{b["date"][:7]} 公司自购 · {z}'
+                     f' · 随后12个月沪深300 {_pp(b.get("fwd_csi"))}</span>')
+    if not _sb:
+        sb_chips = '<span class="chip">公司自购 未获取</span>'
+
+    _int = _gates.get("internal_holders") or []
+    int_txt = "员工持有比例 未获取"
+    if len(_int) >= 2:
+        int_txt = (f"员工持有 {_int[0]['internal']}({_int[0]['date'][:7]}) → "
+                   f"{_int[-1]['internal']}({_int[-1]['date'][:7]}) · 员工≠经理自购")
+    elif _int:
+        int_txt = f"员工持有 {_int[0]['internal']} · 员工≠经理自购"
+
+    hc, ho = _ct.get("high_close", 0), _ct.get("high_open", 0)
+    lc, lo_ = _ct.get("low_close", 0), _ct.get("low_open", 0)
+    if hc and ho:
+        _ghead = f"高位关过 {hc} 回,也高位开过 {ho} 回 —— 「有良心」这组证据撑不住"
+    elif hc and not ho:
+        _ghead = f"高位关过 {hc} 回,没在高位开过门"
+    elif ho and not hc:
+        _ghead = f"高位开过 {ho} 回,没在高位关过门"
+    else:
+        _ghead = "裁量闸门没有落在高低分位上,这一项暂不下结论"
+
+    _bits = []
+    for e in _ev:
+        if e["kind"] == "close_launch":
+            _bits.append(f"{e['date'][:7]} 顶部募满即关,随后 12 个月沪深300 {_pp(e.get('fwd_csi'))}、本基金 {_pp(e.get('fwd_fund'))}")
+        elif e.get("in_sample") and e["kind"] == "close_limit" and e["zone"] == "high":
+            _bits.append(f"{e['date'][:7]} 在沪深300 {e['csi_pct']}% 分位限额关门,随后 12 个月沪深300 {_pp(e.get('fwd_csi'))}(同门当天没限购)")
+        elif e.get("in_sample") and e["quadrant"] == "high_open":
+            _bits.append(f"{e['date'][:7]} 成长指数 {e['growth_pct']}% 分位打开申购,随后 12 个月本基金 {_pp(e.get('fwd_fund'))}")
+    # 2020-11 连发只取第一条进判词,避免 2 万/1 万说两遍
+    _seen_m = set()
+    _uniq = []
+    for b in _bits:
+        k = b[:7]
+        if k in _seen_m:
+            continue
+        _seen_m.add(k)
+        _uniq.append(b)
+    _gbody = "。".join(_uniq) + "。时间线是已确认事实;「拦人」或「圈钱」的动机最多是较强推断。对照卡,不计入行为总分。"
+
+    n_peer = len(_gates.get("peers_checked") or [])
+    gate_card = f"""
+  <div class="card" style="margin-top:var(--gap)">
+    <span class="lbl">闸门时间轴 · 限购/开门 vs 市场高低点(对照卡,不进总分)</span>
+    <p style="font-size:11px;color:var(--ghost);margin-top:4px">
+      闸门 = 暂停大额 / 限额从大砍到小 / 取消限购 / 提前结束募集 · 假闸门已剔除假期双边暂停 {_ct.get('n_operational', 0)} 条
+      · 对照沪深300 + 大盘成长指数,近 3 年分位 ≥80% 为高位、≤20% 为低位
+      · 同门对照 {n_peer} 只主动权益 · 验尸窗口与买卖点相同:之后 12 个月</p>
+    <div style="margin-top:10px;background:var(--raised);border:1px solid var(--line);border-radius:10px;padding:8px 10px 4px">{_spark}</div>
+    <div class="gate-legend">
+      <span><i style="background:var(--muted)"></i>沪深300</span>
+      <span><i style="background:var(--warn)"></i>募满关闸</span>
+      <span><i style="background:var(--danger)"></i>限额关门 / 打开申购</span>
+      <span><i style="background:var(--ghost)"></i>合同开放(不进样本)</span>
+      <span><i style="background:var(--cyan);border-radius:1px"></i>公司固有资金自购</span>
+    </div>
+    <div style="margin-top:4px">{rows_html}</div>
+    <div class="punchline" style="margin-top:16px;font-size:17px;padding:16px 22px;border-left-width:8px">{_ghead}</div>
+    <p style="font-size:13.5px;color:var(--muted);margin-top:12px;line-height:1.7">{_gbody}</p>
+    <div class="chips" style="margin-top:10px">
+      <span class="chip">高位关门 {hc} 回</span>
+      <span class="chip no">高位开门 {ho} 回</span>
+      <span class="chip">低位关门 {lc} 回</span>
+      <span class="chip">低位开门 {lo_} 回</span>
+      <span class="chip">假期假闸门 {_ct.get('n_operational', 0)} 条已剔除</span>
+    </div>
+    <p style="font-size:12px;color:var(--muted);margin-top:14px"><b>自购叠上去</b> · 经理个人自购{_gates.get('self_buy_manager') or '未获取'} · {int_txt}</p>
+    <div class="chips" style="margin-top:8px">{sb_chips}</div>
+    <p style="font-size:11px;color:var(--ghost);margin-top:8px">公司自购公告写的是「旗下权益类」,未逐只确认是否含本基金 · 按硬规则记线索,不记成他本人掏钱</p>
+  </div>"""
+
+    _open_hi = next((e for e in _ev if e.get("in_sample") and e.get("quadrant") == "high_open"), None)
+    _launch = _gates.get("launch_close") or next((e for e in _ev if e["kind"] == "close_launch"), None)
+    if _launch:
+        god_hype = (f"高位圈钱 —— {_launch['date'][:7]} 顶部一日募 327 亿并提前结束募集,"
+                    f"随后 12 个月沪深300 {_pp(_launch.get('fwd_csi'))}、本基金 {_pp(_launch.get('fwd_fund'))}")
+        if _open_hi:
+            god_hype += (f";{_open_hi['date'][:7]} 成长指数 {_open_hi['growth_pct']}% 分位打开万元以上申购,"
+                         f"随后 12 个月本基金 {_pp(_open_hi.get('fwd_fund'))}")
+        god_hype += "。高位关过门,也高位开过门(公告时间线=已确认事实,圈钱动机=较强推断;公司发行他是代言人)"
+
 html = f'''<!DOCTYPE html>
 <html lang="zh-CN" data-theme="dark">
 <head>
@@ -920,6 +1124,7 @@ html = f'''<!DOCTYPE html>
       </div>
     </div>
   </div>
+{gate_card}
 </section>
 
 <!-- ============ 06 怎么用 ============ -->
@@ -951,7 +1156,7 @@ html = f'''<!DOCTYPE html>
         <span>Idea 先手/跟随(需同门逐季对齐)</span>
         <span>影子经理检测</span>
       </div>
-      <p style="font-size:12px;color:var(--muted);margin-top:12px">独立战争/多因子/抄作业/机构画像/到手率/造神检测已补跑。按 SKILL 硬规则,剩余缺口继续在报告中明示。</p>
+      <p style="font-size:12px;color:var(--muted);margin-top:12px">独立战争/多因子/抄作业/机构画像/到手率/造神检测/闸门时间轴已补跑。按 SKILL 硬规则,剩余缺口继续在报告中明示。</p>
     </div>
   </div>
 
@@ -964,7 +1169,7 @@ html = f'''<!DOCTYPE html>
       <div class="check"><span class="ck">✓</span>藏尸体 —— 在管 3 只产品无清盘、无迷你化</div>
       <div class="check"><span class="ck">✓</span>人设造假 —— 履历与公开备案一致</div>
       <div class="check"><span class="ck">✓</span>偷换尺子 —— 业绩基准八年未变更</div>
-      <div class="check" style="border-color:var(--warn)"><span class="ck" style="color:var(--warn)">⚠</span>高位圈钱 —— 2018-01 牛市顶部一日募 327 亿,次年 -16.8%(公司行为,他是代言人)</div>
+      <div class="check" style="border-color:var(--warn)"><span class="ck" style="color:var(--warn)">⚠</span>{god_hype}</div>
       <div class="check" style="opacity:.6"><span class="ck" style="color:var(--ghost)">○</span>蹭业绩 —— 未详查</div>
       <div class="check" style="opacity:.6"><span class="ck" style="color:var(--ghost)">○</span>年底冲排名 —— 未检测</div>
       <div class="check" style="opacity:.6"><span class="ck" style="color:var(--ghost)">○</span>利益冲突 —— 披露有限,只能记「未发现」</div>
@@ -988,6 +1193,7 @@ html = f'''<!DOCTYPE html>
       <tr><td>港股周 K 线</td><td>新浪财经,经 akshare(stock_hk_daily)</td></tr>
       <tr><td>指数行情(沪深300 / 中证500 / 成长价值风格)</td><td>akshare 指数接口</td></tr>
       <tr><td>同门基金持仓(独立战争对照组)</td><td>东方财富 F10,逐只抓取(剔除自管与债性产品)</td></tr>
+      <tr><td>申购闸门(限购/暂停大额/恢复申购/提前结束募集/公司自购)</td><td>东方财富基金公告 JJGG type=0 · api.fund.eastmoney.com/f10/JJGG · 同门主动权益对照是否同一天限购</td></tr>
       <tr><td>K 线图表库</td><td>TradingView Lightweight Charts(Apache-2.0,已内嵌)</td></tr>
       <tr><td>行业归类 / 事件核实 / 判词 / 造神检测</td><td>分析判断(agent),非官方口径,依据均为公开资料</td></tr>
     </table>

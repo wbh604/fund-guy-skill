@@ -462,6 +462,16 @@ td.v{font-weight:900;font-size:15px;white-space:nowrap;text-align:right}
   .rp-list{max-height:260px;border-right:0;border-bottom:1px solid var(--line)}
   .rp-chart{height:260px}
 }
+
+.gate-svg{width:100%;height:96px;display:block}
+.gate-legend{display:flex;gap:14px;flex-wrap:wrap;font-size:11px;color:var(--ghost);margin:8px 0 2px}
+.gate-legend i{display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:5px;vertical-align:middle}
+.gate-row{display:grid;grid-template-columns:86px 86px 1fr minmax(168px,1.05fr);gap:12px;align-items:start;padding:11px 0;border-bottom:1px dashed var(--line);font-size:13px}
+.gate-row .when{font-weight:800;font-variant-numeric:tabular-nums}
+.gate-row .act{font-size:12px;font-weight:800}
+.gate-row .why{color:var(--muted);font-size:12.5px;line-height:1.55}
+.gate-row .fwd{font-size:12px;font-variant-numeric:tabular-nums;text-align:right;color:var(--muted);line-height:1.55}
+@media(max-width:720px){.gate-row{grid-template-columns:1fr;gap:4px}.gate-row .fwd{text-align:left}}
 </style>
 </head>
 <body>
@@ -1523,6 +1533,70 @@ td.v{font-weight:900;font-size:15px;white-space:nowrap;text-align:right}
       </div>
     </div>
   </div>
+
+  <div class="card" style="margin-top:var(--gap)">
+    <span class="lbl">闸门时间轴 · 限购/开门 vs 市场高低点(对照卡,不进总分)</span>
+    <p style="font-size:11px;color:var(--ghost);margin-top:4px">
+      闸门 = 暂停大额 / 限额从大砍到小 / 取消限购 / 提前结束募集 · 假闸门已剔除假期双边暂停 59 条
+      · 对照沪深300 + 大盘成长指数,近 3 年分位 ≥80% 为高位、≤20% 为低位
+      · 同门对照 6 只主动权益 · 验尸窗口与买卖点相同:之后 12 个月</p>
+    <div style="margin-top:10px;background:var(--raised);border:1px solid var(--line);border-radius:10px;padding:8px 10px 4px"><svg class="gate-svg" viewBox="0 0 760 92" role="img" aria-label="沪深300与闸门时点">
+      <polyline fill="none" stroke="var(--muted)" stroke-width="1.6" points="8.0,51.4 13.0,45.6 18.0,57.2 23.0,51.7 28.0,57.2 33.0,57.9 38.0,56.5 43.0,58.1 47.9,63.0 52.9,67.4 57.9,64.8 62.9,70.6 67.9,70.4 72.9,66.6 77.9,72.3 82.9,72.1 87.9,70.6 92.9,76.0 97.9,73.9 102.9,69.7 107.9,59.3 112.9,57.3 117.9,53.5 122.8,60.9 127.8,63.0 132.8,61.6 137.8,56.5 142.8,57.7 147.8,61.3 152.8,57.0 157.8,56.0 162.8,56.5 167.8,53.7 172.8,56.4 177.8,52.5 182.8,49.7 187.8,58.5 192.8,50.4 197.7,55.9 202.7,59.7 207.7,57.5 212.7,55.3 217.7,53.5 222.7,50.9 227.7,40.7 232.7,35.6 237.7,36.9 242.7,37.4 247.7,33.8 252.7,36.6 257.7,31.4 262.7,31.5 267.7,27.4 272.6,18.9 277.6,14.0 282.6,28.2 287.6,29.2 292.6,30.9 297.6,29.5 302.6,22.3 307.6,28.0 312.6,28.4 317.6,33.6 322.6,32.5 327.6,30.2 332.6,34.0 337.6,30.9 342.6,32.8 347.5,32.4 352.5,31.3 357.5,35.5 362.5,38.2 367.5,39.0 372.5,47.4 377.5,49.3 382.5,53.2 387.5,53.9 392.5,47.0 397.5,42.0 402.5,48.5 407.5,49.0 412.5,52.5 417.4,56.5 422.4,58.7 427.4,59.4 432.4,59.7 437.4,54.6 442.4,53.9 447.4,49.2 452.4,51.0 457.4,53.8 462.4,51.4 467.4,53.9 472.4,54.4 477.4,58.0 482.4,57.2 487.4,56.9 492.3,53.7 497.3,60.3 502.3,59.7 507.3,60.4 512.3,63.5 517.3,63.3 522.3,67.1 527.3,66.8 532.3,70.6 537.3,68.4 542.3,64.5 547.3,65.1 552.3,63.6 557.3,61.3 562.3,63.3 567.2,65.3 572.2,65.9 577.2,66.5 582.2,69.1 587.2,72.4 592.2,47.5 597.2,54.3 602.2,54.2 607.2,55.3 612.2,53.8 617.2,58.3 622.2,55.4 627.2,56.2 632.2,55.0 637.2,59.1 642.1,57.4 647.1,57.2 652.1,56.5 657.1,54.3 662.1,50.5 667.1,49.4 672.1,42.7 677.1,41.3 682.1,39.2 687.1,37.2 692.1,41.1 697.1,40.5 702.1,35.7 707.1,35.8 712.1,36.5 717.0,38.1 722.0,39.5 727.0,35.7 732.0,35.1 737.0,36.0 742.0,31.0 747.0,36.2 752.0,37.0" opacity=".85"/>
+      <circle cx="8.0" cy="47.7" r="5" fill="var(--warn)" stroke="var(--bg)" stroke-width="1.5"/><circle cx="187.8" cy="54.4" r="3.5" fill="var(--ghost)" stroke="var(--bg)" stroke-width="1.5"/><circle cx="252.7" cy="32.7" r="5" fill="var(--danger)" stroke="var(--bg)" stroke-width="1.5"/><circle cx="252.7" cy="32.6" r="5" fill="var(--danger)" stroke="var(--bg)" stroke-width="1.5"/><circle cx="327.6" cy="33.5" r="5" fill="var(--danger)" stroke="var(--bg)" stroke-width="1.5"/><rect x="179.3" y="57.3" width="7" height="7" fill="var(--cyan)" stroke="var(--bg)" stroke-width="1"/><rect x="354.0" y="35.5" width="7" height="7" fill="var(--cyan)" stroke="var(--bg)" stroke-width="1"/><rect x="413.9" y="53.8" width="7" height="7" fill="var(--cyan)" stroke="var(--bg)" stroke-width="1"/><rect x="488.8" y="56.3" width="7" height="7" fill="var(--cyan)" stroke="var(--bg)" stroke-width="1"/><rect x="628.7" y="57.3" width="7" height="7" fill="var(--cyan)" stroke="var(--bg)" stroke-width="1"/>
+      <text x="8" y="89" fill="var(--ghost)" font-size="10">2018</text>
+      <text x="720" y="89" fill="var(--ghost)" font-size="10">2026</text>
+    </svg></div>
+    <div class="gate-legend">
+      <span><i style="background:var(--muted)"></i>沪深300</span>
+      <span><i style="background:var(--warn)"></i>募满关闸</span>
+      <span><i style="background:var(--danger)"></i>限额关门 / 打开申购</span>
+      <span><i style="background:var(--ghost)"></i>合同开放(不进样本)</span>
+      <span><i style="background:var(--cyan);border-radius:1px"></i>公司固有资金自购</span>
+    </div>
+    <div style="margin-top:4px"><div class="gate-row">
+          <div class="when">2018-01-17</div>
+          <div class="act" style="color:var(--warn)">募满关闸<br>
+            <span class="tag" style="border-color:var(--ok);color:var(--ok);font-size:10px">进样本 · 高位</span></div>
+          <div class="why">沪深300近3年99%分位 · 大盘成长79%分位<br>高位募满即关:闸关上了,但钱已经收完,不是拦人未进</div>
+          <div class="fwd">这天之后 12 个月<br>沪深300 <b>-26.8%</b><br>本基金 <b>-14.5%</b><br>成长指数 -33.0%</div>
+        </div><div class="gate-row">
+          <div class="when">2020-02-13</div>
+          <div class="act" style="color:var(--ghost)">合同开放<br>
+            <span class="tag" style="border-color:var(--ghost);color:var(--ghost);font-size:10px">不进样本 · 中位</span></div>
+          <div class="why">沪深300近3年77%分位 · 大盘成长79%分位<br>封闭期满按合同开放日常申购,不是经理裁量开门</div>
+          <div class="fwd">这天之后 12 个月<br>沪深300 <b>+46.7%</b><br>本基金 <b>+82.3%</b><br>成长指数 +69.6%</div>
+        </div><div class="gate-row">
+          <div class="when">2020-11-06</div>
+          <div class="act" style="color:var(--danger)">限额≤2万<br>
+            <span class="tag" style="border-color:var(--ok);color:var(--ok);font-size:10px">进样本 · 高位</span></div>
+          <div class="why">单户2万元以上拒收 · 沪深300近3年100%分位 · 大盘成长100%分位<br>高位关门:时间线重合是事实,「拦人接盘」是较强推断</div>
+          <div class="fwd">这天之后 12 个月<br>沪深300 <b>-0.9%</b><br>本基金 <b>+2.1%</b><br>成长指数 +12.5%</div>
+        </div><div class="gate-row">
+          <div class="when">2020-11-18</div>
+          <div class="act" style="color:var(--danger)">限额≤1万<br>
+            <span class="tag" style="border-color:var(--ok);color:var(--ok);font-size:10px">进样本 · 高位</span></div>
+          <div class="why">单户1万元以上拒收 · 沪深300近3年99%分位 · 大盘成长98%分位<br>高位关门:时间线重合是事实,「拦人接盘」是较强推断</div>
+          <div class="fwd">这天之后 12 个月<br>沪深300 <b>-1.1%</b><br>本基金 <b>+7.3%</b><br>成长指数 +13.9%</div>
+        </div><div class="gate-row">
+          <div class="when">2021-09-23</div>
+          <div class="act" style="color:var(--danger)">打开申购<br>
+            <span class="tag" style="border-color:var(--ok);color:var(--ok);font-size:10px">进样本 · 高位</span></div>
+          <div class="why">恢复接受1万元以上申购 · 沪深300近3年72%分位 · 大盘成长82%分位<br>高位开门:时间线重合是事实,「开门收钱」是较强推断</div>
+          <div class="fwd">这天之后 12 个月<br>沪深300 <b>-20.5%</b><br>本基金 <b>-24.6%</b><br>成长指数 -23.4%</div>
+        </div></div>
+    <div class="punchline" style="margin-top:16px;font-size:17px;padding:16px 22px;border-left-width:8px">高位关过 2 回,也高位开过 1 回 —— 「有良心」这组证据撑不住</div>
+    <p style="font-size:13.5px;color:var(--muted);margin-top:12px;line-height:1.7">2018-01 顶部募满即关,随后 12 个月沪深300 -26.8%、本基金 -14.5%。2020-11 在沪深300 100% 分位限额关门,随后 12 个月沪深300 -0.9%(同门当天没限购)。2021-09 成长指数 82% 分位打开申购,随后 12 个月本基金 -24.6%。时间线是已确认事实;「拦人」或「圈钱」的动机最多是较强推断。对照卡,不计入行为总分。</p>
+    <div class="chips" style="margin-top:10px">
+      <span class="chip">高位关门 2 回</span>
+      <span class="chip no">高位开门 1 回</span>
+      <span class="chip">低位关门 0 回</span>
+      <span class="chip">低位开门 0 回</span>
+      <span class="chip">假期假闸门 59 条已剔除</span>
+    </div>
+    <p style="font-size:12px;color:var(--muted);margin-top:14px"><b>自购叠上去</b> · 经理个人自购未获取 · 员工持有 0.00%(2018-04) → 0.60%(2025-12) · 员工≠经理自购</p>
+    <div class="chips" style="margin-top:8px"><span class="chip">2020-02 公司自购 · 中位 · 随后12个月沪深300 +49.1%</span><span class="chip">2022-01 公司自购 · 中位 · 随后12个月沪深300 -9.5%</span><span class="chip">2022-10 公司自购 · 低位 · 随后12个月沪深300 -5.9%</span><span class="chip">2023-08 公司自购 · 低位 · 随后12个月沪深300 -10.6%</span><span class="chip">2025-04 公司自购 · 低位 · 随后12个月沪深300 +23.9%</span></div>
+    <p style="font-size:11px;color:var(--ghost);margin-top:8px">公司自购公告写的是「旗下权益类」,未逐只确认是否含本基金 · 按硬规则记线索,不记成他本人掏钱</p>
+  </div>
 </section>
 
 <!-- ============ 06 怎么用 ============ -->
@@ -1554,7 +1628,7 @@ td.v{font-weight:900;font-size:15px;white-space:nowrap;text-align:right}
         <span>Idea 先手/跟随(需同门逐季对齐)</span>
         <span>影子经理检测</span>
       </div>
-      <p style="font-size:12px;color:var(--muted);margin-top:12px">独立战争/多因子/抄作业/机构画像/到手率/造神检测已补跑。按 SKILL 硬规则,剩余缺口继续在报告中明示。</p>
+      <p style="font-size:12px;color:var(--muted);margin-top:12px">独立战争/多因子/抄作业/机构画像/到手率/造神检测/闸门时间轴已补跑。按 SKILL 硬规则,剩余缺口继续在报告中明示。</p>
     </div>
   </div>
 
@@ -1567,7 +1641,7 @@ td.v{font-weight:900;font-size:15px;white-space:nowrap;text-align:right}
       <div class="check"><span class="ck">✓</span>藏尸体 —— 在管 3 只产品无清盘、无迷你化</div>
       <div class="check"><span class="ck">✓</span>人设造假 —— 履历与公开备案一致</div>
       <div class="check"><span class="ck">✓</span>偷换尺子 —— 业绩基准八年未变更</div>
-      <div class="check" style="border-color:var(--warn)"><span class="ck" style="color:var(--warn)">⚠</span>高位圈钱 —— 2018-01 牛市顶部一日募 327 亿,次年 -16.8%(公司行为,他是代言人)</div>
+      <div class="check" style="border-color:var(--warn)"><span class="ck" style="color:var(--warn)">⚠</span>高位圈钱 —— 2018-01 顶部一日募 327 亿并提前结束募集,随后 12 个月沪深300 -26.8%、本基金 -14.5%;2021-09 成长指数 82% 分位打开万元以上申购,随后 12 个月本基金 -24.6%。高位关过门,也高位开过门(公告时间线=已确认事实,圈钱动机=较强推断;公司发行他是代言人)</div>
       <div class="check" style="opacity:.6"><span class="ck" style="color:var(--ghost)">○</span>蹭业绩 —— 未详查</div>
       <div class="check" style="opacity:.6"><span class="ck" style="color:var(--ghost)">○</span>年底冲排名 —— 未检测</div>
       <div class="check" style="opacity:.6"><span class="ck" style="color:var(--ghost)">○</span>利益冲突 —— 披露有限,只能记「未发现」</div>
@@ -1591,6 +1665,7 @@ td.v{font-weight:900;font-size:15px;white-space:nowrap;text-align:right}
       <tr><td>港股周 K 线</td><td>新浪财经,经 akshare(stock_hk_daily)</td></tr>
       <tr><td>指数行情(沪深300 / 中证500 / 成长价值风格)</td><td>akshare 指数接口</td></tr>
       <tr><td>同门基金持仓(独立战争对照组)</td><td>东方财富 F10,逐只抓取(剔除自管与债性产品)</td></tr>
+      <tr><td>申购闸门(限购/暂停大额/恢复申购/提前结束募集/公司自购)</td><td>东方财富基金公告 JJGG type=0 · api.fund.eastmoney.com/f10/JJGG · 同门主动权益对照是否同一天限购</td></tr>
       <tr><td>K 线图表库</td><td>TradingView Lightweight Charts(Apache-2.0,已内嵌)</td></tr>
       <tr><td>行业归类 / 事件核实 / 判词 / 造神检测</td><td>分析判断(agent),非官方口径,依据均为公开资料</td></tr>
     </table>

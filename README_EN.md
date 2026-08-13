@@ -12,7 +12,7 @@
 
 A deep behavioral audit engine for fund managers · **We grade behavior, not NAV**
 
-[Live Demo](https://wbh604.github.io/fund-guy-skill/assets/fund-163417.html) · [What Is This](#what-is-this) · [Install](#install) · [Report Tour](#-what-the-report-looks-like) · [Quick Start](#quick-start) · [Hard Rules](#methodology-hard-rules) · [Data Sources](#data-sources)
+[Live Demo](https://wbh604.github.io/fund-guy-skill/assets/fund-163417.html) · [What Is This](#what-is-this) · [Install](#install) · [Report Tour](#-what-the-report-looks-like) · [Quick Start](#quick-start) · [Hard Rules](#methodology-hard-rules) · [Data Sources](#data-sources) · [Changelog](#changelog)
 
 [中文](README.md) | **English**
 
@@ -193,6 +193,8 @@ Regress 103 months of returns against market / size / growth-value factors. What
 
 Dumping losers on juniors / cherry-picking track records / burying dead funds / peak-time cash grabs — checked item by item. Unverifiable items are marked "unverified", never "doesn't exist".
 
+The subscription-gate timeline pins purchase limits and reopenings onto market highs/lows, then autopsies the next 12 months — a comparison card, not a score.
+
 <img src="docs/screenshots/shot-star.png" width="760" />
 
 ---
@@ -233,8 +235,10 @@ python3 -m venv .venv && .venv/bin/pip install -r requirements.txt
 .venv/bin/python scripts/fetch_house.py 163417          # sibling fund holdings (independence control group)
 .venv/bin/python scripts/fetch_market_similar.py 163417 # market-wide collision board reverse lookup
 .venv/bin/python scripts/fetch_top_funds.py 163417      # YTD top-10 funds sync rate
+.venv/bin/python scripts/fetch_gates.py 163417          # subscription gates (limits / reopen / house self-buy)
 .venv/bin/python scripts/analyze_fund.py 163417         # behavior analysis: autopsy/scoring/forced-trim detection
 .venv/bin/python scripts/analyze_house.py 163417        # divergence / market consensus
+.venv/bin/python scripts/analyze_gates.py 163417        # gates × market percentile × 12-month autopsy
 .venv/bin/python scripts/build_fund_report.py 163417    # build single-file report assets/fund-<code>.html
 ```
 
@@ -250,7 +254,7 @@ The scripts are a **reference implementation from one real run**. APIs change; w
 
 ## Methodology Hard Rules
 
-All 16 rules live in [`SKILL.md`](skills/fund-manager-alpha/SKILL.md). The most important ones:
+All 17 rules live in [`SKILL.md`](skills/fund-manager-alpha/SKILL.md). The most important ones:
 
 1. **Intuition is the supreme principle** — every raw number needs a subject and a definition; regression coefficients belong in small print only
 2. **Tenure segmentation comes first** — mixing a predecessor's record into the current manager's evaluation voids the analysis
@@ -273,9 +277,28 @@ All free, zero API keys:
 | Market-wide holdings cross-section | CNINFO, via akshare |
 | A-share weekly K-lines (forward-adjusted) | baostock |
 | HK weekly K-lines | Sina Finance, via akshare |
+| Subscription gates (limits / reopenings / house self-buy) | Eastmoney fund announcements (JJGG) |
 | Charting library | TradingView Lightweight Charts (Apache-2.0) |
 
 All raw data is cached under `.cache/` for evidence (not committed), with API name + parameters and fetch time recorded; no number enters the report without a traceable source. The report itself ends with a full data attribution table.
+
+## Changelog
+
+Newest first. Only changes a user would notice.
+
+### 2026-08-13 · Subscription-gate timeline
+
+- New module: **subscription-gate timeline**. Pins purchase limits / large-order pauses / reopenings / early close of the offering onto CSI 300 **and the fund's style index**, then autopsies the next 12 months (same window as trade autopsies).
+- False gates are stripped first: holiday pauses of both subscriptions and redemptions, firm-wide same-day limits (checked against sibling funds), forced limits near the 10% single-name cap, and bear-market limits while shares are shrinking. Contractual unlock after a lockup is not a discretionary open.
+- **Comparison card, not part of the behavior score.** Timeline overlap is a confirmed fact; "he has a conscience" is at most a strong inference (hard rule 17).
+- Company proprietary-capital self-buys are overlaid when disclosed; manager personal self-buys are marked "not obtained" if no public feed exists. Employee holdings ≠ manager self-buy.
+- Demo fund Xingquan Heyi (163417) re-run: he closed the gate at highs and also reopened at highs. Live demo updated.
+
+### 2026-08-12 · Public demo
+
+- GitHub Pages live demo; demo build masks the manager's name and photo.
+- Multi-agent entry points: `run.py`, slash commands, `.cursor/skills` / `.agents/skills`, English README.
+- Report modules in: trade autopsies, independence trial, copy-trade index, fame-machine check, market-wide collision board.
 
 ## Disclaimer
 

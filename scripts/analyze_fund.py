@@ -641,6 +641,13 @@ except Exception as e:
 quality = min(100, round(ir * 100))
 total_score = round(timing_score * 0.35 + control_score * 0.35 + quality * 0.30)
 
+# 闸门由 analyze_gates.py 写入,重跑本脚本时不要冲掉
+_old_gates = None
+try:
+    _old_gates = (json.load(open(os.path.join(DIR, "analysis.json"))).get("ability") or {}).get("gates")
+except Exception:
+    pass
+
 ability = {
     "timing": timing, "tm_gamma": round(tm_g, 2), "tm_t": round(tm_t, 1),
     "pos_timing": pos_timing, "pos_same_dir": same_dir, "pos_moves": moves,
@@ -660,6 +667,8 @@ ability = {
     "quality_score": quality, "total_score": total_score,
     "buy_calls": buy_calls, "sell_calls": sell_calls,
 }
+if _old_gates:
+    ability["gates"] = _old_gates
 
 managers = load("managers")
 basic = {r["item"]: r["value"] for r in load("basic")}
