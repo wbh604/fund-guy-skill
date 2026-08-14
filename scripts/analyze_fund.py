@@ -10,8 +10,10 @@
 import json, os, re, sys
 from collections import defaultdict
 
-CODE = sys.argv[1] if len(sys.argv) > 1 else "163417"
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+from fund_meta import require_code
+CODE = require_code()
 DIR = os.path.join(ROOT, ".cache", f"fund_{CODE}")
 KDIR = os.path.join(DIR, "kline")
 
@@ -19,8 +21,8 @@ load = lambda n: json.load(open(os.path.join(DIR, n + ".json")))
 
 # ---------- 季度工具 ----------
 def qkey(s):
-    m = re.match(r"(\d{4})年(\d)季度", s)
-    return f"{m.group(1)}Q{m.group(2)}"
+    m = re.match(r"(\d{4})年(\d)季度", s or "")
+    return f"{m.group(1)}Q{m.group(2)}" if m else None
 
 def qend(q):
     y, n = q.split("Q")
@@ -29,14 +31,21 @@ def qend(q):
 def qlabel(q):
     return q[2:]
 
-ALL_Q = [f"{y}Q{n}" for y in range(2018, 2027) for n in range(1, 5)][:34]  # 2018Q1..2026Q2
-FULL = {q for q in ALL_Q if q.endswith("2") or q.endswith("4")}
-
 # ---------- 持仓 ----------
 hold = []
 for f in sorted(os.listdir(DIR)):
-    if f.startswith("hold_"):
-        hold += load(f[:-5] if f.endswith(".json") else f)
+    if f.startswith("hold_") and f.endswith(".json"):
+        hold += load(f[:-5])
+
+# ALL_Q 从本品持仓年份出,禁止写死 2018
+_qs = sorted({qkey(r["季度"]) for r in hold if r.get("季度") and qkey(r["季度"])})
+if _qs:
+    _y0, _y1 = int(_qs[0][:4]), int(_qs[-1][:4])
+else:
+    from datetime import date as _d
+    _y0 = _y1 = _d.today().year
+ALL_Q = [f"{y}Q{n}" for y in range(_y0, _y1 + 1) for n in range(1, 5)]
+FULL = {q for q in ALL_Q if q.endswith("2") or q.endswith("4")}
 
 shares = defaultdict(dict)   # code -> q -> 万股
 weights = defaultdict(dict)  # code -> q -> %
@@ -44,6 +53,8 @@ mv = defaultdict(dict)       # code -> q -> 万元
 names = {}
 for r in hold:
     q = qkey(r["季度"])
+    if not q:
+        continue
     c = r["股票代码"]
     names[c] = r["股票名称"]
     shares[c][q] = r["持股数"]
@@ -52,8 +63,15 @@ for r in hold:
 
 # ---------- 周K ----------
 klines = {}
-for f in os.listdir(KDIR):
-    klines[f[:-5]] = json.load(open(os.path.join(KDIR, f)))
+if os.path.isdir(KDIR):
+    for f in os.listdir(KDIR):
+        if f.endswith(".json"):
+            klines[f[:-5]] = json.load(open(os.path.join(KDIR, f)))
+
+ind_map = {}
+_ip = os.path.join(DIR, "industry.json")
+if os.path.exists(_ip):
+    ind_map = json.load(open(_ip))
 
 def px(code, date):
     """date 当日或之前最近周收盘"""
@@ -176,7 +194,9 @@ for code in klines:
     still = pos is not None
     amount_yi = round(pnl / 10000, 2)  # 万股×元=万元 → 亿
     stocks_out.append({
-        "name": names[code], "code": code, "industry": "",
+        "name": names[code], "code": code,
+        "industry": (ind_map.get(code) or {}).get("industry") or "",
+        "board": (ind_map.get(code) or {}).get("board") or "",
         "weight": peak_w, "skill": "", "skill_key": "",
         "verdict": f"{'仍在持仓' if still else '已退出'} · 披露 {n_disc} 期 · 买卖动作 {len(anchors)} 次(按季报持股数推断)",
         "rating": f"峰值仓位 {peak_w:.1f}% · {'持有中' if still else '完整闭环'}",
@@ -641,10 +661,14 @@ except Exception as e:
 quality = min(100, round(ir * 100))
 total_score = round(timing_score * 0.35 + control_score * 0.35 + quality * 0.30)
 
-# 闸门由 analyze_gates.py 写入,重跑本脚本时不要冲掉
-_old_gates = None
+# 闸门/附加模块由后续脚本写入,重跑本脚本时不要冲掉
+_KEEP = ("gates", "yearend", "clones", "cohorts", "holder_flow", "god")
+_old_extra = {}
 try:
-    _old_gates = (json.load(open(os.path.join(DIR, "analysis.json"))).get("ability") or {}).get("gates")
+    _prev = json.load(open(os.path.join(DIR, "analysis.json"))).get("ability") or {}
+    for k in _KEEP:
+        if _prev.get(k) is not None:
+            _old_extra[k] = _prev[k]
 except Exception:
     pass
 
@@ -667,8 +691,8 @@ ability = {
     "quality_score": quality, "total_score": total_score,
     "buy_calls": buy_calls, "sell_calls": sell_calls,
 }
-if _old_gates:
-    ability["gates"] = _old_gates
+if _old_extra:
+    ability.update(_old_extra)
 
 managers = load("managers")
 basic = {r["item"]: r["value"] for r in load("basic")}

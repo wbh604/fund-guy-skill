@@ -11,8 +11,10 @@ warnings.filterwarnings("ignore")
 import akshare as ak
 import requests
 
-CODE = sys.argv[1] if len(sys.argv) > 1 else "163417"
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+from fund_meta import require_code
+CODE = require_code()
 DIR = os.path.join(ROOT, ".cache", f"fund_{CODE}")
 os.makedirs(DIR, exist_ok=True)
 UA = {"User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7)"}
@@ -72,9 +74,30 @@ def fetch_holders():
     return out
 holders = cached("holders", fetch_holders)
 
+# ---------- 6b. 费率(东财 F10 基金费率页,拿不到就空着) ----------
+def fetch_fees():
+    r = requests.get(f"http://fundf10.eastmoney.com/jjfl_{CODE}.html", timeout=15, headers=UA)
+    r.raise_for_status()
+    text = re.sub(r"<[^>]+>", " ", r.text).replace("&nbsp;", " ")
+    text = re.sub(r"\s+", " ", text)
+    def grab(label):
+        m = re.search(rf"{label}\s*([0-9.]+%)", text)
+        return m.group(1) if m else None
+    return {
+        "mgmt": grab("管理费率"),
+        "custodian": grab("托管费率"),
+        "sales": grab("销售服务费率"),
+        "source": "eastmoney jjfl",
+        "url": f"http://fundf10.eastmoney.com/jjfl_{CODE}.html",
+    }
+fees = cached("fees", fetch_fees)
+print(f"  费率 管理 {fees.get('mgmt') or '未获取'} / 托管 {fees.get('custodian') or '未获取'}")
+
 # ---------- 7. 逐年季度持仓 ----------
-y0 = int(basic[3]["value"][:4]) if "成立" in basic[3]["item"] else 2018
 import datetime
+_bmap = {r["item"]: r["value"] for r in basic} if basic and isinstance(basic[0], dict) else {}
+_found = str(_bmap.get("成立时间") or "")
+y0 = int(_found[:4]) if _found[:4].isdigit() else datetime.date.today().year - 5
 for year in range(y0, datetime.date.today().year + 1):
     cached(f"hold_{year}", lambda y=year: df_records(ak.fund_portfolio_hold_em(symbol=CODE, date=str(y))))
 
@@ -82,7 +105,7 @@ for year in range(y0, datetime.date.today().year + 1):
 def fetch_csi300():
     df = ak.stock_zh_index_daily(symbol="sh000300")
     df["date"] = df["date"].astype(str)
-    df = df[df["date"] >= "2017-06-01"]
+    df = df[df["date"] >= f"{max(y0 - 1, 2005)}-01-01"]
     return df_records(df[["date", "close"]])
 csi300 = cached("csi300", fetch_csi300)
 

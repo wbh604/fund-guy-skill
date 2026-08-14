@@ -24,9 +24,11 @@ if not os.path.exists(PY):
     PY = sys.executable
 
 FETCH_STEPS = [
-    ("fetch_fund.py", "基金主数据(净值/持仓/经理/持有人)"),
+    ("fetch_fund.py", "基金主数据(净值/持仓/经理/持有人/费率)"),
     ("fetch_stock_klines.py", "重仓股周K(baostock + 新浪)"),
+    ("fetch_stock_industry.py", "重仓股行业(东财/港股 F10)"),
     ("fetch_pingzhong.py", "pingzhongdata(申赎/平台评分/照片)"),
+    ("fetch_stock_holders.py", "重仓股十大流通股东(国家队/社保,可缺)"),
     ("fetch_house.py", "同门基金持仓(独立战争对照组)"),
     ("fetch_market_similar.py", "全市场撞车榜反查"),
     ("fetch_top_funds.py", "今年收益 TOP10 同步度"),
@@ -36,6 +38,7 @@ BUILD_STEPS = [
     ("analyze_fund.py", "行为分析:验尸/评分/被动减仓判定"),
     ("analyze_house.py", "分歧度/市场共识"),
     ("analyze_gates.py", "闸门 × 市场分位 × 12 个月验尸"),
+    ("analyze_addons.py", "年底冲排名 / 一车多牌 / 开门批次 / 造神筛 / K线情景"),
     ("build_fund_report.py", "生成单文件报告"),
 ]
 
@@ -64,7 +67,7 @@ def main():
         for i, (script, desc) in enumerate(FETCH_STEPS):
             run_step(script, desc, code, required=(i < 2))
     for script, desc in BUILD_STEPS:
-        run_step(script, desc, code, required=(script != "analyze_house.py" and script != "analyze_gates.py"))
+        run_step(script, desc, code, required=(script not in ("analyze_house.py", "analyze_gates.py", "analyze_addons.py")))
 
     out = os.path.join(ROOT, "assets", f"fund-{code}.html")
     print(f"\n✅ 报告已生成: {out}")

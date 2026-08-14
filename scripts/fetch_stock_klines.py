@@ -9,11 +9,15 @@ warnings.filterwarnings("ignore")
 
 import akshare as ak
 
-CODE = sys.argv[1] if len(sys.argv) > 1 else "163417"
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+from fund_meta import require_code, kline_window
+CODE = require_code()
 DIR = os.path.join(ROOT, ".cache", f"fund_{CODE}")
 KDIR = os.path.join(DIR, "kline")
 os.makedirs(KDIR, exist_ok=True)
+K_START, K_END = kline_window(DIR)
+print(f"K 线窗口 {K_START} → {K_END}")
 
 from collections import defaultdict
 hold = []
@@ -57,7 +61,9 @@ bs.login()
 
 
 def bs_code(code):
-    if code.startswith(("60", "68")):
+    if len(code) == 6 and code.startswith(("8", "4", "92", "83", "87")):
+        return "bj." + code
+    if code.startswith(("60", "68", "90")):
         return "sh." + code
     return "sz." + code
 
@@ -66,7 +72,7 @@ def fetch_a(code):
     """baostock 周K,前复权"""
     rs = bs.query_history_k_data_plus(
         bs_code(code), "date,open,high,low,close",
-        start_date="2017-11-01", end_date="2026-12-31",
+        start_date=K_START, end_date=K_END,
         frequency="w", adjustflag="2")
     rows = []
     while rs.next():
@@ -81,7 +87,7 @@ def fetch_hk(code):
     """新浪日K → 周K(ISO周)"""
     df = ak.stock_hk_daily(symbol=code, adjust="qfq")
     df["date"] = df["date"].astype(str)
-    df = df[df["date"] >= "2017-11-01"]
+    df = df[df["date"] >= K_START]
     from datetime import date as D
     weeks, order = {}, []
     for _, r in df.iterrows():

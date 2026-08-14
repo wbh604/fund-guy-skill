@@ -9,8 +9,10 @@ import re
 import sys
 import urllib.request
 
-CODE = sys.argv[1] if len(sys.argv) > 1 else "163417"
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+from fund_meta import require_code
+CODE = require_code()
 DIR = os.path.join(ROOT, ".cache", f"fund_{CODE}")
 os.makedirs(DIR, exist_ok=True)
 
@@ -47,4 +49,18 @@ for s in bs["series"]:
     print(f"  {s['name']}: 最近3期 {s['data'][-3:]}")
 mgr = (out["Data_currentFundManager"] or [{}])[0]
 print(f"经理: {mgr.get('name')} 东财五维均分 {mgr.get('power', {}).get('avr')}")
+pic = mgr.get("pic") or ""
+if isinstance(pic, str) and pic.startswith("//"):
+    pic = "https:" + pic
+if isinstance(pic, str) and pic.startswith("http"):
+    photo = os.path.join(DIR, "manager_photo.png")
+    if not os.path.exists(photo):
+        try:
+            req2 = urllib.request.Request(
+                pic, headers={"User-Agent": "Mozilla/5.0",
+                              "Referer": "https://fund.eastmoney.com/"})
+            open(photo, "wb").write(urllib.request.urlopen(req2, timeout=15).read())
+            print(f"  照片 → {photo}")
+        except Exception as e:
+            print(f"  照片未获取: {e}")
 print(f"→ {DIR}/pingzhongdata.json")

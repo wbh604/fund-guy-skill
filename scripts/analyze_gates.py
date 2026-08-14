@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """闸门事件 × 市场分位 × 12 个月验尸,写入 analysis.json['ability']['gates']。
 
-分位:近 3 年,≥80% 高位,<20% 低位。对照沪深300 + 成长风格(大盘成长基金不能只用沪深300)。
+分位:近 3 年,≥80% 高位,<20% 低位。对照沪深300 + 他的风格指数(成长β选成长,否则选价值)。
 假信号剔除:全公司同日限购 / 触 10% 双十线 / 熊市+份额急缩保命。
 「良心」不进行为总分,本模块是对照卡。
 
@@ -10,8 +10,10 @@
 import json, os, re, sys
 from datetime import date as D, timedelta
 
-CODE = sys.argv[1] if len(sys.argv) > 1 else "163417"
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+from fund_meta import require_code, style_bench
+CODE = require_code()
 DIR = os.path.join(ROOT, ".cache", f"fund_{CODE}")
 load = lambda n: json.load(open(os.path.join(DIR, n + ".json")))
 
@@ -216,7 +218,12 @@ def analyze():
 
     raw = load("gates")
     csi = [(r["date"][:10], r["close"]) for r in load("csi300")]
-    growth = [(r["date"][:10], r["close"]) for r in load("idx_growth")]
+    style_file, style_name = style_bench(DIR)
+    try:
+        style = [(r["date"][:10], r["close"]) for r in load(style_file)]
+    except Exception:
+        style = [(r["date"][:10], r["close"]) for r in load("idx_growth")]
+        style_name = "成长"
     nav = load_nav_series()
     weights_by_q = load_weights()
     try:
@@ -229,10 +236,10 @@ def analyze():
     for e in raw.get("events") or []:
         d = e["date"]
         csi_pct = pctile(csi, d)
-        g_pct = pctile(growth, d)
+        g_pct = pctile(style, d)
         zone = zone_of(csi_pct, g_pct)
         csi_fwd, csi_pend = fwd_ret(csi, d)
-        g_fwd, g_pend = fwd_ret(growth, d)
+        g_fwd, g_pend = fwd_ret(style, d)
         f_fwd, f_pend = fwd_ret(nav, d, start="next") if nav else (None, True)
         max_w = max_weight_near(d, weights_by_q)
         shrink = share_shrink(d, holders)
@@ -299,8 +306,8 @@ def analyze():
             "title": s["title"],
             "who": s.get("extra") or "unknown",
             "csi_pct": pctile(csi, d),
-            "growth_pct": pctile(growth, d),
-            "zone": zone_of(pctile(csi, d), pctile(growth, d)),
+            "growth_pct": pctile(style, d),
+            "zone": zone_of(pctile(csi, d), pctile(style, d)),
             "fwd_csi": fwd_ret(csi, d)[0],
             "evidence": "clue",  # 旗下权益类未必含本基金
             "note": "公司固有资金自购旗下权益类,公告未确认是否含本基金",
@@ -328,6 +335,8 @@ def analyze():
         "self_buy_manager": "未获取",
         "internal_holders": internal[:1] + internal[-1:] if len(internal) > 1 else internal,
         "peers_checked": raw.get("peers_checked") or [],
+        "style_name": style_name,
+        "style_file": style_file,
         "scoring": "对照卡,不计入行为总分。时间线是已确认事实,良心/圈钱动机最多较强推断。",
         "launch_close": launch,
     }
@@ -342,7 +351,7 @@ def analyze():
     for x in events:
         flag = "样本" if x["in_sample"] else (x["fake"] or "排除")
         print(f"  {x['date']}  {x['kind']:<12} {x['zone']:<6} "
-              f"沪深{x['csi_pct']}% 成长{x['growth_pct']}%  "
+              f"沪深{x['csi_pct']}% {style_name}{x['growth_pct']}%  "
               f"12m沪深{x['fwd_csi']}% 基金{x['fwd_fund']}%  [{flag}]")
 
 

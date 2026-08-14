@@ -11,8 +11,10 @@ from datetime import datetime, timedelta
 
 import requests
 
-CODE = sys.argv[1] if len(sys.argv) > 1 else "163417"
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+from fund_meta import require_code
+CODE = require_code()
 DIR = os.path.join(ROOT, ".cache", f"fund_{CODE}")
 os.makedirs(DIR, exist_ok=True)
 UA = {
@@ -123,6 +125,49 @@ def classify(title):
     return "skip", "other"
 
 
+def collect_ann_flags(rows):
+    """从全部 JJGG 标题筛基准变更/清盘/经理变更。在 skip 噪声之前做,合同修订标题也要留下。"""
+    out = {"benchmark": [], "terminate": [], "manager": []}
+    for row in rows:
+        t = row.get("TITLE") or ""
+        rec = {
+            "date": (row.get("PUBLISHDATE") or "")[:10],
+            "title": t,
+            "id": row.get("ID"),
+        }
+        if re.search(r"业绩比较基准|(变更|修改).{0,12}基准", t):
+            out["benchmark"].append(rec)
+        if re.search(r"清盘|清算|终止运作|基金合同终止|终止上市", t):
+            out["terminate"].append(rec)
+        if re.search(r"增聘基金经理|基金经理变更|(?:基金经理).{0,6}离任|^.*离任.*基金经理", t) \
+                and "高级管理人员" not in t:
+            out["manager"].append(rec)
+    return out
+
+
+def ensure_ann_flags():
+    """gates.json 已有闸门事件时,只补扫标题筛,不重跑同门对照。"""
+    path = os.path.join(DIR, "gates.json")
+    if os.path.exists(path):
+        g = json.load(open(path))
+        if g.get("ann_flags"):
+            return g["ann_flags"]
+    print("[ann_flags] 扫 JJGG 标题(基准/清盘/经理变更)")
+    rows = fetch_all_announcements(CODE)
+    flags = collect_ann_flags(rows)
+    if os.path.exists(path):
+        g = json.load(open(path))
+        g["ann_flags"] = flags
+        json.dump(g, open(path, "w"), ensure_ascii=False, indent=2)
+    else:
+        json.dump({"code": CODE, "ann_flags": flags},
+                  open(os.path.join(DIR, "ann_flags.json"), "w"),
+                  ensure_ascii=False, indent=2)
+    n = {k: len(v) for k, v in flags.items()}
+    print(f"  基准 {n['benchmark']} · 清盘 {n['terminate']} · 经理 {n['manager']}")
+    return flags
+
+
 def rec_of(row, kind, extra):
     title = row.get("TITLE") or ""
     return {
@@ -143,17 +188,17 @@ def pick_peers():
     funds = json.load(open(path))
     out = []
     for f in funds:
-        if f.get("self"):
+        if f.get("self") or str(f.get("code")) == CODE:
             continue
         t = f.get("type") or ""
         if any(k in t for k in ("债券", "指数", "联接", "偏债")):
             continue
-        if not any(k in t for k in ("偏股", "灵活", "股票")):
+        if not any(k in t for k in ("偏股", "灵活", "股票", "混合")):
             continue
-        # 老代码更可能覆盖 2018-2021 闸门窗口
-        if not (str(f["code"]).startswith("163") or str(f["code"]).startswith("340")):
-            continue
-        out.append({"code": f["code"], "name": f["name"], "managers": f.get("managers")})
+        # 规模大的更可能覆盖本品早期闸门窗口;禁止按兴全 163/340 代码写死
+        out.append({"code": f["code"], "name": f["name"], "managers": f.get("managers"),
+                    "aum": f.get("aum") or 0})
+    out.sort(key=lambda x: -float(x.get("aum") or 0))
     return out[:PEER_N]
 
 
@@ -196,7 +241,12 @@ def peer_hits(peers, event_dates):
 def main():
     out_path = os.path.join(DIR, "gates.json")
     if os.path.exists(out_path):
-        print(f"[skip] gates.json 已存在")
+        old = json.load(open(out_path))
+        if old.get("ann_flags"):
+            print(f"[skip] gates.json 已存在")
+            return
+        print("[补] gates.json 缺公告标题筛,补扫 JJGG")
+        ensure_ann_flags()
         return
 
     print(f"[1] 全量公告 {CODE}")
@@ -246,6 +296,7 @@ def main():
         "fetched_at": datetime.now().strftime("%Y-%m-%d %H:%M"),
         "n_all": len(rows),
         "n_skipped": skipped,
+        "ann_flags": collect_ann_flags(rows),
         "events": events,
         "operational": [{"date": x["date"], "title": x["title"], "extra": x["extra"]}
                         for x in operational],

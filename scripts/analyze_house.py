@@ -9,8 +9,10 @@
 import json, os, re, sys
 from collections import defaultdict
 
-CODE = sys.argv[1] if len(sys.argv) > 1 else "163417"
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+from fund_meta import require_code
+CODE = require_code()
 DIR = os.path.join(ROOT, ".cache", f"fund_{CODE}")
 HDIR = os.path.join(DIR, "house")
 
@@ -42,7 +44,9 @@ for f in os.listdir(HDIR):
             peers_hold[q][fc][r["股票代码"]] = w
             names[r["股票代码"]] = r["股票名称"]
 
-QS = sorted(q for q in tgt if q >= "2021Q1" and q in peers_hold and len(peers_hold[q]) >= 8)
+# 对齐本品有持仓、同门也够样本的季度;取最近约 5 年,不写死 2021
+_qs = sorted(q for q in tgt if q in peers_hold and len(peers_hold[q]) >= 8)
+QS = _qs[-20:]
 
 def norm100(port):
     tot = sum(port.values())

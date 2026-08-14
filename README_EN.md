@@ -149,7 +149,7 @@ Divergence gauge: him 78.8%, roughly the same as the average gap between colleag
 
 ### His Current Hand · Top-10 Holdings by Industry
 
-Chips & AI compute at 23.3% is the clear main line, innovative pharma 10% plays support — a classic tech-growth book that will swing with the semiconductor cycle.
+The holdings board is grouped from Eastmoney/HK official industries, not a handwritten "tech growth" story. Screenshot below is the current Heyi demo board.
 
 <img src="docs/screenshots/shot-theme.png" width="760" />
 
@@ -195,6 +195,8 @@ Dumping losers on juniors / cherry-picking track records / burying dead funds / 
 
 The subscription-gate timeline pins purchase limits and reopenings onto market highs/lows, then autopsies the next 12 months — a comparison card, not a score.
 
+Year-end ranking chase compares Q4 vs other quarters; clone overlap checks whether his other products are the same book with a different ticker; open-gate cohorts autopsy the money that came in after the door opened. All three are comparison cards, not scores.
+
 <img src="docs/screenshots/shot-star.png" width="760" />
 
 ---
@@ -229,8 +231,9 @@ Clinic language: general conclusion, lab results, medical history, Rx with dosag
 python3 -m venv .venv && .venv/bin/pip install -r requirements.txt
 
 # Example: Xingquan Heyi 163417 — fetch → analyze → build report
-.venv/bin/python scripts/fetch_fund.py 163417           # core fund data (NAV/holdings/manager/holders)
-.venv/bin/python scripts/fetch_stock_klines.py 163417   # weekly K-lines of heavyweights (baostock + Sina)
+.venv/bin/python scripts/fetch_fund.py 163417           # core fund data (NAV/holdings/manager/holders/fees)
+.venv/bin/python scripts/fetch_stock_klines.py 163417   # weekly K-lines (window follows this fund)
+.venv/bin/python scripts/fetch_stock_industry.py 163417 # heavyweight industries (Eastmoney / HK F10)
 .venv/bin/python scripts/fetch_pingzhong.py 163417      # Eastmoney pingzhongdata (flows/platform rating/photo)
 .venv/bin/python scripts/fetch_house.py 163417          # sibling fund holdings (independence control group)
 .venv/bin/python scripts/fetch_market_similar.py 163417 # market-wide collision board reverse lookup
@@ -239,6 +242,7 @@ python3 -m venv .venv && .venv/bin/pip install -r requirements.txt
 .venv/bin/python scripts/analyze_fund.py 163417         # behavior analysis: autopsy/scoring/forced-trim detection
 .venv/bin/python scripts/analyze_house.py 163417        # divergence / market consensus
 .venv/bin/python scripts/analyze_gates.py 163417        # gates × market percentile × 12-month autopsy
+.venv/bin/python scripts/analyze_addons.py 163417       # year-end chase / clone overlap / open-gate cohorts / fame-machine / K-line events
 .venv/bin/python scripts/build_fund_report.py 163417    # build single-file report assets/fund-<code>.html
 ```
 
@@ -248,13 +252,13 @@ Drop the repo on your Agent and say:
 
 > Read `skills/fund-manager-alpha/SKILL.md` and analyze fund 163417 following its workflow. Reference scripts are under `scripts/`.
 
-The scripts are a **reference implementation from one real run**. APIs change; when analyzing another fund or another environment, follow the three-tier data acquisition model in `skills/fund-manager-alpha/SKILL.md` — the Agent fetches data and makes the qualitative calls (announcement reading, industry classification, fame-machine checks) itself. Scripts are references, not the pipeline.
+The scripts are a **reference implementation from one real run**. Windows, industries, fees, style index, sibling-fund controls, and fund-level K-line events must be recomputed for **the selected fund** — no handwritten 163417 lookup tables, and no copying Heyi's curated timeline onto another code. Announcement full-text and mandate stay with the Agent; fame-machine items that can be screened from this fund's filings are automatic, the rest stay "not obtained". Follow the three-tier data model in `skills/fund-manager-alpha/SKILL.md`.
 
 ---
 
 ## Methodology Hard Rules
 
-All 17 rules live in [`SKILL.md`](skills/fund-manager-alpha/SKILL.md). The most important ones:
+All 18 rules live in [`SKILL.md`](skills/fund-manager-alpha/SKILL.md). The most important ones:
 
 1. **Intuition is the supreme principle** — every raw number needs a subject and a definition; regression coefficients belong in small print only
 2. **Tenure segmentation comes first** — mixing a predecessor's record into the current manager's evaluation voids the analysis
@@ -278,6 +282,7 @@ All free, zero API keys:
 | A-share weekly K-lines (forward-adjusted) | baostock |
 | HK weekly K-lines | Sina Finance, via akshare |
 | Subscription gates (limits / reopenings / house self-buy) | Eastmoney fund announcements (JJGG) |
+| Other products under the same manager (clone overlap) | Eastmoney via akshare |
 | Charting library | TradingView Lightweight Charts (Apache-2.0) |
 
 All raw data is cached under `.cache/` for evidence (not committed), with API name + parameters and fetch time recorded; no number enters the report without a traceable source. The report itself ends with a full data attribution table.
@@ -285,6 +290,22 @@ All raw data is cached under `.cache/` for evidence (not committed), with API na
 ## Changelog
 
 Newest first. Only changes a user would notice.
+
+### 2026-08-14 · Fully automatic per selected fund
+
+- Industry, fees, K-line window, house/market years, gate style index, and sibling-fund controls all follow **the fund you picked**. No more handwritten 163417 industry map or "tech growth" copy.
+- YTD top-10 sync now reads this fund's holdings (does not need analysis.json on first run). Market-collision and holder report dates follow the latest portfolio quarter.
+- Fund-level K-line events (`kind=fund`) are generated from this fund (inception, manager changes, AUM, drawdown, gates). Heyi's handwritten timeline is not the default; industry/macro extras stay only in that fund's own cache.
+- Fame-machine nine-item check now screens this fund's tenure, JJGG titles, strategy blurb vs industry board, and product list. Missing sources stay "not obtained", never "does not exist".
+- Scripts require a 6-digit fund code (no silent fallback to 163417). Demo masking defaults to 163417 only; `FUND_MASK=0` turns it off, `FUND_MASK=1` forces it. Missing masked photos are pixelated automatically.
+
+### 2026-08-13 · Year-end chase / clone overlap / open-gate cohorts
+
+- Three new comparison cards, **none of them enter the behavior score** (hard rule 18).
+- **Year-end ranking chase**: Q4 vs other quarters on top-10 concentration, single-name cap, turnover, and quarterly return. Q1/Q3 only disclose the top 10 — never compare name-count. Launch year is dropped as a build-up year. The fame-machine checklist item is no longer "not checked".
+- **Clone overlap**: latest full-holdings top 10 vs his other active-equity products. Demo fund shares 9/10 with Xingquan Social Value and 6/10 with Xingquan Herun — same book, different ticker.
+- **Open-gate cohorts + holder turnover**: net share change over the next 1–2 reporting dates is the cohort evidence; net outflow is not "nobody bought" and not "opened the door to raise cash". During the lockup, a shift in institutional % with flat shares is secondary-market turnover. Money that rebuilt AUM after unlock is autopsied from the later peak, 12 months out.
+- Demo fund Xingquan Heyi (163417) re-run: no year-end chase; clone overlap confirmed; the door opened into net redemptions, and the later rebuild cohort was down over the next 12 months.
 
 ### 2026-08-13 · Subscription-gate timeline
 

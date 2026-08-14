@@ -9,14 +9,35 @@ from collections import defaultdict
 
 import requests
 
-CODE = sys.argv[1] if len(sys.argv) > 1 else "163417"
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+from fund_meta import require_code, report_dates
+CODE = require_code()
 DIR = os.path.join(ROOT, ".cache", f"fund_{CODE}")
+
 UA = {"User-Agent": "Mozilla/5.0"}
 API = "https://datacenter-web.eastmoney.com/api/data/v1/get"
 
 PASSIVE = re.compile(r"ETF|指数|联接|沪深300|中证|上证|创业板(?!.*精选)|增强|量化|双利|债")
-SELF_CO = re.compile(r"兴全|兴证全球")
+
+def _company_pat():
+    bp = os.path.join(DIR, "basic.json")
+    tokens = []
+    if os.path.exists(bp):
+        rows = json.load(open(bp))
+        b = {r["item"]: r["value"] for r in rows} if rows and isinstance(rows[0], dict) and "item" in rows[0] else {}
+        raw = b.get("基金公司") or ""
+        short = re.sub(r"(基金管理有限公司|基金有限公司|股份有限公司|有限公司)$", "", raw)
+        if short:
+            tokens.append(short)
+        if "兴证全球" in raw or "兴全" in raw:
+            tokens += ["兴全", "兴证全球"]
+    tokens = [t for t in dict.fromkeys(tokens) if t]
+    if not tokens:
+        return re.compile(r"(?!)")  # 匹配不到任何公司
+    return re.compile("|".join(re.escape(t) for t in tokens))
+
+SELF_CO = _company_pat()
 
 # 当前持仓(A股)
 hold = []
@@ -30,7 +51,8 @@ cur = [(r["股票代码"], r["股票名称"], r["占净值比例"] or 0)
 cur.sort(key=lambda x: -x[2])
 print(f"反查 {latest} 的 {len(cur)} 只 A 股持仓")
 
-REPORT_DATES = ["2026-03-31", "2025-12-31"]
+REPORT_DATES = report_dates(DIR, n=3)
+print(f"反查报告日 {REPORT_DATES}")
 fund_hits = defaultdict(lambda: {"stocks": [], "cap": 0.0})
 
 for code, name, w in cur:

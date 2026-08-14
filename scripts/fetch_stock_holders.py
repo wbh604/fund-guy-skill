@@ -10,8 +10,10 @@ warnings.filterwarnings("ignore")
 
 import akshare as ak
 
-CODE = sys.argv[1] if len(sys.argv) > 1 else "163417"
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+from fund_meta import require_code, report_dates
+CODE = require_code()
 DIR = os.path.join(ROOT, ".cache", f"fund_{CODE}")
 
 # 最新一期前十大持仓
@@ -30,7 +32,11 @@ cur = [(r["股票代码"], r["股票名称"]) for r in hold if qkey(r["季度"])
 def em_symbol(code):
     if len(code) == 5:
         return None  # 港股无此口径
-    return ("sh" if code.startswith(("60", "68")) else "sz") + code
+    if code.startswith(("60", "68", "90")):
+        return "sh" + code
+    if len(code) == 6 and code.startswith(("8", "4", "92", "83", "87")):
+        return "bj" + code
+    return "sz" + code
 
 RULES = [
     ("国家队", r"中央汇金|中国证券金融|证金公司|梧桐树|外汇管理局"),
@@ -54,7 +60,7 @@ for code, name in cur:
         out[code] = {"name": name, "special": None, "note": "港股无此口径"}
         continue
     got = None
-    for date in ("20260630", "20260331", "20251231"):
+    for date in (d.replace("-", "") for d in report_dates(DIR, n=3)):
         try:
             df = ak.stock_gdfx_free_top_10_em(symbol=sym, date=date)
             if len(df):

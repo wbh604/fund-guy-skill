@@ -10,16 +10,33 @@ import os
 import re
 import sys
 import time
+from datetime import date as D
 
 import akshare as ak
 
-CODE = sys.argv[1] if len(sys.argv) > 1 else "163417"
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+from fund_meta import require_code, latest_hold_q
+CODE = require_code()
 DIR = os.path.join(ROOT, ".cache", f"fund_{CODE}")
 
-my = json.load(open(os.path.join(DIR, "analysis.json")))
-my_names = {s["name"] for s in my["replay"]["stocks"] if s.get("cur_w")}
-print(f"他的当前前十大: {sorted(my_names)}")
+# 用本品持仓,不依赖 analysis.json(管线里本脚本在 analyze 之前)
+def qkey(s):
+    m = re.match(r"(\d{4})年(\d)季度", s or "")
+    return f"{m.group(1)}Q{m.group(2)}" if m else None
+
+hold = []
+for f in sorted(os.listdir(DIR)):
+    if f.startswith("hold_") and f.endswith(".json") and f[5:9].isdigit():
+        hold += json.load(open(os.path.join(DIR, f)))
+latest = latest_hold_q(DIR)
+if not latest:
+    print("本品持仓未获取,跳过热榜")
+    sys.exit(0)
+cur = [r for r in hold if qkey(r.get("季度")) == latest]
+cur.sort(key=lambda r: -(r.get("占净值比例") or 0))
+my_names = {r["股票名称"] for r in cur[:10]}
+print(f"他的当前前十大({latest}): {sorted(my_names)}")
 
 rank = ak.fund_open_fund_rank_em(symbol="全部")
 rank = rank.dropna(subset=["今年来"])
@@ -44,7 +61,14 @@ for r in top:
     code, name, ytd = r["基金代码"], r["基金简称"], float(r["今年来"])
     shared, latest_q = [], ""
     try:
-        h = ak.fund_portfolio_hold_em(symbol=code, date="2026")
+        h = None
+        for y in (D.today().year, D.today().year - 1):
+            try:
+                h = ak.fund_portfolio_hold_em(symbol=code, date=str(y))
+            except Exception:
+                h = None
+            if h is not None and len(h):
+                break
         if h is not None and len(h):
             latest_q = sorted(h["季度"].unique())[-1]
             top10 = h[h["季度"] == latest_q].nsmallest(10, "序号")

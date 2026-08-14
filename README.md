@@ -149,7 +149,7 @@ python run.py 163417
 
 ### 现在的牌面 · 前十大按行业归堆
 
-芯片 & AI 算力 23.3% 是绝对主线，创新药 10% 打辅助 —— 典型科技成长打法，涨跌跟半导体周期共振。
+牌面按东财/港股公开行业自动归堆，不写死「科技成长打法」。下图是合宜演示的当前牌面。
 
 <img src="docs/screenshots/shot-theme.png" width="760" />
 
@@ -195,6 +195,8 @@ python run.py 163417
 
 闸门时间轴把限购/开门钉在市场高低点上，拿 12 个月后涨跌验他拦没拦人高位接盘——对照卡，不进总分。
 
+年底冲排名比 Q4 和其他季；一车多牌看他名下产品持仓重不重样；开门批次验门开了之后那批钱 12 个月怎样了。三张都是对照卡，不进总分。
+
 <img src="docs/screenshots/shot-star.png" width="760" />
 
 ---
@@ -229,8 +231,9 @@ python run.py 163417
 python3 -m venv .venv && .venv/bin/pip install -r requirements.txt
 
 # 以兴全合宜 163417 为例:取数 → 分析 → 出报告
-.venv/bin/python scripts/fetch_fund.py 163417           # 基金主数据(净值/持仓/经理/持有人)
-.venv/bin/python scripts/fetch_stock_klines.py 163417   # 重仓股周K(baostock + 新浪)
+.venv/bin/python scripts/fetch_fund.py 163417           # 基金主数据(净值/持仓/经理/持有人/费率)
+.venv/bin/python scripts/fetch_stock_klines.py 163417   # 重仓股周K(窗口跟本基金成立日)
+.venv/bin/python scripts/fetch_stock_industry.py 163417 # 重仓股行业(东财/港股 F10)
 .venv/bin/python scripts/fetch_pingzhong.py 163417      # 天天基金 pingzhongdata(申赎/平台评分/照片)
 .venv/bin/python scripts/fetch_house.py 163417          # 同门基金持仓(独立战争对照组)
 .venv/bin/python scripts/fetch_market_similar.py 163417 # 全市场撞车榜反查
@@ -239,6 +242,7 @@ python3 -m venv .venv && .venv/bin/pip install -r requirements.txt
 .venv/bin/python scripts/analyze_fund.py 163417         # 行为分析:验尸/评分/被动减仓判定
 .venv/bin/python scripts/analyze_house.py 163417        # 分歧度/市场共识
 .venv/bin/python scripts/analyze_gates.py 163417        # 闸门 × 市场分位 × 12 个月验尸
+.venv/bin/python scripts/analyze_addons.py 163417       # 年底冲排名 / 一车多牌 / 开门批次 / 造神筛 / K线情景
 .venv/bin/python scripts/build_fund_report.py 163417    # 生成单文件报告 assets/fund-<code>.html
 ```
 
@@ -248,13 +252,13 @@ python3 -m venv .venv && .venv/bin/pip install -r requirements.txt
 
 > 读 `skills/fund-manager-alpha/SKILL.md`，按里面的流程分析基金 163417，参考脚本在 `scripts/` 下。
 
-脚本是**一次真实运行的参考实现**。接口会改版，换基金/换环境时以 `skills/fund-manager-alpha/SKILL.md` 的三层取数模型为准，由 Agent 自行取数、自行做定性判断（公告解读、行业归类、造神检测），脚本仅作参考。
+脚本是**一次真实运行的参考实现**。接口会改版，换基金时窗口、行业、费率、风格指数、同门对照、K 线 fund 事件必须按所选基金重算，禁止手写某只基金的对照表，也禁止把合宜手写时间轴抄到别的代码。公告全文和 Mandate 仍由 Agent 做；造神九项能自动筛的用本品数据，筛不到的标未获取。以 `skills/fund-manager-alpha/SKILL.md` 的三层取数模型为准。
 
 ---
 
 ## 方法论铁律
 
-完整 17 条见 [`SKILL.md`](skills/fund-manager-alpha/SKILL.md)，最重要的几条：
+完整 18 条见 [`SKILL.md`](skills/fund-manager-alpha/SKILL.md)，最重要的几条：
 
 1. **直观是最高理念** —— 每个裸数字必须有主语和口径，回归系数只能进小字括号
 2. **必须先做任期切割** —— 前任业绩混入现任评价 = 分析作废
@@ -274,10 +278,13 @@ python3 -m venv .venv && .venv/bin/pip install -r requirements.txt
 |---|---|
 | 净值 / 规模 / 申赎 / 持有人 / 经理档案 / 平台评分 | 天天基金（东方财富） |
 | 逐季持仓 / 基金排行 | 东方财富，经 akshare |
+| 重仓股行业 | 东方财富 F10 / 港股 F10 |
+| 管理费托管费 | 东方财富基金费率页 |
 | 全市场持仓横截面 | 巨潮资讯，经 akshare |
 | A 股周 K（前复权） | baostock |
 | 港股周 K | 新浪财经，经 akshare |
 | 申购闸门（限购 / 开门 / 公司自购） | 东方财富基金公告 JJGG |
+| 名下其他产品持仓（一车多牌） | 东方财富，经 akshare |
 | K 线图表库 | TradingView Lightweight Charts (Apache-2.0) |
 
 所有原始数据落 `.cache/` 留证（不入库），记录接口名+参数与抓取时间；查不到出处的数字不许进报告。报告末尾自带完整数据来源标注。
@@ -285,6 +292,24 @@ python3 -m venv .venv && .venv/bin/pip install -r requirements.txt
 ## 更新日志
 
 按时间倒序。只记对使用者有感的变化。
+
+### 2026-08-14 · 换基金全自动
+
+- 行业、费率、K 线窗口、同门/市场横截面年份、闸门风格指数、同门对照，全部按**所选基金**重算，去掉合宜 163417 的手写对照表。
+- 牌面按东财/港股所属行业归堆，不再写「科技成长打法」。
+- 闸门同门对照按公司权益产品规模排序，不再限定兴全 163/340 代码。
+- 热榜同步度改读本品持仓（不再依赖 analysis.json，换基金首次就能跑）；全市场反查/十大股东报告日跟最新持仓季走，不再写死 2026。
+- K 线情景的 `kind=fund` 事件按本品自动生成（成立/经理变更/规模/回撤/闸门），不再把合宜手写时间轴当默认；行业/宏观新闻只保留在这只基金自己的缓存里。
+- 造神九项改成本品数据筛：共管/独管、JJGG 标题（基准/清盘）、策略摘要 vs 牌面、名下产品清单。筛不到的仍写未获取，不写成不存在。
+- 单脚本必须带 6 位基金代码，禁止默认落到 163417。演示打码：默认只打码 163417；`FUND_MASK=0` 可关，`FUND_MASK=1` 可对任意基金开。缺 masked 照片时自动像素化。
+
+### 2026-08-13 · 年底冲排名 / 一车多牌 / 开门批次
+
+- 三张新对照卡，**都不计入行为总分**（硬规则第 18 条）。
+- **年底冲排名**：Q4 vs 其他季比前十大集中度、单票上限、换血率、当季收益。Q1/Q3 只有前十大，禁止拿持股只数比；成立首年当建仓年剔除。造神九项里这一条从「未检测」改为可自动过/红旗。
+- **一车多牌**：拿他名下其他主动权益的最新全持仓前十大，看跟这一只撞几只。演示标的对社会价值 9/10、对合润 6/10 —— 和社会价值本质上是一辆车换车牌。
+- **开门批次命运 + 持有人换手**：门开了之后 1～2 期净份额升降才算批次；净缩不能写成开门收钱。锁定期份额不动时，机构占比变化是场内换手。解锁后爬回去的那批钱，从高点起算 12 个月。
+- 演示标的兴全合宜（163417）已重跑：年底冲排名未检出；一车多牌同构；开门当时净份额在缩，滞后批次 12 个月为负。
 
 ### 2026-08-13 · 闸门时间轴
 
