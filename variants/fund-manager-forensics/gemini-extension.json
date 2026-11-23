@@ -1,0 +1,6 @@
+{
+  "name": "fund-manager-forensics",
+  "version": "0.2.0",
+  "description": "主动基金经理深度取证与机构核保",
+  "contextFileName": "GEMINI.md"
+}

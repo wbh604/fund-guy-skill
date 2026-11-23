@@ -1,0 +1,6 @@
+interface:
+  display_name: "Fund Manager Forensics"
+  short_description: "主动基金经理深度取证与买卖判决"
+  default_prompt: "使用 fund-manager-forensics 深度分析这只主动基金和当前基金经理。"
+policy:
+  allow_implicit_invocation: true
