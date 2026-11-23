@@ -1,0 +1,159 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://fund-manager-forensics.local/schemas/agent-analysis.schema.json",
+  "title": "Fund Manager Forensics Agent Analysis",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "analysis_mode",
+    "agent_reviewed",
+    "reviewers",
+    "manager_tenure",
+    "manager_rarity",
+    "independent_decision",
+    "module_reviews",
+    "people_reviews",
+    "trade_reviews",
+    "conflicts",
+    "verdict"
+  ],
+  "properties": {
+    "schema_version": {"const": "1.0.0"},
+    "analysis_mode": {"enum": ["quick", "deep"]},
+    "agent_reviewed": {"type": "boolean"},
+    "single_agent_fallback": {"type": "boolean"},
+    "reviewers": {"type": "object"},
+    "manager_tenure": {"type": "object"},
+    "manager_rarity": {
+      "type": "object",
+      "required": [
+        "ability_score",
+        "ability_grade",
+        "scarcity_score",
+        "scarcity_reason",
+        "exposure_level",
+        "card_rarity",
+        "product_grade",
+        "confidence",
+        "punchline",
+        "judgment",
+        "evidence_refs",
+        "evidence",
+        "counterevidence"
+      ],
+      "properties": {
+        "ability_score": {"type": "integer", "minimum": 0, "maximum": 100},
+        "ability_grade": {"enum": ["N", "R", "SR", "SSR", "UR"]},
+        "scarcity_score": {"type": "integer", "minimum": 0, "maximum": 100},
+        "scarcity_reason": {"type": "string", "minLength": 1},
+        "exposure_level": {"enum": ["隐世", "圈内", "出圈", "明星", "顶流"]},
+        "card_rarity": {"enum": ["N", "R", "SR", "SSR", "UR"]},
+        "product_grade": {"enum": ["N", "R", "SR", "SSR", "UR"]},
+        "confidence": {"enum": ["低", "中", "高"]},
+        "punchline": {"type": "string", "minLength": 1},
+        "judgment": {"type": "string", "minLength": 1},
+        "evidence_refs": {"type": "array", "minItems": 1, "items": {"type": "string", "minLength": 1}},
+        "evidence": {"type": "array", "minItems": 3, "items": {"type": "string", "minLength": 1}},
+        "counterevidence": {"type": "string", "minLength": 1}
+      }
+    },
+    "independent_decision": {
+      "type": "object",
+      "required": [
+        "status",
+        "house_consensus",
+        "mandate_adjustment",
+        "thinking",
+        "alpha",
+        "contrarian_alpha",
+        "battles",
+        "idea_origination",
+        "shadow_manager",
+        "company_independence",
+        "missing_data",
+        "evidence_refs"
+      ],
+      "properties": {
+        "status": {"enum": ["已证实", "估算", "未证明", "未发现可靠公开信息"]},
+        "house_consensus": {
+          "type": "object",
+          "required": ["self_excluded", "manager_equal", "aum_weighted", "conclusion"],
+          "properties": {
+            "self_excluded": {"const": true},
+            "manager_equal": {"type": ["number", "null"], "minimum": 0, "maximum": 100},
+            "aum_weighted": {"type": ["number", "null"], "minimum": 0, "maximum": 100},
+            "conclusion": {"type": "string", "minLength": 1}
+          }
+        },
+        "mandate_adjustment": {
+          "type": "object",
+          "required": ["completed", "conclusion"],
+          "properties": {
+            "completed": {"type": "boolean"},
+            "conclusion": {"type": "string", "minLength": 1}
+          }
+        },
+        "thinking": {"$ref": "#/$defs/independentScore"},
+        "alpha": {"$ref": "#/$defs/independentScore"},
+        "contrarian_alpha": {"type": "string", "minLength": 1},
+        "battles": {"type": "array"},
+        "idea_origination": {"type": "string", "minLength": 1},
+        "shadow_manager": {"type": "string", "minLength": 1},
+        "company_independence": {"type": "string", "minLength": 1},
+        "missing_data": {"type": "array", "items": {"type": "string", "minLength": 1}},
+        "evidence_refs": {"type": "array", "minItems": 1, "items": {"type": "string", "minLength": 1}}
+      },
+      "additionalProperties": false
+    },
+    "module_reviews": {
+      "type": "object",
+      "minProperties": 45,
+      "maxProperties": 45,
+      "patternProperties": {"^M(0[1-9]|[1-3][0-9]|4[0-5])$": {"$ref": "#/$defs/review"}},
+      "additionalProperties": false
+    },
+    "people_reviews": {
+      "type": "object",
+      "minProperties": 24,
+      "maxProperties": 24,
+      "patternProperties": {"^P(0[1-9]|1[0-9]|2[0-4])$": {"$ref": "#/$defs/review"}},
+      "additionalProperties": false
+    },
+    "trade_reviews": {"type": "object"},
+    "conflicts": {"type": "array"},
+    "verdict": {
+      "type": "object",
+      "required": ["buy_now", "label", "institutional_view", "sentence", "reasons", "flip_conditions", "evidence_refs"],
+      "properties": {
+        "buy_now": {"type": "boolean"},
+        "label": {"enum": ["可以买", "不能买"]},
+        "institutional_view": {"type": "string", "minLength": 1},
+        "sentence": {"type": "string", "minLength": 1},
+        "reasons": {"type": "array", "minItems": 1, "items": {"type": "string", "minLength": 1}},
+        "flip_conditions": {"type": "array", "minItems": 1, "items": {"type": "string", "minLength": 1}},
+        "evidence_refs": {"type": "array", "minItems": 1, "items": {"type": "string", "minLength": 1}}
+      }
+    }
+  },
+  "$defs": {
+    "independentScore": {
+      "type": "object",
+      "required": ["score", "conclusion"],
+      "properties": {
+        "score": {"type": ["number", "null"], "minimum": 0, "maximum": 100},
+        "conclusion": {"type": "string", "minLength": 1}
+      }
+    },
+    "review": {
+      "type": "object",
+      "required": ["status", "conclusion", "evidence_refs", "reviewer"],
+      "properties": {
+        "field_key": {"type": "string", "minLength": 1},
+        "status": {"enum": ["已证实", "估算", "未证明", "未发现可靠公开信息"]},
+        "conclusion": {"type": "string", "minLength": 1},
+        "evidence_refs": {"type": "array", "minItems": 1, "items": {"type": "string"}},
+        "reviewer": {"type": "string", "minLength": 1}
+      }
+    }
+  }
+}

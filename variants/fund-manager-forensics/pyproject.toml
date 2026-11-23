@@ -1,0 +1,9 @@
+[project]
+name = "fund-manager-forensics"
+version = "0.2.0"
+description = "主动基金经理深度取证 Skill"
+requires-python = ">=3.10"
+dependencies = []
+
+[tool.unittest]
+start-directory = "tests"

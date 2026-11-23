@@ -1,0 +1,14 @@
+{
+  "name": "fund-manager-forensics",
+  "version": "0.2.0",
+  "description": "主动基金经理深度取证：五席Agent、45项基金模块、24项People尽调与证据硬门槛",
+  "author": {
+    "name": "Fund Manager Forensics"
+  },
+  "keywords": [
+    "active-fund",
+    "fund-manager",
+    "manager-due-diligence",
+    "alpha-forensics"
+  ]
+}

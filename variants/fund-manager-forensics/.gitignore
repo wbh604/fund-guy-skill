@@ -1,0 +1,8 @@
+/cases/
+/output/
+/artifacts/
+/.playwright-cli/
+.env
+.env.*
+/dist/*
+!/dist/fund-manager-forensics-0.2.0-workbuddy.zip

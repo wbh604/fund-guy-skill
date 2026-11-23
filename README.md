@@ -18,6 +18,8 @@
 
 </div>
 
+[对照版：主动基金经理取证 v0.2.0](variants/fund-manager-forensics/README.md) · 单独安装，不改变本页原版用法。
+
 ---
 
 ## 鸣谢
